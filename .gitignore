@@ -1,0 +1,17 @@
+.sconsign.dblite
+
+*.obj
+
+*.dll 
+*.exp
+*.lib
+*.pdb
+*.so
+*.universal
+*.dylib
+*.wasm
+*.plist
+*.enabled
+
+demo
+.vscode
