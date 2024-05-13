@@ -1,7 +1,0 @@
-[submodule "godot-cpp"]
-	path = godot-cpp
-	url = https://github.com/godotengine/godot-cpp
-	branch = master
-[submodule "ubisoft-laforge-animation-dataset"]
-	path = ubisoft-laforge-animation-dataset
-	url = https://github.com/ubisoft/ubisoft-laforge-animation-dataset.git
