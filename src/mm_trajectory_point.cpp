@@ -2,11 +2,13 @@
 
 #include <godot_cpp/core/class_db.hpp>
 
-MMTrajectoryPoint::MMTrajectoryPoint() : RefCounted() {}
+MMTrajectoryPoint::MMTrajectoryPoint() : RefCounted() {
+}
 
-MMTrajectoryPoint::~MMTrajectoryPoint() {}
+MMTrajectoryPoint::~MMTrajectoryPoint() {
+}
 
 void MMTrajectoryPoint::_bind_methods() {
-  BINDER_PROPERTY_PARAMS(MMTrajectoryPoint, Variant::VECTOR3, position);
-  BINDER_PROPERTY_PARAMS(MMTrajectoryPoint, Variant::VECTOR3, velocity);
+    BINDER_PROPERTY_PARAMS(MMTrajectoryPoint, Variant::VECTOR3, position);
+    BINDER_PROPERTY_PARAMS(MMTrajectoryPoint, Variant::VECTOR3, velocity);
 }

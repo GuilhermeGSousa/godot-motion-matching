@@ -24,18 +24,18 @@ func _input(event: InputEvent) -> void:
 
 func visibility():
 	var current_path = get_editor_interface().get_current_path()
+	var current_scene_root = get_editor_interface().get_edited_scene_root()
+	var selected_nodes :Array= get_editor_interface().get_selection().get_selected_nodes()
+	var player : MMAnimationPlayer
+	for n in selected_nodes:
+		if n is MMAnimationPlayer:
+			player = n
+			break
 	
-	if not ResourceLoader.exists(current_path):
-		return
-		
-	var l = ResourceLoader.load(current_path)
-	
-	if l is MMAnimationLibrary:
-		prints("Selected MMAL",l.resource_path)
-
+	if player is MMAnimationPlayer:
 		add_control_to_bottom_panel(mm_lib_editor,"MotionMatching")
 		make_bottom_panel_item_visible(mm_lib_editor)
-		mm_lib_editor.library = l
+		mm_lib_editor.player = player
 		mm_lib_editor.update_info()
 	else :
 		remove_control_from_bottom_panel(mm_lib_editor)

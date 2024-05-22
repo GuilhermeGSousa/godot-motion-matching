@@ -5,6 +5,7 @@
 *.dll 
 *.exp
 *.lib
+*.ilk
 *.pdb
 *.so
 *.universal

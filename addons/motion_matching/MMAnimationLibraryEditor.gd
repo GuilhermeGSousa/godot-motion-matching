@@ -1,10 +1,11 @@
 @tool
 class_name MMAnimationLibraryEditor extends Control
 
-var library : MMAnimationLibrary
+var player : MMAnimationPlayer
 
 func update_info():
 	pass
 
+
 func _on_bake_button_pressed() -> void:
-	library.bake_data()
+	player.bake_library_data()

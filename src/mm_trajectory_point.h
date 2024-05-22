@@ -7,16 +7,16 @@
 using namespace godot;
 
 class MMTrajectoryPoint : public RefCounted {
-  GDCLASS(MMTrajectoryPoint, RefCounted)
+    GDCLASS(MMTrajectoryPoint, RefCounted)
 
- public:
-  MMTrajectoryPoint();
-  virtual ~MMTrajectoryPoint();
+public:
+    MMTrajectoryPoint();
+    virtual ~MMTrajectoryPoint();
 
- protected:
-  static void _bind_methods();
+protected:
+    static void _bind_methods();
 
- public:
-  GETSET(Vector3, position)
-  GETSET(Vector3, velocity)
+public:
+    GETSET(Vector3, position)
+    GETSET(Vector3, velocity)
 };

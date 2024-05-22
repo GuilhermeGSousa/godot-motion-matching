@@ -8,9 +8,9 @@ reloadable = true
 
 macos.debug = "bin/libgdmotionmatching.macos.template_debug.framework"
 macos.release = "bin/libgdmotionmatching.macos.template_release.framework"
-windows.debug.x86_32 = "bin/libgdmotionmatching.windows.template_debug.x86_32.dll"
+windows.debug.x86_32 = "bin/libgdmotionmatching.windows.template_debug.dev.x86_32.dll"
 windows.release.x86_32 = "bin/libgdmotionmatching.windows.template_release.x86_32.dll"
-windows.debug.x86_64 = "bin/libgdmotionmatching.windows.template_debug.x86_64.dll"
+windows.debug.x86_64 = "bin/libgdmotionmatching.windows.template_debug.dev.x86_64.dll"
 windows.release.x86_64 = "bin/libgdmotionmatching.windows.template_release.x86_64.dll"
 linux.debug.x86_64 = "bin/libgdmotionmatching.linux.template_debug.x86_64.so"
 linux.release.x86_64 = "bin/libgdmotionmatching.linux.template_release.x86_64.so"
