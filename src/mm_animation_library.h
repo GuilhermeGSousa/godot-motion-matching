@@ -5,14 +5,15 @@
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/skeleton3d.hpp>
-#include <godot_cpp/classes/skeleton_profile.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
 
 #include "common.h"
+#include "mm_query.h"
 
 using namespace godot;
 
 class MMFeature;
+class MMAnimationPlayer;
 
 class MMAnimationLibrary : public AnimationLibrary {
     GDCLASS(MMAnimationLibrary, AnimationLibrary)
@@ -20,8 +21,10 @@ class MMAnimationLibrary : public AnimationLibrary {
 public:
     MMAnimationLibrary(/* args */);
     virtual ~MMAnimationLibrary();
-    void bake_data(const Node3D *p_animation_root, const Skeleton3D *p_skeleton,
-                   const String &p_skeleton_root_bone);
+    void bake_data(const MMAnimationPlayer* p_player, const Skeleton3D* p_skeleton);
+    MMQueryResult query(const MMQueryInput& p_query_input);
+
+    float compute_cost(const PackedFloat32Array& p_query_data, const PackedFloat32Array& p_library_data) const;
 
     GETSET(float, sampling_rate, 1.f)
     GETSET(PackedFloat32Array, motion_data)

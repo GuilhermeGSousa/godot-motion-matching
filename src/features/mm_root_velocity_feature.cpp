@@ -14,18 +14,17 @@ size_t MMRootVelocityFeature::get_dimension_count() const {
     return 3;
 }
 
-void MMRootVelocityFeature::setup_skeleton(const Node3D* p_animation_root, const Skeleton3D* p_skeleton,
-                                           const String& p_root_bone) {
+void MMRootVelocityFeature::setup_skeleton(const MMAnimationPlayer* p_player, const Skeleton3D* p_skeleton) {
 
-    _root_bone = p_skeleton->find_bone(p_root_bone);
+    const StringName skel_path = p_player->get_root_motion_track().get_concatenated_names();
+    const StringName root_bone_name = p_player->get_root_motion_track().get_concatenated_subnames();
+    _root_bone = p_skeleton->find_bone(root_bone_name);
     _rest_pose = p_skeleton->get_bone_rest(_root_bone);
 
-    NodePath skeleton_relative_path = p_animation_root->get_path_to(const_cast<Skeleton3D*>(p_skeleton));
-    _root_bone_path = UtilityFunctions::str(skeleton_relative_path) + ":" + p_root_bone;
+    _root_bone_path = UtilityFunctions::str(skel_path) + ":" + UtilityFunctions::str(root_bone_name);
 }
 
 void MMRootVelocityFeature::setup_for_animation(Ref<Animation> animation) {
-    NodePath somethhing;
     _root_postion_track = animation->find_track(_root_bone_path, Animation::TrackType::TYPE_POSITION_3D);
     _root_rotation_track = animation->find_track(_root_bone_path, Animation::TrackType::TYPE_ROTATION_3D);
 }
@@ -56,8 +55,7 @@ PackedFloat32Array MMRootVelocityFeature::bake_animation_pose(Ref<Animation> p_a
     return pose;
 }
 
-PackedFloat32Array MMRootVelocityFeature::evaluate_runtime_data(
-    /* some runtime data*/) const {
+PackedFloat32Array MMRootVelocityFeature::evaluate_runtime_data(const MMQueryInput& p_query_input) const {
     PackedFloat32Array pose;
     pose.resize(get_dimension_count());
     pose.set(0, 0.0);

@@ -22,3 +22,4 @@ AlwaysBreakTemplateDeclarations: true
 BinPackArguments: true
 BinPackParameters: true
 PointerAlignment: Left
+SortIncludes: true

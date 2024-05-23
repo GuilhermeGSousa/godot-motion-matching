@@ -5,10 +5,11 @@
 
 #include "common.h"
 #include "kform.hpp"
+#include "mm_query.h"
 
 using namespace godot;
 
-class MMCharacterBody3D;
+class MMController;
 
 class MMAnimationPlayer : public AnimationPlayer {
     GDCLASS(MMAnimationPlayer, AnimationPlayer)
@@ -21,10 +22,10 @@ public:
 
     void bake_library_data();
     void request_animation(const String& p_animation_name, float p_time);
-    void request_pose(StringName p_animation_name, float p_time = 0.0f, float new_halflife = -1.0f);
+    MMQueryResult query(const MMQueryInput& p_query_input);
 
     Vector3 get_root_motion_velocity() const;
-    Quaternion get_root_motion_angular_velocity(float delta) const;
+    Quaternion get_root_motion_rotation_delta(float delta) const;
 
     GETSET(float, halflife, 0.1f);
 

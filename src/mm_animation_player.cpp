@@ -8,7 +8,7 @@
 #include <godot_cpp/variant/utility_functions.hpp>
 
 #include "mm_animation_library.h"
-#include "mm_characterbody3d.h"
+#include "mm_controller.h"
 #include "spring.hpp"
 
 using namespace godot;
@@ -148,13 +148,14 @@ void MMAnimationPlayer::_physics_process(double delta) {
 void MMAnimationPlayer::bake_library_data() {
     TypedArray<StringName> library_list = get_animation_library_list();
 
+    NodePath skel_path =
+        NodePath(UtilityFunctions::str(get_root_node()) + "/" + get_root_motion_track().get_concatenated_names());
+    Skeleton3D* skeleton = get_node<Skeleton3D>(skel_path);
+
     for (size_t i = 0; i < library_list.size(); ++i) {
         const StringName& library_name = library_list[i];
         Ref<MMAnimationLibrary> library = get_animation_library(library_name);
-
-        const Node3D* animation_root = get_node<Node3D>(get_root_node());
-
-        library->bake_data(animation_root, _skeleton, _skeleton_root_bone_path);
+        library->bake_data(this, skeleton);
     }
 }
 
@@ -234,15 +235,11 @@ void MMAnimationPlayer::request_animation(const String& p_animation_name, float 
     seek(p_time, false);
 }
 
-void MMAnimationPlayer::request_pose(StringName p_animation_name, float p_time, float new_halflife) {
-    if (new_halflife > 0.0f) {
-        set_halflife(new_halflife);
-    } else {
-        set_halflife(_default_halflife);
-    }
-    _last_animation = p_animation_name;
-    _last_animation_time = p_time;
-    stop();
+MMQueryResult MMAnimationPlayer::query(const MMQueryInput& p_query_input) {
+    StringName library_name = get_animation_library_list()[0];
+
+    Ref<MMAnimationLibrary> library = get_animation_library(library_name);
+    return library->query(p_query_input);
 }
 
 Vector3 MMAnimationPlayer::get_root_motion_velocity() const {
@@ -252,7 +249,7 @@ Vector3 MMAnimationPlayer::get_root_motion_velocity() const {
     return _bones_kform.vel[_skeleton_root_bone_id] * get_speed_scale();
 }
 
-Quaternion MMAnimationPlayer::get_root_motion_angular_velocity(float delta) const {
+Quaternion MMAnimationPlayer::get_root_motion_rotation_delta(float delta) const {
     if (_skeleton_root_bone_id < 0) {
         return {};
     }
@@ -297,11 +294,9 @@ void MMAnimationPlayer::_bind_methods() {
     ClassDB::bind_method(D_METHOD("bake_library_data"), &MMAnimationPlayer::bake_library_data);
     ClassDB::bind_method(D_METHOD("request_animation", "animation_name", "time"), &MMAnimationPlayer::request_animation,
                          (0.0f));
-    ClassDB::bind_method(D_METHOD("request_pose", "animation_name", "time", "new_halflife"),
-                         &MMAnimationPlayer::request_pose, (0.0f), (-1.0f));
     ClassDB::bind_method(D_METHOD("get_root_motion_velocity"), &MMAnimationPlayer::get_root_motion_velocity);
-    ClassDB::bind_method(D_METHOD("get_root_motion_angular_velocity"),
-                         &MMAnimationPlayer::get_root_motion_angular_velocity);
+    ClassDB::bind_method(D_METHOD("get_root_motion_rotation_delta", "delta"),
+                         &MMAnimationPlayer::get_root_motion_rotation_delta);
 
     BINDER_PROPERTY_PARAMS(MMAnimationPlayer, Variant::FLOAT, halflife, PROPERTY_HINT_RANGE, "0.0,1.0,0.01,or_greater");
 }

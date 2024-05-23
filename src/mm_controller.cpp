@@ -1,13 +1,14 @@
-#include "mm_characterbody3d.h"
+#include "mm_controller.h"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/node3d.hpp>
 #include <godot_cpp/core/property_info.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
 
-Vector3 clamp_max_magnitude(const Vector3 &vector, float maxMagnitude) {
+Vector3 clamp_max_magnitude(const Vector3& vector, float maxMagnitude) {
     float magnitude = vector.length();
     if (magnitude > maxMagnitude) {
         return vector.normalized() * maxMagnitude;
@@ -16,17 +17,17 @@ Vector3 clamp_max_magnitude(const Vector3 &vector, float maxMagnitude) {
     }
 }
 
-MMCharacterBody3D::MMCharacterBody3D() : CharacterBody3D() {
+MMController::MMController() : CharacterBody3D() {
 }
 
-MMCharacterBody3D::~MMCharacterBody3D() {
+MMController::~MMController() {
 }
 
-void MMCharacterBody3D::_ready() {
+void MMController::_ready() {
     trajectory_buffer.resize(trajectory_point_count);
 }
 
-void MMCharacterBody3D::_physics_process(double delta) {
+void MMController::_physics_process(double delta) {
     if (Engine::get_singleton()->is_editor_hint()) {
         return;
     }
@@ -35,16 +36,13 @@ void MMCharacterBody3D::_physics_process(double delta) {
     move_and_slide();
 }
 
-Vector3 MMCharacterBody3D::update_trajectory(const Vector3 &current_velocity,
-                                             float delta_t) {
+Vector3 MMController::update_trajectory(const Vector3& current_velocity, float delta_t) {
     Vector3 new_velocity = current_velocity;
 
-    const Vector2 stick_input =
-        Input::get_singleton()->get_vector("down", "up", "left", "right", 0.1f);
+    const Vector2 stick_input = Input::get_singleton()->get_vector("down", "up", "left", "right", 0.1f);
 
     // Get the world space acceleration vector.
-    const Vector3 stick_input_world = get_global_transform().basis.xform(
-        Vector3(stick_input.x, 0.f, stick_input.y));
+    const Vector3 stick_input_world = get_global_transform().basis.xform(Vector3(stick_input.x, 0.f, stick_input.y));
 
     const Vector3 acceleration = stick_input_world * 10.0f;
 
@@ -58,8 +56,7 @@ Vector3 MMCharacterBody3D::update_trajectory(const Vector3 &current_velocity,
     return new_velocity;
 }
 
-void MMCharacterBody3D::_update_history(const Vector3 &p_current_velocity,
-                                        const Vector3 &p_current_acceleration) {
+void MMController::_update_history(const Vector3& p_current_velocity, const Vector3& p_current_acceleration) {
     const float delta_t = 1.0f / simulation_samples_per_second;
 
     Vector3 current_position = get_global_transform().origin;
@@ -83,17 +80,13 @@ void MMCharacterBody3D::_update_history(const Vector3 &p_current_velocity,
     }
 }
 
-void MMCharacterBody3D::_bind_methods() {
-    ClassDB::bind_method(
-        D_METHOD("update_trajectory", "current_velocity", "delta_t"),
-        &MMCharacterBody3D::update_trajectory);
+void MMController::_bind_methods() {
+    ClassDB::bind_method(D_METHOD("update_trajectory", "current_velocity", "delta_t"),
+                         &MMController::update_trajectory);
 
-    ClassDB::bind_method(D_METHOD("get_trajectory"),
-                         &MMCharacterBody3D::get_trajectory);
-    BINDER_PROPERTY_PARAMS(MMCharacterBody3D, Variant::FLOAT, friction);
-    BINDER_PROPERTY_PARAMS(MMCharacterBody3D, Variant::INT,
-                           trajectory_point_count);
-    BINDER_PROPERTY_PARAMS(MMCharacterBody3D, Variant::FLOAT,
-                           simulation_samples_per_second);
-    BINDER_PROPERTY_PARAMS(MMCharacterBody3D, Variant::FLOAT, max_speed);
+    ClassDB::bind_method(D_METHOD("get_trajectory"), &MMController::get_trajectory);
+    BINDER_PROPERTY_PARAMS(MMController, Variant::FLOAT, friction);
+    BINDER_PROPERTY_PARAMS(MMController, Variant::INT, trajectory_point_count);
+    BINDER_PROPERTY_PARAMS(MMController, Variant::FLOAT, simulation_samples_per_second);
+    BINDER_PROPERTY_PARAMS(MMController, Variant::FLOAT, max_speed);
 }

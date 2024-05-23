@@ -13,8 +13,7 @@ MMAnimationLibrary::MMAnimationLibrary() : AnimationLibrary() {
 MMAnimationLibrary::~MMAnimationLibrary() {
 }
 
-void MMAnimationLibrary::bake_data(const Node3D* p_animation_root, const Skeleton3D* p_skeleton,
-                                   const String& p_skeleton_root_bone) {
+void MMAnimationLibrary::bake_data(const MMAnimationPlayer* p_player, const Skeleton3D* p_skeleton) {
     UtilityFunctions::print("Baking data");
     motion_data.clear();
 
@@ -22,7 +21,7 @@ void MMAnimationLibrary::bake_data(const Node3D* p_animation_root, const Skeleto
     for (auto i = 0; i < features.size(); ++i) {
         MMFeature* f = Object::cast_to<MMFeature>(features[i]);
         dim_count += f->get_dimension_count();
-        f->setup_skeleton(p_animation_root, p_skeleton, p_skeleton_root_bone);
+        f->setup_skeleton(p_player, p_skeleton);
     }
     _total_dimension_count = dim_count;
 
@@ -57,6 +56,55 @@ void MMAnimationLibrary::bake_data(const Node3D* p_animation_root, const Skeleto
     }
 
     motion_data = data.duplicate();
+}
+
+MMQueryResult MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
+    // TODO: Use fancier search algorithms
+    // TODO: Do this using an offset array instead
+
+    float cost = FLT_MAX;
+    MMQueryResult result;
+
+    const TypedArray<StringName> animation_list = get_animation_list();
+    for (size_t anim_index = 0; anim_index < animation_list.size(); anim_index++) {
+        const StringName& anim_name = animation_list[anim_index];
+        Ref<Animation> animation = get_animation(anim_name);
+        const float animation_length = animation->get_length();
+        const float time_step = 1.0f / get_sampling_rate();
+
+        int64_t time_index = 0;
+        for (int time = 0; time < animation_length; time += time_step) {
+            int64_t feature_offset = 0;
+            float pose_cost = 0.0f;
+            for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
+                const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
+
+                int64_t start_index = anim_index + time_index + feature_offset;
+                int64_t end_index = start_index + feature->get_dimension_count();
+
+                PackedFloat32Array feature_data = motion_data.slice(start_index, end_index);
+                PackedFloat32Array runtime_data = feature->evaluate_runtime_data(p_query_input);
+
+                pose_cost += compute_cost(runtime_data, feature_data);
+                feature_offset += feature->get_dimension_count();
+            }
+
+            if (pose_cost < cost) {
+                cost = pose_cost;
+                result.cost = cost;
+                result.animation_match = anim_name;
+                result.time_match = time;
+            }
+            time_index++;
+        }
+    }
+
+    return result;
+}
+
+float MMAnimationLibrary::compute_cost(const PackedFloat32Array& p_query_data,
+                                       const PackedFloat32Array& p_library_data) const {
+    return 0.0f;
 }
 
 void MMAnimationLibrary::_bind_methods() {

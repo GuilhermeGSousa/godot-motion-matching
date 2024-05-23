@@ -10,18 +10,17 @@
 
 using namespace godot;
 
-class MMCharacterBody3D : public CharacterBody3D {
-    GDCLASS(MMCharacterBody3D, CharacterBody3D)
+class MMController : public CharacterBody3D {
+    GDCLASS(MMController, CharacterBody3D)
 public:
-    MMCharacterBody3D();
-    virtual ~MMCharacterBody3D();
+    MMController();
+    virtual ~MMController();
 
 public:
     void _ready() override;
     virtual void _physics_process(double delta) override;
 
-    Vector3 update_trajectory(const Vector3 &p_current_velocity,
-                              float p_delta_t);
+    Vector3 update_trajectory(const Vector3& p_current_velocity, float p_delta_t);
 
     Array get_trajectory() const {
         Array trajectory;
@@ -40,8 +39,7 @@ protected:
     static void _bind_methods();
 
 private:
-    void _update_history(const Vector3 &p_current_velocity,
-                         const Vector3 &p_current_acceleration);
+    void _update_history(const Vector3& p_current_velocity, const Vector3& p_current_acceleration);
 
 private:
     CircularBuffer<MMTrajectoryPoint> trajectory_buffer{trajectory_point_count};
