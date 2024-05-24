@@ -24,6 +24,8 @@ void MMAnimationPlayer::_ready() {
     if (Engine::get_singleton()->is_editor_hint()) {
         return;
     }
+    set_callback_mode_process(
+        godot::AnimationMixer::AnimationCallbackModeProcess::ANIMATION_CALLBACK_MODE_PROCESS_PHYSICS);
     _default_halflife = halflife;
 
     NodePath skel_path =
@@ -42,8 +44,6 @@ void MMAnimationPlayer::_physics_process(double delta) {
     if (Engine::get_singleton()->is_editor_hint() || _last_animation.is_empty()) {
         return;
     }
-
-    advance(delta);
 
     Ref<Animation> animation = get_current_animation().is_empty() ? nullptr : get_animation(get_current_animation());
 
@@ -80,16 +80,36 @@ void MMAnimationPlayer::_physics_process(double delta) {
             }
 
             if (bone_id == _skeleton_root_bone_id) {
+                desired.vel = desired.rot.xform_inv(desired.vel);
                 desired.pos = Vector3();
                 desired.rot = Quaternion();
             }
 
-            Spring::_simple_spring_damper_exact(_bones_kform.pos[bone_id], _bones_kform.vel[bone_id], desired.pos,
-                                                halflife, delta);
-            Spring::_simple_spring_damper_exact(_bones_kform.rot[bone_id], _bones_kform.ang[bone_id], desired.rot,
-                                                halflife, delta);
-            Spring::_decay_spring_damper_exact(_bones_offset.pos[bone_id], _bones_offset.vel[bone_id], halflife, delta);
-            Spring::_decay_spring_damper_exact(_bones_offset.rot[bone_id], _bones_offset.ang[bone_id], halflife, delta);
+            // Spring::_simple_spring_damper_exact(_bones_kform.pos[bone_id], _bones_kform.vel[bone_id], desired.pos,
+            //                                     halflife, delta);
+            // Spring::_simple_spring_damper_exact(_bones_kform.rot[bone_id], _bones_kform.ang[bone_id], desired.rot,
+            //                                     halflife, delta);
+            // Spring::_decay_spring_damper_exact(_bones_offset.pos[bone_id], _bones_offset.vel[bone_id], halflife,
+            // delta); Spring::_decay_spring_damper_exact(_bones_offset.rot[bone_id], _bones_offset.ang[bone_id],
+            // halflife, delta);
+            Spring::inertialize_update(_bones_kform.pos[bone_id],
+                                       _bones_kform.vel[bone_id], // Current pos of the bone
+                                       _bones_offset.pos[bone_id],
+                                       _bones_offset.vel[bone_id], // Current Offset pos, get
+                                                                   // reduced every frame
+                                       desired.pos,
+                                       desired.vel,                // Desired position from the animation
+                                       halflife,                   // Stats on how the offset decay
+                                       delta * get_speed_scale()); // delta time between frames
+            Spring::inertialize_update(_bones_kform.rot[bone_id],
+                                       _bones_kform.ang[bone_id], // Current rot of the bone
+                                       _bones_offset.rot[bone_id],
+                                       _bones_offset.ang[bone_id], // Current Offset rot, get
+                                                                   // reduced every frame
+                                       desired.rot,
+                                       desired.ang,                // Desired rotation from the animation
+                                       halflife,                   // Stats on how the offset decay
+                                       delta * get_speed_scale()); // delta time between frames
         } else {
             desired.pos = _skeleton->get_bone_pose_position(bone_id);
             desired.vel = Vector3();
@@ -142,6 +162,7 @@ void MMAnimationPlayer::_physics_process(double delta) {
 
         _skeleton->set_bone_pose_position(bone_id, _bones_kform.pos[bone_id]);
         _skeleton->set_bone_pose_rotation(bone_id, _bones_kform.rot[bone_id]);
+        _skeleton->force_update_bone_child_transform(_skeleton_root_bone_id);
     }
 }
 
@@ -161,13 +182,18 @@ void MMAnimationPlayer::bake_library_data() {
 
 void MMAnimationPlayer::request_animation(const String& p_animation_name, float p_time) {
     const auto motion_scale = _skeleton->get_motion_scale();
-    auto p_animation = get_animation(p_animation_name);
+    Ref<Animation> p_animation = get_animation(p_animation_name);
+
+    if (p_animation.is_null()) {
+        return;
+    }
 
     // ERR_FAIL_NULL_V(p_animation, false);
     _bones_kform.reserve(_skeleton->get_bone_count());
     _bones_offset.reserve(_skeleton->get_bone_count());
     //
-    const float time_error = 0.016;
+    const float time_error = 0.02;
+    UtilityFunctions::print(get_current_animation());
     if (p_animation_name == get_current_animation() && abs(p_time - get_current_animation_position()) < time_error) {
         // We are already playing
         return;
@@ -178,8 +204,9 @@ void MMAnimationPlayer::request_animation(const String& p_animation_name, float 
 
     const double delta = 0.016;
 
-    p_time = UtilityFunctions::clampf(p_time, 0.0, p_animation->get_length() - halflife);
+    p_time = UtilityFunctions::clampf(p_time, 0.0, p_animation->get_length());
     const auto future_time = UtilityFunctions::clampf(p_time + delta, 0.0, p_animation->get_length());
+
     for (auto bone_id = 0; bone_id < _skeleton->get_bone_count(); ++bone_id) {
         const Transform3D bone_rest = _skeleton->get_bone_rest(bone_id);
         const String skel_path = get_root_motion_track().get_concatenated_names();
@@ -235,6 +262,12 @@ void MMAnimationPlayer::request_animation(const String& p_animation_name, float 
     seek(p_time, false);
 }
 
+void MMAnimationPlayer::request_pose(StringName p_animation_name, float p_time) {
+    _last_animation = p_animation_name;
+    _last_animation_time = p_time;
+    // stop();
+}
+
 MMQueryResult MMAnimationPlayer::query(const MMQueryInput& p_query_input) {
     StringName library_name = get_animation_library_list()[0];
 
@@ -262,8 +295,8 @@ void MMAnimationPlayer::_inertialize_reset(bool skeleton_to_rest) {
     }
 
     const auto bone_count = _skeleton->get_bone_count();
-    _bones_kform.reserve(bone_count);
-    _bones_offset.reserve(bone_count);
+    _bones_kform = kforms(bone_count);
+    _bones_offset = kforms(bone_count);
     for (int b = 0; b < bone_count; ++b) {
         _bones_kform.reset(b);
         _bones_kform.pos[b] = _skeleton->get_bone_pose_position(b);

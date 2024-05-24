@@ -5,7 +5,6 @@
 #include "mm_animation_player.h"
 #include "mm_controller.h"
 
-
 using namespace godot;
 
 class MotionMatcher : public Node {
@@ -17,10 +16,16 @@ public:
 
     GETSET(NodePath, controller_path)
     GETSET(NodePath, animation_player_path)
+    GETSET(float, query_time, 0.1f)
+    GETSET(float, search_time_threshold, 0.2f)
+
 protected:
     static void _bind_methods();
+
+    void _on_animation_finished(StringName p_animation_name);
 
 private:
     MMController* _controller{nullptr};
     MMAnimationPlayer* _animation_player{nullptr};
+    float _time_since_last_query{0.f};
 };

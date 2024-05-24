@@ -64,6 +64,7 @@ MMQueryResult MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
 
     float cost = FLT_MAX;
     MMQueryResult result;
+    int current_index = 0;
 
     const TypedArray<StringName> animation_list = get_animation_list();
     for (size_t anim_index = 0; anim_index < animation_list.size(); anim_index++) {
@@ -72,39 +73,42 @@ MMQueryResult MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
         const float animation_length = animation->get_length();
         const float time_step = 1.0f / get_sampling_rate();
 
-        int64_t time_index = 0;
         for (int time = 0; time < animation_length; time += time_step) {
-            int64_t feature_offset = 0;
             float pose_cost = 0.0f;
             for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
                 const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
 
-                int64_t start_index = anim_index + time_index + feature_offset;
+                int64_t start_index = current_index;
                 int64_t end_index = start_index + feature->get_dimension_count();
 
                 PackedFloat32Array feature_data = motion_data.slice(start_index, end_index);
                 PackedFloat32Array runtime_data = feature->evaluate_runtime_data(p_query_input);
 
                 pose_cost += compute_cost(runtime_data, feature_data);
-                feature_offset += feature->get_dimension_count();
+                current_index += feature->get_dimension_count();
             }
 
             if (pose_cost < cost) {
                 cost = pose_cost;
                 result.cost = cost;
-                result.animation_match = anim_name;
+
+                String resource_name = "michelle_anim_lib";
+                result.animation_match = resource_name + "/" + anim_name;
                 result.time_match = time;
             }
-            time_index++;
         }
     }
-
     return result;
 }
 
 float MMAnimationLibrary::compute_cost(const PackedFloat32Array& p_query_data,
                                        const PackedFloat32Array& p_library_data) const {
-    return 0.0f;
+    float cost = 0.0f;
+    for (int64_t i = 0; i < p_query_data.size(); i++) {
+        float diff = p_query_data[i] - p_library_data[i];
+        cost += diff * diff;
+    }
+    return cost;
 }
 
 void MMAnimationLibrary::_bind_methods() {

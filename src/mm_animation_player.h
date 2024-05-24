@@ -22,6 +22,7 @@ public:
 
     void bake_library_data();
     void request_animation(const String& p_animation_name, float p_time);
+    void request_pose(StringName p_animation_name, float p_time);
     MMQueryResult query(const MMQueryInput& p_query_input);
 
     Vector3 get_root_motion_velocity() const;

@@ -22,8 +22,10 @@ void MMCharacter::_physics_process(double delta) {
 
     // Set Velocity
     set_velocity(_animation_player->get_root_motion_velocity());
-
     move_and_slide();
+    // UtilityFunctions::print("RM Velocity: " + String::num(_animation_player->get_root_motion_velocity().length()));
+
+    // set_position(get_position() + _animation_player->get_root_motion_velocity() * delta);
 }
 
 void MMCharacter::_bind_methods() {

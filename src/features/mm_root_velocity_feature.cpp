@@ -57,10 +57,11 @@ PackedFloat32Array MMRootVelocityFeature::bake_animation_pose(Ref<Animation> p_a
 
 PackedFloat32Array MMRootVelocityFeature::evaluate_runtime_data(const MMQueryInput& p_query_input) const {
     PackedFloat32Array pose;
+    Vector3 velocity = p_query_input.controller_velocity;
     pose.resize(get_dimension_count());
-    pose.set(0, 0.0);
-    pose.set(1, 0.0);
-    pose.set(2, 0.0);
+    pose.set(0, velocity.x);
+    pose.set(1, velocity.y);
+    pose.set(2, velocity.z);
     return pose;
 }
 
