@@ -17,15 +17,14 @@ void MMCharacter::_physics_process(double delta) {
     }
 
     // Set Rotation
-    const Quaternion rotation_delta = _animation_player->get_root_motion_rotation_delta(delta);
+    const Quaternion rotation_delta = _animation_player->get_root_motion_rotation();
     set_quaternion(rotation_delta * get_quaternion());
 
     // Set Velocity
-    set_velocity(_animation_player->get_root_motion_velocity());
-    move_and_slide();
-    // UtilityFunctions::print("RM Velocity: " + String::num(_animation_player->get_root_motion_velocity().length()));
+    const Vector3 velocity = get_quaternion().xform(_animation_player->get_root_motion_position() / delta);
+    set_velocity(velocity);
 
-    // set_position(get_position() + _animation_player->get_root_motion_velocity() * delta);
+    move_and_slide();
 }
 
 void MMCharacter::_bind_methods() {

@@ -32,7 +32,4 @@ public:
 
 protected:
     static void _bind_methods();
-
-private:
-    size_t _total_dimension_count{0};
 };

@@ -23,9 +23,13 @@ void MMAnimationLibrary::bake_data(const MMAnimationPlayer* p_player, const Skel
         dim_count += f->get_dimension_count();
         f->setup_skeleton(p_player, p_skeleton);
     }
-    _total_dimension_count = dim_count;
 
     TypedArray<StringName> animation_list = get_animation_list();
+
+    // Normalization data
+    std::vector<float> sum(features.size(), 0.0f);
+    std::vector<float> sum_of_squares(features.size(), 0.0f);
+    std::vector<int> count(features.size(), 0);
 
     PackedFloat32Array data;
     // For every animation
@@ -44,14 +48,47 @@ void MMAnimationLibrary::bake_data(const MMAnimationPlayer* p_player, const Skel
         // Every time step
         for (int time = 0; time < animation_length; time += time_step) {
             PackedFloat32Array pose_data;
-
             // For every feature
             for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
                 const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
-                pose_data.append_array(feature->bake_animation_pose(animation, time));
-            }
+                const PackedFloat32Array feature_data = feature->bake_animation_pose(animation, time);
 
+                // Update sum and sum of squares
+                for (int i = 0; i < feature_data.size(); i++) {
+                    sum[feature_index] += feature_data[i];
+                    sum_of_squares[feature_index] += feature_data[i] * feature_data[i];
+                    count[feature_index]++;
+                }
+
+                pose_data.append_array(feature_data);
+            }
             data.append_array(pose_data);
+        }
+    }
+
+    // Compute mean and standard deviation
+    for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
+        float mean = sum[feature_index] / count[feature_index];
+        float variance = (sum_of_squares[feature_index] / count[feature_index]) - (mean * mean);
+        float std_dev = sqrt(variance);
+
+        MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
+        feature->set_mean(mean);
+        feature->set_std_dev(std_dev);
+    }
+
+    // Normalize data
+    for (size_t frame_index = 0; frame_index < data.size(); frame_index += dim_count) {
+        for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
+            const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
+            const size_t start_index = frame_index;
+            const size_t end_index = start_index + feature->get_dimension_count();
+            for (size_t feature_element_index = frame_index; feature_element_index < end_index;
+                 feature_element_index++) {
+                float value = data[feature_element_index];
+                value = (value - feature->get_mean()) / feature->get_std_dev();
+                data.set(feature_element_index, value);
+            }
         }
     }
 
@@ -67,6 +104,17 @@ MMQueryResult MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
     int current_index = 0;
 
     const TypedArray<StringName> animation_list = get_animation_list();
+
+    int32_t dim_count = 0;
+    PackedFloat32Array feature_vector = PackedFloat32Array();
+    for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
+        const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
+        PackedFloat32Array feature_data = feature->evaluate_runtime_data(p_query_input);
+        feature->normalize(feature_data);
+        feature_vector.append_array(feature_data);
+        dim_count += feature->get_dimension_count();
+    }
+
     for (size_t anim_index = 0; anim_index < animation_list.size(); anim_index++) {
         const StringName& anim_name = animation_list[anim_index];
         Ref<Animation> animation = get_animation(anim_name);
@@ -74,24 +122,18 @@ MMQueryResult MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
         const float time_step = 1.0f / get_sampling_rate();
 
         for (int time = 0; time < animation_length; time += time_step) {
-            float pose_cost = 0.0f;
-            for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
-                const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
+            const int64_t start_index = current_index;
+            const int64_t end_index = start_index + dim_count;
+            PackedFloat32Array feature_data = motion_data.slice(start_index, end_index);
 
-                int64_t start_index = current_index;
-                int64_t end_index = start_index + feature->get_dimension_count();
-
-                PackedFloat32Array feature_data = motion_data.slice(start_index, end_index);
-                PackedFloat32Array runtime_data = feature->evaluate_runtime_data(p_query_input);
-
-                pose_cost += compute_cost(runtime_data, feature_data);
-                current_index += feature->get_dimension_count();
-            }
+            const float pose_cost = compute_cost(feature_vector, feature_data);
+            current_index += dim_count;
 
             if (pose_cost < cost) {
                 cost = pose_cost;
                 result.cost = cost;
 
+                // TODO : This is a hack, fix this
                 String resource_name = "michelle_anim_lib";
                 result.animation_match = resource_name + "/" + anim_name;
                 result.time_match = time;

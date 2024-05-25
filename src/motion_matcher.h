@@ -28,4 +28,5 @@ private:
     MMController* _controller{nullptr};
     MMAnimationPlayer* _animation_player{nullptr};
     float _time_since_last_query{0.f};
+    bool _force_transition{false};
 };
