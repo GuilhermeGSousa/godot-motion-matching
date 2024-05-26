@@ -198,11 +198,9 @@ void MMAnimationPlayer::_inertialize_reset(bool skeleton_to_rest) {
 }
 
 void MMAnimationPlayer::_on_animation_finished(StringName p_animation_name) {
-    UtilityFunctions::print("Animation finished: " + p_animation_name);
 }
 
 void MMAnimationPlayer::_on_animation_changed(String p_animation_name) {
-    UtilityFunctions::print("Animation changed: " + p_animation_name);
 }
 
 void MMAnimationPlayer::_bind_methods() {
