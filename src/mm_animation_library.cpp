@@ -46,7 +46,7 @@ void MMAnimationLibrary::bake_data(const MMAnimationPlayer* p_player, const Skel
         const float animation_length = animation->get_length();
         const float time_step = 1.0f / get_sampling_rate();
         // Every time step
-        for (int time = 0; time < animation_length; time += time_step) {
+        for (float time = 0; time < animation_length; time += time_step) {
             PackedFloat32Array pose_data;
             // For every feature
             for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
@@ -121,7 +121,7 @@ MMQueryResult MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
         const float animation_length = animation->get_length();
         const float time_step = 1.0f / get_sampling_rate();
 
-        for (int time = 0; time < animation_length; time += time_step) {
+        for (float time = 0; time < animation_length; time += time_step) {
             const int64_t start_index = current_index;
             const int64_t end_index = start_index + dim_count;
             PackedFloat32Array feature_data = motion_data.slice(start_index, end_index);

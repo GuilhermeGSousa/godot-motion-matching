@@ -5,6 +5,7 @@
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
+#include "features/mm_facing_feature.h"
 #include "features/mm_feature.h"
 #include "features/mm_root_velocity_feature.h"
 #include "features/mm_trajectory_feature.h"
@@ -25,6 +26,7 @@ void initialize_example_module(ModuleInitializationLevel p_level) {
     ClassDB::register_abstract_class<MMFeature>();
     ClassDB::register_class<MMTrajectoryFeature>();
     ClassDB::register_class<MMRootVelocityFeature>();
+    ClassDB::register_class<MMFacingFeature>();
 
     ClassDB::register_class<MMAnimationLibrary>();
     ClassDB::register_class<MMAnimationPlayer>();

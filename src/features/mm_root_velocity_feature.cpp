@@ -25,7 +25,7 @@ void MMRootVelocityFeature::setup_skeleton(const MMAnimationPlayer* p_player, co
 }
 
 void MMRootVelocityFeature::setup_for_animation(Ref<Animation> animation) {
-    _root_postion_track = animation->find_track(_root_bone_path, Animation::TrackType::TYPE_POSITION_3D);
+    _root_position_track = animation->find_track(_root_bone_path, Animation::TrackType::TYPE_POSITION_3D);
     _root_rotation_track = animation->find_track(_root_bone_path, Animation::TrackType::TYPE_ROTATION_3D);
 }
 
@@ -33,16 +33,16 @@ PackedFloat32Array MMRootVelocityFeature::bake_animation_pose(Ref<Animation> p_a
     PackedFloat32Array pose;
 
     Vector3 pos, prev_pos;
-    if (_root_postion_track != -1) {
-        prev_pos = p_animation->position_track_interpolate(_root_postion_track, p_time);
-        pos = p_animation->position_track_interpolate(_root_postion_track, p_time + delta_time);
+    if (_root_position_track != -1) {
+        prev_pos = p_animation->position_track_interpolate(_root_position_track, p_time);
+        pos = p_animation->position_track_interpolate(_root_position_track, p_time + delta_time);
     } else {
         pos = _rest_pose.get_origin();
         prev_pos = _rest_pose.get_origin();
     }
 
     Quaternion rotation;
-    if (_root_postion_track != -1) {
+    if (_root_position_track != -1) {
         rotation = p_animation->rotation_track_interpolate(_root_rotation_track, p_time);
     } else {
         rotation = _rest_pose.get_basis().get_rotation_quaternion();

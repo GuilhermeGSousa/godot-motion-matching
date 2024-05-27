@@ -1,9 +1,7 @@
 TODO List:
 
-- Compute feature vector once!
-- Trigger search on animation end
 - Trigger search on velocity change
-- Transition only if frame is far enough from current one!
-- Rework inertialization transition vs updates!
+- Fix inertialization
+- Implement actual debugging tools
 - Better debug viz of features vs query data
 - Stop using anim + time to represent a pose

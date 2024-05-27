@@ -22,6 +22,8 @@ void MotionMatcher::_physics_process(double delta) {
         MMQueryInput query_input;
         query_input.controller_velocity =
             _controller->get_global_transform().affine_inverse().basis.xform(_controller->get_velocity());
+        query_input.controller_transform = _controller->get_global_transform();
+
         // Run query
         const MMQueryResult result = _animation_player->query(query_input);
 
