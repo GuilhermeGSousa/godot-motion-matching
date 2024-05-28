@@ -19,11 +19,12 @@ public:
     virtual ~MMAnimationPlayer();
     virtual void _ready() override;
     virtual void _physics_process(double delta) override;
+    virtual void _process(double delta) override;
 
     void bake_library_data();
     void inertialize_transition(const String& p_animation_name, float p_time);
     void inertialize_update(float delta);
-    MMQueryResult query(const MMQueryInput& p_query_input);
+    MMQueryOutput query(const MMQueryInput& p_query_input);
 
     GETSET(float, halflife, 0.1f);
 

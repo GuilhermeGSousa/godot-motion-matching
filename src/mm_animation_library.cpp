@@ -30,6 +30,8 @@ void MMAnimationLibrary::bake_data(const MMAnimationPlayer* p_player, const Skel
     std::vector<float> sum(features.size(), 0.0f);
     std::vector<float> sum_of_squares(features.size(), 0.0f);
     std::vector<int> count(features.size(), 0);
+    std::vector<float> maxes(features.size(), 0.0f);
+    std::vector<float> mins(features.size(), 0.0f);
 
     PackedFloat32Array data;
     // For every animation
@@ -53,11 +55,13 @@ void MMAnimationLibrary::bake_data(const MMAnimationPlayer* p_player, const Skel
                 const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
                 const PackedFloat32Array feature_data = feature->bake_animation_pose(animation, time);
 
-                // Update sum and sum of squares
+                // Update stats
                 for (int i = 0; i < feature_data.size(); i++) {
                     sum[feature_index] += feature_data[i];
                     sum_of_squares[feature_index] += feature_data[i] * feature_data[i];
                     count[feature_index]++;
+                    maxes[feature_index] = MAX(maxes[feature_index], feature_data[i]);
+                    mins[feature_index] = MIN(mins[feature_index], feature_data[i]);
                 }
 
                 pose_data.append_array(feature_data);
@@ -75,6 +79,8 @@ void MMAnimationLibrary::bake_data(const MMAnimationPlayer* p_player, const Skel
         MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
         feature->set_mean(mean);
         feature->set_std_dev(std_dev);
+        feature->set_max(maxes[feature_index]);
+        feature->set_min(mins[feature_index]);
     }
 
     // Normalize data
@@ -95,12 +101,12 @@ void MMAnimationLibrary::bake_data(const MMAnimationPlayer* p_player, const Skel
     motion_data = data.duplicate();
 }
 
-MMQueryResult MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
+MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
     // TODO: Use fancier search algorithms
     // TODO: Do this using an offset array instead
 
     float cost = FLT_MAX;
-    MMQueryResult result;
+    MMQueryOutput result;
     int current_index = 0;
 
     const TypedArray<StringName> animation_list = get_animation_list();
@@ -124,9 +130,9 @@ MMQueryResult MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
         for (float time = 0; time < animation_length; time += time_step) {
             const int64_t start_index = current_index;
             const int64_t end_index = start_index + dim_count;
-            PackedFloat32Array feature_data = motion_data.slice(start_index, end_index);
+            PackedFloat32Array frame_data = motion_data.slice(start_index, end_index);
 
-            const float pose_cost = compute_cost(feature_vector, feature_data);
+            const float pose_cost = compute_cost(feature_vector, frame_data);
             current_index += dim_count;
 
             if (pose_cost < cost) {
@@ -137,6 +143,7 @@ MMQueryResult MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
                 String resource_name = "michelle_anim_lib";
                 result.animation_match = resource_name + "/" + anim_name;
                 result.time_match = time;
+                result.matched_frame_data = frame_data;
             }
         }
     }

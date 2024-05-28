@@ -3,7 +3,9 @@
 #include <godot_cpp/classes/node.hpp>
 
 #include "mm_animation_player.h"
+#include "mm_character.h"
 #include "mm_controller.h"
+
 
 using namespace godot;
 
@@ -15,6 +17,7 @@ public:
     void _physics_process(double delta) override;
 
     GETSET(NodePath, controller_path)
+    GETSET(NodePath, character_path)
     GETSET(NodePath, animation_player_path)
     GETSET(float, query_time, 0.1f)
     GETSET(float, search_time_threshold, 0.2f)
@@ -26,6 +29,7 @@ protected:
 
 private:
     MMController* _controller{nullptr};
+    MMCharacter* _character{nullptr};
     MMAnimationPlayer* _animation_player{nullptr};
     float _time_since_last_query{0.f};
     bool _force_transition{false};

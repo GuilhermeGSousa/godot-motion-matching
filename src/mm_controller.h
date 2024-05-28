@@ -25,12 +25,16 @@ public:
 
     Vector3 update_trajectory(const Vector3& p_current_velocity, float p_delta_t);
 
-    Array get_trajectory() const {
-        Array trajectory;
-        for (size_t i = 0; i < trajectory_buffer.size(); ++i) {
-            trajectory.push_back(trajectory_buffer[i].get_position());
+    const std::vector<MMTrajectoryPoint>& get_trajectory() const {
+        return _trajectory_buffer;
+    }
+
+    TypedArray<Vector3> get_trajectory_positions() const {
+        TypedArray<Vector3> positions;
+        for (const auto& point : _trajectory_buffer) {
+            positions.append(point.position);
         }
-        return trajectory;
+        return positions;
     }
 
     GETSET(NodePath, camera_pivot);
@@ -40,15 +44,18 @@ public:
     GETSET(float, mouse_sensitivity, 1.f);
     GETSET(bool, is_strafing, false);
     GETSET(size_t, trajectory_point_count, 10);
+    GETSET(size_t, history_point_count, 3);
 
 protected:
     static void _bind_methods();
 
 private:
-    void _update_history(const Vector3& p_current_velocity, const Vector3& p_current_acceleration);
+    void _generate_trajectory(const Vector3& p_current_velocity, const Vector3& p_current_acceleration);
+    void _update_history();
 
 private:
     Node3D* _camera_pivot{nullptr};
     float _camera_pivot_height{0.f};
-    CircularBuffer<MMTrajectoryPoint> trajectory_buffer{trajectory_point_count};
+    std::vector<MMTrajectoryPoint> _trajectory_buffer{trajectory_point_count};
+    CircularBuffer<Vector3> _history_buffer{history_point_count};
 };

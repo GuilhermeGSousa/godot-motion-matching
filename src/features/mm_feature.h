@@ -36,6 +36,8 @@ public:
 
     GETSET(float, mean, 0.0f);
     GETSET(float, std_dev, 1.0f);
+    GETSET(float, max, 1.0f);
+    GETSET(float, min, -1.0f);
 
 protected:
     static void _bind_methods();

@@ -4,4 +4,7 @@ TODO List:
 - Fix inertialization
 - Implement actual debugging tools
 - Better debug viz of features vs query data
+- Add facing to trajectory
+- Trajectory feature with pos + facing
+- Bone data feature
 - Stop using anim + time to represent a pose

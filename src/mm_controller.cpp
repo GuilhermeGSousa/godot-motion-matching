@@ -31,7 +31,7 @@ void MMController::_ready() {
 
     _camera_pivot = get_node<Node3D>(camera_pivot);
     _camera_pivot_height = _camera_pivot->get_global_position().y;
-    trajectory_buffer.resize(trajectory_point_count);
+    _trajectory_buffer.resize(trajectory_point_count);
     Input::get_singleton()->set_mouse_mode(Input::MOUSE_MODE_CAPTURED);
 }
 
@@ -91,24 +91,27 @@ Vector3 MMController::update_trajectory(const Vector3& current_velocity, float d
     new_velocity -= new_velocity * friction * delta_t;
     new_velocity = clamp_max_magnitude(new_velocity, max_speed);
 
-    _update_history(new_velocity, acceleration);
+    _generate_trajectory(new_velocity, acceleration);
+    _update_history();
 
     return new_velocity;
 }
 
-void MMController::_update_history(const Vector3& p_current_velocity, const Vector3& p_current_acceleration) {
+void MMController::_generate_trajectory(const Vector3& p_current_velocity, const Vector3& p_current_acceleration) {
     const float delta_t = 1.0f / simulation_samples_per_second;
 
     Vector3 current_position = get_global_transform().origin;
     Vector3 current_velocity = p_current_velocity;
     Vector3 current_acceleration = p_current_acceleration;
+    _trajectory_buffer.clear();
+    _trajectory_buffer.reserve(trajectory_point_count);
 
     for (size_t i = 0; i < trajectory_point_count; i++) {
         MMTrajectoryPoint point;
         point.position = current_position;
         point.velocity = current_velocity;
 
-        trajectory_buffer.push(point);
+        _trajectory_buffer.push_back(point);
 
         // Update velocity
         current_velocity += current_acceleration * delta_t;
@@ -120,11 +123,14 @@ void MMController::_update_history(const Vector3& p_current_velocity, const Vect
     }
 }
 
+void MMController::_update_history() {
+}
+
 void MMController::_bind_methods() {
     ClassDB::bind_method(D_METHOD("update_trajectory", "current_velocity", "delta_t"),
                          &MMController::update_trajectory);
 
-    ClassDB::bind_method(D_METHOD("get_trajectory"), &MMController::get_trajectory);
+    ClassDB::bind_method(D_METHOD("get_trajectory_positions"), &MMController::get_trajectory_positions);
 
     BINDER_PROPERTY_PARAMS(MMController, Variant::NODE_PATH, camera_pivot, PROPERTY_HINT_NODE_PATH_VALID_TYPES,
                            "Node3D");

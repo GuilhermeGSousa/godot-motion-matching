@@ -15,4 +15,6 @@ void MMFeature::normalize(PackedFloat32Array& p_data) const {
 void MMFeature::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMFeature, Variant::FLOAT, mean);
     BINDER_PROPERTY_PARAMS(MMFeature, Variant::FLOAT, std_dev);
+    BINDER_PROPERTY_PARAMS(MMFeature, Variant::FLOAT, max);
+    BINDER_PROPERTY_PARAMS(MMFeature, Variant::FLOAT, min);
 }

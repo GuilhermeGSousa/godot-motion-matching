@@ -5,10 +5,12 @@
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
+#include "features/mm_bone_data_feature.h"
 #include "features/mm_facing_feature.h"
 #include "features/mm_feature.h"
 #include "features/mm_root_velocity_feature.h"
 #include "features/mm_trajectory_feature.h"
+
 #include "mm_animation_library.h"
 #include "mm_animation_player.h"
 #include "mm_character.h"
@@ -27,13 +29,13 @@ void initialize_example_module(ModuleInitializationLevel p_level) {
     ClassDB::register_class<MMTrajectoryFeature>();
     ClassDB::register_class<MMRootVelocityFeature>();
     ClassDB::register_class<MMFacingFeature>();
+    ClassDB::register_class<MMBoneDataFeature>();
 
     ClassDB::register_class<MMAnimationLibrary>();
     ClassDB::register_class<MMAnimationPlayer>();
     ClassDB::register_class<MMController>();
     ClassDB::register_class<MMCharacter>();
     ClassDB::register_class<MotionMatcher>();
-    ClassDB::register_class<MMTrajectoryPoint>();
 }
 
 void uninitialize_example_module(ModuleInitializationLevel p_level) {

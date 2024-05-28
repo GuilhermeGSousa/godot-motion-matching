@@ -34,15 +34,20 @@ PackedFloat32Array MMRootVelocityFeature::bake_animation_pose(Ref<Animation> p_a
 
     Vector3 pos, prev_pos;
     if (_root_position_track != -1) {
-        prev_pos = p_animation->position_track_interpolate(_root_position_track, p_time);
-        pos = p_animation->position_track_interpolate(_root_position_track, p_time + delta_time);
+        if (p_time < delta_time) {
+            pos = p_animation->position_track_interpolate(_root_position_track, p_time);
+            prev_pos = pos;
+        } else {
+            prev_pos = p_animation->position_track_interpolate(_root_position_track, p_time - delta_time);
+            pos = p_animation->position_track_interpolate(_root_position_track, p_time);
+        }
     } else {
         pos = _rest_pose.get_origin();
         prev_pos = _rest_pose.get_origin();
     }
 
     Quaternion rotation;
-    if (_root_position_track != -1) {
+    if (_root_rotation_track != -1) {
         rotation = p_animation->rotation_track_interpolate(_root_rotation_track, p_time);
     } else {
         rotation = _rest_pose.get_basis().get_rotation_quaternion();
@@ -57,11 +62,14 @@ PackedFloat32Array MMRootVelocityFeature::bake_animation_pose(Ref<Animation> p_a
 
 PackedFloat32Array MMRootVelocityFeature::evaluate_runtime_data(const MMQueryInput& p_query_input) const {
     PackedFloat32Array pose;
-    Vector3 velocity = p_query_input.controller_velocity;
+    const Vector3& velocity_world_space = p_query_input.controller_velocity;
+    const Transform3D& character_transform = p_query_input.character_transform;
+    const Vector3 velocity_local_space = character_transform.basis.xform_inv(velocity_world_space);
+
     pose.resize(get_dimension_count());
-    pose.set(0, velocity.x);
-    pose.set(1, velocity.y);
-    pose.set(2, velocity.z);
+    pose.set(0, velocity_local_space.x);
+    pose.set(1, velocity_local_space.y);
+    pose.set(2, velocity_local_space.z);
     return pose;
 }
 

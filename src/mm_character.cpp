@@ -21,10 +21,11 @@ void MMCharacter::_physics_process(double delta) {
     set_quaternion(rotation_delta * get_quaternion());
 
     // Set Velocity
-    const Vector3 velocity = get_quaternion().xform(_animation_player->get_root_motion_position() / delta);
-    set_velocity(velocity);
-
-    move_and_slide();
+    // const Vector3 velocity = _animation_player->get_root_motion_position() / delta;
+    // set_velocity(velocity);
+    // move_and_slide();
+    const Vector3 displacement = get_quaternion().xform(_animation_player->get_root_motion_position());
+    set_global_position(get_global_position() + displacement);
 }
 
 void MMCharacter::_bind_methods() {

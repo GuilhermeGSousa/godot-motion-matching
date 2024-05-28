@@ -24,8 +24,7 @@ void MMAnimationPlayer::_ready() {
     if (Engine::get_singleton()->is_editor_hint()) {
         return;
     }
-    set_callback_mode_process(
-        godot::AnimationMixer::AnimationCallbackModeProcess::ANIMATION_CALLBACK_MODE_PROCESS_MANUAL);
+
     _default_halflife = halflife;
 
     NodePath skel_path =
@@ -43,6 +42,23 @@ void MMAnimationPlayer::_physics_process(double delta) {
     AnimationPlayer::_physics_process(delta);
     if (Engine::get_singleton()->is_editor_hint()) {
         return;
+    }
+
+    if (get_callback_mode_process() ==
+        AnimationMixer::AnimationCallbackModeProcess::ANIMATION_CALLBACK_MODE_PROCESS_PHYSICS) {
+        inertialize_update(delta);
+    }
+}
+
+void MMAnimationPlayer::_process(double delta) {
+    AnimationPlayer::_process(delta);
+    if (Engine::get_singleton()->is_editor_hint()) {
+        return;
+    }
+
+    if (get_callback_mode_process() ==
+        AnimationMixer::AnimationCallbackModeProcess::ANIMATION_CALLBACK_MODE_PROCESS_IDLE) {
+        inertialize_update(delta);
     }
 }
 
@@ -123,7 +139,6 @@ void MMAnimationPlayer::inertialize_update(float delta) {
         return;
     }
 
-    advance(delta);
     const float current_time = UtilityFunctions::clampf(get_current_animation_position(), 0.0, animation->get_length());
     for (auto bone_id = 0; bone_id < _skeleton->get_bone_count(); ++bone_id) {
         if (bone_id == _skeleton_root_bone_id) {
@@ -174,7 +189,7 @@ void MMAnimationPlayer::inertialize_update(float delta) {
     }
 }
 
-MMQueryResult MMAnimationPlayer::query(const MMQueryInput& p_query_input) {
+MMQueryOutput MMAnimationPlayer::query(const MMQueryInput& p_query_input) {
     StringName library_name = get_animation_library_list()[0];
 
     Ref<MMAnimationLibrary> library = get_animation_library(library_name);

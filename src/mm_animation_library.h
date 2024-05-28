@@ -22,7 +22,7 @@ public:
     MMAnimationLibrary(/* args */);
     virtual ~MMAnimationLibrary();
     void bake_data(const MMAnimationPlayer* p_player, const Skeleton3D* p_skeleton);
-    MMQueryResult query(const MMQueryInput& p_query_input);
+    MMQueryOutput query(const MMQueryInput& p_query_input);
 
     float compute_cost(const PackedFloat32Array& p_query_data, const PackedFloat32Array& p_library_data) const;
 
