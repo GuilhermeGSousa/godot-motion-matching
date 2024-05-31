@@ -16,16 +16,10 @@ void MMCharacter::_physics_process(double delta) {
         return;
     }
 
-    // Set Rotation
-    const Quaternion rotation_delta = _animation_player->get_root_motion_rotation();
-    set_quaternion(rotation_delta * get_quaternion());
-
-    // Set Velocity
-    // const Vector3 velocity = _animation_player->get_root_motion_position() / delta;
+    set_rotation(get_rotation() + _animation_player->get_root_motion_angular_velocity() * delta);
+    // const Vector3 velocity = get_quaternion().xform(_animation_player->get_root_motion_linear_velocity());
     // set_velocity(velocity);
     // move_and_slide();
-    const Vector3 displacement = get_quaternion().xform(_animation_player->get_root_motion_position());
-    set_global_position(get_global_position() + displacement);
 }
 
 void MMCharacter::_bind_methods() {

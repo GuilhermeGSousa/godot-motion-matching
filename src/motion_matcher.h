@@ -6,7 +6,6 @@
 #include "mm_character.h"
 #include "mm_controller.h"
 
-
 using namespace godot;
 
 class MotionMatcher : public Node {
@@ -15,6 +14,8 @@ class MotionMatcher : public Node {
 public:
     void _ready() override;
     void _physics_process(double delta) override;
+
+    const PackedFloat32Array& get_last_query_result() const;
 
     GETSET(NodePath, controller_path)
     GETSET(NodePath, character_path)
@@ -33,4 +34,6 @@ private:
     MMAnimationPlayer* _animation_player{nullptr};
     float _time_since_last_query{0.f};
     bool _force_transition{false};
+
+    PackedFloat32Array _last_query_result;
 };

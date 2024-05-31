@@ -14,7 +14,6 @@ MMAnimationLibrary::~MMAnimationLibrary() {
 }
 
 void MMAnimationLibrary::bake_data(const MMAnimationPlayer* p_player, const Skeleton3D* p_skeleton) {
-    UtilityFunctions::print("Baking data");
     motion_data.clear();
 
     size_t dim_count = 0;
@@ -138,10 +137,7 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
             if (pose_cost < cost) {
                 cost = pose_cost;
                 result.cost = cost;
-
-                // TODO : This is a hack, fix this
-                String resource_name = "michelle_anim_lib";
-                result.animation_match = resource_name + "/" + anim_name;
+                result.animation_match = anim_name;
                 result.time_match = time;
                 result.matched_frame_data = frame_data;
             }

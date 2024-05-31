@@ -9,4 +9,5 @@ using namespace godot;
 struct MMTrajectoryPoint {
     Vector3 position;
     Vector3 velocity;
+    float facing_angle;
 };

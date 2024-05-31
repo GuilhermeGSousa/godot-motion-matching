@@ -46,7 +46,6 @@ PackedFloat32Array MMFacingFeature::evaluate_runtime_data(const MMQueryInput& p_
     forward_vector.y = 0;
 
     float angle = motion_direction.signed_angle_to(forward_vector, Vector3(0, 1, 0));
-    UtilityFunctions::print("Angle: " + String::num(angle));
 
     result.append(angle);
     return result;

@@ -29,6 +29,10 @@ public:
         return _trajectory_buffer;
     }
 
+    const std::vector<MMTrajectoryPoint>& get_history() const {
+        return _history_buffer.to_vector();
+    }
+
     TypedArray<Vector3> get_trajectory_positions() const {
         TypedArray<Vector3> positions;
         for (const auto& point : _trajectory_buffer) {
@@ -37,10 +41,27 @@ public:
         return positions;
     }
 
+    TypedArray<Vector3> get_history_positions() const {
+        TypedArray<Vector3> positions;
+        for (size_t i = 0; i < _history_buffer.size(); i++) {
+            positions.append(_history_buffer[i].position);
+        }
+        return positions;
+    }
+
+    TypedArray<float> get_trajectory_facing_angles() const {
+        TypedArray<float> facing_angles;
+        for (const auto& point : _trajectory_buffer) {
+            facing_angles.append(point.facing_angle);
+        }
+        return facing_angles;
+    }
+
     GETSET(NodePath, camera_pivot);
     GETSET(float, simulation_samples_per_second, 10.f);
     GETSET(float, friction, 1.f);
     GETSET(float, max_speed, 100.f);
+    GETSET(float, max_acceleration, 5.f);
     GETSET(float, mouse_sensitivity, 1.f);
     GETSET(bool, is_strafing, false);
     GETSET(size_t, trajectory_point_count, 10);
@@ -57,5 +78,6 @@ private:
     Node3D* _camera_pivot{nullptr};
     float _camera_pivot_height{0.f};
     std::vector<MMTrajectoryPoint> _trajectory_buffer{trajectory_point_count};
-    CircularBuffer<Vector3> _history_buffer{history_point_count};
+    CircularBuffer<MMTrajectoryPoint> _history_buffer{history_point_count};
+    float _time_until_next_history_point{0.f};
 };

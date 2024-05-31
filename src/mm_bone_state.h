@@ -2,6 +2,7 @@
 
 #include <godot_cpp/core/math.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
+#include <map>
 #include <vector>
 
 using namespace godot;
@@ -31,6 +32,13 @@ struct SkeletonState {
     ~SkeletonState() = default;
     SkeletonState(size_t size) : bone_states(size) {
     }
+    SkeletonState(const Skeleton3D* skeleton) {
+        const int32_t bone_count = skeleton->get_bone_count();
+        bone_states = std::vector<BoneState>(bone_count);
+        for (int b = 0; b < bone_count; ++b) {
+            bone_name_to_index[skeleton->get_bone_name(b)] = b;
+        }
+    }
 
     const BoneState& operator[](int32_t idx) const {
         return bone_states[idx];
@@ -40,5 +48,14 @@ struct SkeletonState {
         return bone_states[idx];
     }
 
+    const BoneState& find_bone_state(const String& name) const {
+        return bone_states[bone_name_to_index.find_key(name)];
+    }
+
+    BoneState& find_bone_state(const String& name) {
+        return bone_states[bone_name_to_index.find_key(name)];
+    }
+
     std::vector<BoneState> bone_states;
+    Dictionary bone_name_to_index; // Give me a real unordered_map please :(
 };

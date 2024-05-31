@@ -6,5 +6,7 @@ TODO List:
 - Better debug viz of features vs query data
 - Add facing to trajectory
 - Trajectory feature with pos + facing
+- Improve trajectory history
+- Get a better debug dataset
 - Bone data feature
 - Stop using anim + time to represent a pose

@@ -24,6 +24,18 @@ public:
     void bake_library_data();
     void inertialize_transition(const String& p_animation_name, float p_time);
     void inertialize_update(float delta);
+    const SkeletonState& get_skeleton_state() const {
+        return _skeleton_state;
+    }
+
+    const Skeleton3D* get_skeleton() const {
+        return _skeleton;
+    }
+
+    const Vector3& get_root_motion_linear_velocity() const;
+
+    const Vector3& get_root_motion_angular_velocity() const;
+
     MMQueryOutput query(const MMQueryInput& p_query_input);
 
     GETSET(float, halflife, 0.1f);
@@ -42,9 +54,6 @@ private:
     String _skeleton_root_bone_path;
     int32_t _skeleton_root_bone_id{-1};
     Skeleton3D* _skeleton{nullptr};
-
-    Vector3 _root_motion_positon_delta;
-    Quaternion _root_motion_rotation_delta;
 
     SkeletonState _skeleton_state;
     SkeletonState _skeleton_offset;

@@ -21,6 +21,8 @@ public:
 
     virtual PackedFloat32Array evaluate_runtime_data(const MMQueryInput& p_query_input) const override;
 
+    TypedArray<Vector3> get_trajectory_points(const PackedFloat32Array& p_trajectory_data) const;
+
     GETSET(float, past_delta_time, 0.1f);
     GETSET(int, past_frames, 1);
     GETSET(float, future_delta_time, 0.1f);

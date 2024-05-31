@@ -19,11 +19,11 @@ public:
 
     virtual PackedFloat32Array evaluate_runtime_data(const MMQueryInput& p_query_input) const override;
 
-    virtual void debug_gizmo(Ref<EditorNode3DGizmo> gizmo, const PackedFloat32Array data,
-                             godot::Transform3D tr = godot::Transform3D{}) override;
-
     GETSET(PackedStringArray, bone_names, PackedStringArray());
 
 protected:
     static void _bind_methods();
+
+private:
+    StringName _skeleton_path;
 };

@@ -28,11 +28,8 @@ public:
 
     virtual PackedFloat32Array evaluate_runtime_data(const MMQueryInput& p_query_input) const = 0;
 
-    virtual void debug_gizmo(Ref<EditorNode3DGizmo> gizmo, const PackedFloat32Array data,
-                             godot::Transform3D tr = godot::Transform3D{}) {
-    }
-
     void normalize(PackedFloat32Array& p_data) const;
+    void denormalize(PackedFloat32Array& p_data) const;
 
     GETSET(float, mean, 0.0f);
     GETSET(float, std_dev, 1.0f);

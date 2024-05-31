@@ -1,8 +1,11 @@
 #pragma once
+
 #include <deque>
+#include <vector>
 
 template <typename T>
 class CircularBuffer {
+
 private:
     std::deque<T> buffer;
     size_t max_size;
@@ -47,10 +50,15 @@ public:
         }
     }
 
-    T &operator[](size_t index) {
+    T& operator[](size_t index) {
         return buffer[index];
     }
-    const T &operator[](size_t index) const {
+
+    const T& operator[](size_t index) const {
         return buffer[index];
+    }
+
+    std::vector<T> to_vector() const {
+        return std::vector<T>(buffer.begin(), buffer.end());
     }
 };

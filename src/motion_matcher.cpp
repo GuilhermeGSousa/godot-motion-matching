@@ -28,8 +28,10 @@ void MotionMatcher::_physics_process(double delta) {
         MMQueryInput query_input;
         query_input.controller_velocity = _controller->get_velocity();
         query_input.trajectory = _controller->get_trajectory();
+        query_input.trajectory_history = _controller->get_history();
         query_input.controller_transform = _controller->get_global_transform();
         query_input.character_transform = _character->get_global_transform();
+        query_input.skeleton_state = _animation_player->get_skeleton_state();
 
         // Run query
         const MMQueryOutput result = _animation_player->query(query_input);
@@ -38,6 +40,7 @@ void MotionMatcher::_physics_process(double delta) {
         if (result.animation_match != _animation_player->get_current_animation() ||
             (result.time_match - _animation_player->get_current_animation_position() > search_time_threshold)) {
             _animation_player->inertialize_transition(result.animation_match, result.time_match);
+            _last_query_result = result.matched_frame_data;
         }
     }
     _animation_player->advance(delta);
@@ -45,11 +48,16 @@ void MotionMatcher::_physics_process(double delta) {
     _time_since_last_query += delta;
 }
 
+const PackedFloat32Array& MotionMatcher::get_last_query_result() const {
+    return _last_query_result;
+}
+
 void MotionMatcher::_on_animation_finished(StringName p_animation_name) {
     _force_transition = true;
 }
 
 void MotionMatcher::_bind_methods() {
+    ClassDB::bind_method(D_METHOD("get_last_query_result"), &MotionMatcher::get_last_query_result);
     ClassDB::bind_method(D_METHOD("_on_animation_finished", "anim"), &MotionMatcher::_on_animation_finished);
 
     BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::NODE_PATH, controller_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES,

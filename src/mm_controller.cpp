@@ -52,7 +52,7 @@ void MMController::_physics_process(double delta) {
     set_velocity(new_velocity);
 
     // Rotate the character to face the direction of velocity
-    if (new_velocity.length_squared() > 0.1 && !is_strafing) {
+    if (new_velocity.length_squared() > 0.001 && !is_strafing) {
         Vector3 direction = new_velocity.normalized();
         set_rotation(Vector3(0.0f, Math::atan2(direction.x, direction.z), 0.0f));
     } else {
@@ -84,7 +84,7 @@ Vector3 MMController::update_trajectory(const Vector3& current_velocity, float d
     // Get the world space acceleration vector.
     const Vector3 stick_input_world = Vector3(-stick_input.x, 0.f, stick_input.y);
 
-    const Vector3 acceleration = stick_input_world * 10.0f;
+    const Vector3 acceleration = stick_input_world * max_acceleration;
 
     // Update the velocity.
     new_velocity += acceleration * delta_t;
@@ -92,8 +92,13 @@ Vector3 MMController::update_trajectory(const Vector3& current_velocity, float d
     new_velocity = clamp_max_magnitude(new_velocity, max_speed);
 
     _generate_trajectory(new_velocity, acceleration);
-    _update_history();
 
+    if (_time_until_next_history_point <= 0.f) {
+        _time_until_next_history_point = 1.f / simulation_samples_per_second;
+        _update_history();
+    }
+
+    _time_until_next_history_point -= delta_t;
     return new_velocity;
 }
 
@@ -110,6 +115,12 @@ void MMController::_generate_trajectory(const Vector3& p_current_velocity, const
         MMTrajectoryPoint point;
         point.position = current_position;
         point.velocity = current_velocity;
+        if (current_velocity.length_squared() > 0.001 && !is_strafing) {
+            Vector3 direction = current_velocity.normalized();
+            point.facing_angle = Math::atan2(direction.x, direction.z);
+        } else {
+            point.facing_angle = _camera_pivot->get_rotation().y;
+        }
 
         _trajectory_buffer.push_back(point);
 
@@ -124,6 +135,17 @@ void MMController::_generate_trajectory(const Vector3& p_current_velocity, const
 }
 
 void MMController::_update_history() {
+    MMTrajectoryPoint point;
+    point.position = get_global_position();
+    point.velocity = get_velocity();
+    if (get_velocity().length_squared() > 0.001 && !is_strafing) {
+        Vector3 direction = get_velocity().normalized();
+        point.facing_angle = Math::atan2(direction.x, direction.z);
+    } else {
+        point.facing_angle = _camera_pivot->get_rotation().y;
+    }
+
+    _history_buffer.push(point);
 }
 
 void MMController::_bind_methods() {
@@ -131,6 +153,8 @@ void MMController::_bind_methods() {
                          &MMController::update_trajectory);
 
     ClassDB::bind_method(D_METHOD("get_trajectory_positions"), &MMController::get_trajectory_positions);
+    ClassDB::bind_method(D_METHOD("get_history_positions"), &MMController::get_history_positions);
+    ClassDB::bind_method(D_METHOD("get_trajectory_facing_angles"), &MMController::get_trajectory_facing_angles);
 
     BINDER_PROPERTY_PARAMS(MMController, Variant::NODE_PATH, camera_pivot, PROPERTY_HINT_NODE_PATH_VALID_TYPES,
                            "Node3D");
@@ -138,6 +162,7 @@ void MMController::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMController, Variant::INT, trajectory_point_count);
     BINDER_PROPERTY_PARAMS(MMController, Variant::FLOAT, simulation_samples_per_second);
     BINDER_PROPERTY_PARAMS(MMController, Variant::FLOAT, max_speed);
+    BINDER_PROPERTY_PARAMS(MMController, Variant::FLOAT, max_acceleration);
     BINDER_PROPERTY_PARAMS(MMController, Variant::FLOAT, mouse_sensitivity);
     BINDER_PROPERTY_PARAMS(MMController, Variant::BOOL, is_strafing);
 }
