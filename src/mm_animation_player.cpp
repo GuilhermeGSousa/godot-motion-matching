@@ -116,10 +116,14 @@ void MMAnimationPlayer::inertialize_transition(const String& p_animation_name, f
         }
 
         if (bone_id == _skeleton_root_bone_id) {
-            const Quaternion rooting = desired_rot.inverse();
+            // This needs an explanation, or else I'll forget why I did this.
+            // The first term will rotate everything to be relative to the root's rotation.
+            // The second term will rotate everything to be relative to the skeleton's global rotation.
+            _anim_root_rotation = desired_rot * _skeleton->get_global_basis().get_rotation_quaternion().inverse();
+
             desired_pos = Vector3();
-            desired_vel = rooting.xform(desired_vel);
             desired_rot = Quaternion();
+            desired_vel = _anim_root_rotation.xform_inv(desired_vel);
         }
 
         Spring::inertialize_transition(_skeleton_offset[bone_id].pos, _skeleton_offset[bone_id].vel,
@@ -152,9 +156,7 @@ void MMAnimationPlayer::inertialize_update(float delta) {
         const int32_t pos_track = animation->find_track(bone_path, Animation::TrackType::TYPE_POSITION_3D);
         if (pos_track != -1) {
             desired_pos = animation->position_track_interpolate(pos_track, current_time);
-            if (current_time < delta) {
-                // desired_vel = Vector3(0, 0, 0);
-            } else {
+            if (current_time >= delta) {
                 float previous_time = current_time - delta;
                 Vector3 previous_pos = animation->position_track_interpolate(pos_track, previous_time);
                 desired_vel = (desired_pos - previous_pos) / delta;
@@ -173,6 +175,7 @@ void MMAnimationPlayer::inertialize_update(float delta) {
         if (bone_id == _skeleton_root_bone_id) {
             desired_pos = Vector3();
             desired_rot = Quaternion();
+            desired_vel = _anim_root_rotation.xform_inv(desired_vel);
         }
 
         Spring::inertialize_update(_skeleton_state[bone_id].pos, _skeleton_state[bone_id].vel,

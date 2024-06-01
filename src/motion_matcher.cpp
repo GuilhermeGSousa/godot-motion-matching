@@ -43,6 +43,10 @@ void MotionMatcher::_physics_process(double delta) {
             _last_query_result = result.matched_frame_data;
         }
     }
+
+    // Clamping the controller to the character
+    //_character->set_position(_controller->get_position());
+
     _animation_player->advance(delta);
     _animation_player->inertialize_update(delta);
     _time_since_last_query += delta;

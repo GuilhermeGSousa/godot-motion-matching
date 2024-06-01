@@ -57,4 +57,6 @@ private:
 
     SkeletonState _skeleton_state;
     SkeletonState _skeleton_offset;
+
+    Quaternion _anim_root_rotation;
 };

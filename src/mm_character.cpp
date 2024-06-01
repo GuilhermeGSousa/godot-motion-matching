@@ -8,6 +8,10 @@
 using namespace godot;
 
 void MMCharacter::_ready() {
+    if (Engine::get_singleton()->is_editor_hint()) {
+        return;
+    }
+
     _animation_player = get_node<MMAnimationPlayer>(animation_player_path);
 }
 
@@ -16,10 +20,12 @@ void MMCharacter::_physics_process(double delta) {
         return;
     }
 
+    // Set Rotation
     set_rotation(get_rotation() + _animation_player->get_root_motion_angular_velocity() * delta);
-    // const Vector3 velocity = get_quaternion().xform(_animation_player->get_root_motion_linear_velocity());
-    // set_velocity(velocity);
-    // move_and_slide();
+    //  Hard mode: set position
+    //  Also, why is this even hard mode?
+    set_velocity(_animation_player->get_root_motion_linear_velocity());
+    move_and_slide();
 }
 
 void MMCharacter::_bind_methods() {
