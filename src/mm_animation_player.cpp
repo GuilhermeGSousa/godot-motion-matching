@@ -35,6 +35,8 @@ void MMAnimationPlayer::_ready() {
 
     _skeleton->reset_bone_poses();
     _inertialize_reset();
+
+    _root_motion_character = get_node<CharacterBody3D>(root_motion_character_path);
     connect("animation_finished", Callable(this, "_on_animation_finished"));
 }
 
@@ -119,7 +121,10 @@ void MMAnimationPlayer::inertialize_transition(const String& p_animation_name, f
             // This needs an explanation, or else I'll forget why I did this.
             // The first term will rotate everything to be relative to the root's rotation.
             // The second term will rotate everything to be relative to the skeleton's global rotation.
-            _anim_root_rotation = desired_rot * _skeleton->get_global_basis().get_rotation_quaternion().inverse();
+            if (_root_motion_character) {
+                _anim_root_rotation =
+                    desired_rot * _root_motion_character->get_global_basis().get_rotation_quaternion().inverse();
+            }
 
             desired_pos = Vector3();
             desired_rot = Quaternion();
@@ -191,6 +196,8 @@ void MMAnimationPlayer::inertialize_update(float delta) {
         _skeleton->set_bone_pose_rotation(bone_id, _skeleton_state[bone_id].rot);
         _skeleton->force_update_bone_child_transform(bone_id);
     }
+
+    _apply_root_motion(delta);
 }
 
 const Vector3& MMAnimationPlayer::get_root_motion_linear_velocity() const {
@@ -226,6 +233,19 @@ void MMAnimationPlayer::_inertialize_reset(bool skeleton_to_rest) {
     }
 }
 
+void MMAnimationPlayer::_apply_root_motion(double delta) {
+    if (!_root_motion_character) {
+        return;
+    }
+
+    // Set Rotation
+    _root_motion_character->set_rotation(_root_motion_character->get_rotation() +
+                                         get_root_motion_angular_velocity() * delta);
+    //  Set Velocity
+    _root_motion_character->set_velocity(get_root_motion_linear_velocity());
+    _root_motion_character->move_and_slide();
+}
+
 void MMAnimationPlayer::_on_animation_finished(StringName p_animation_name) {
 }
 
@@ -240,4 +260,6 @@ void MMAnimationPlayer::_bind_methods() {
                          &MMAnimationPlayer::inertialize_transition, (0.0f));
 
     BINDER_PROPERTY_PARAMS(MMAnimationPlayer, Variant::FLOAT, halflife, PROPERTY_HINT_RANGE, "0.0,1.0,0.01,or_greater");
+    BINDER_PROPERTY_PARAMS(MMAnimationPlayer, Variant::NODE_PATH, root_motion_character_path,
+                           PROPERTY_HINT_NODE_PATH_VALID_TYPES, "CharacterBody3D");
 }

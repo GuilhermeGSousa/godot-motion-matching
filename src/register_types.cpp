@@ -15,7 +15,6 @@
 
 #include "mm_animation_library.h"
 #include "mm_animation_player.h"
-#include "mm_character.h"
 #include "mm_controller.h"
 #include "mm_trajectory_point.h"
 #include "motion_matcher.h"
@@ -36,7 +35,6 @@ void initialize_example_module(ModuleInitializationLevel p_level) {
     ClassDB::register_class<MMAnimationLibrary>();
     ClassDB::register_class<MMAnimationPlayer>();
     ClassDB::register_class<MMController>();
-    ClassDB::register_class<MMCharacter>();
     ClassDB::register_class<MotionMatcher>();
 }
 

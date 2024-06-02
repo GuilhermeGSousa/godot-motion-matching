@@ -1,12 +1,9 @@
 TODO List:
 
 - Trigger search on velocity change
-- Fix inertialization
-- Implement actual debugging tools
-- Better debug viz of features vs query data
 - Add facing to trajectory
 - Trajectory feature with pos + facing
 - Improve trajectory history
 - Get a better debug dataset
-- Bone data feature
-- Stop using anim + time to represent a pose
+- Fix facing in trajectory at low speeds in non strafe
+- Implement better normalization (per feature type in features)

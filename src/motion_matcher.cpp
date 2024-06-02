@@ -7,7 +7,7 @@ void MotionMatcher::_ready() {
         return;
     }
     _controller = get_node<MMController>(controller_path);
-    _character = get_node<MMCharacter>(character_path);
+    _character = get_node<CharacterBody3D>(character_path);
     _animation_player = get_node<MMAnimationPlayer>(animation_player_path);
     _animation_player->connect("animation_finished", Callable(this, "_on_animation_finished"));
     _animation_player->set_callback_mode_process(
@@ -67,7 +67,7 @@ void MotionMatcher::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::NODE_PATH, controller_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES,
                            "MMController");
     BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::NODE_PATH, character_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES,
-                           "MMCharacter");
+                           "CharacterBody3D");
     BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::NODE_PATH, animation_player_path,
                            PROPERTY_HINT_NODE_PATH_VALID_TYPES, "MMAnimationPlayer");
     BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::FLOAT, query_time);

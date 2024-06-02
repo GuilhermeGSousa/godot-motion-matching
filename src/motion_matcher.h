@@ -3,7 +3,6 @@
 #include <godot_cpp/classes/node.hpp>
 
 #include "mm_animation_player.h"
-#include "mm_character.h"
 #include "mm_controller.h"
 
 using namespace godot;
@@ -30,7 +29,7 @@ protected:
 
 private:
     MMController* _controller{nullptr};
-    MMCharacter* _character{nullptr};
+    CharacterBody3D* _character{nullptr};
     MMAnimationPlayer* _animation_player{nullptr};
     float _time_since_last_query{0.f};
     bool _force_transition{false};
