@@ -19,3 +19,5 @@
     ClassDB::bind_method(D_METHOD(STRING_PREFIX(get_, variable)), &type::get_##variable);          \
     ClassDB::add_property(get_class_static(), PropertyInfo(variant_type, #variable, __VA_ARGS__),  \
                           STRING_PREFIX(set_, variable), STRING_PREFIX(get_, variable));
+
+#define SMALL_NUMBER 1.e-8

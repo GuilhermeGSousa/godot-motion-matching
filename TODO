@@ -7,3 +7,4 @@ TODO List:
 - Get a better debug dataset
 - Fix facing in trajectory at low speeds in non strafe
 - Implement better normalization (per feature type in features)
+- KD Tree acceleration

@@ -7,9 +7,9 @@
 #include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
+#include "math/spring.hpp"
 #include "mm_animation_library.h"
 #include "mm_controller.h"
-#include "spring.hpp"
 
 using namespace godot;
 
