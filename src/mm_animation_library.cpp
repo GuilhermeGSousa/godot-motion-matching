@@ -4,6 +4,7 @@
 
 #include "common.h"
 #include "features/mm_feature.h"
+#include "math/stats.hpp"
 
 using namespace godot;
 
@@ -26,11 +27,7 @@ void MMAnimationLibrary::bake_data(const MMAnimationPlayer* p_player, const Skel
     TypedArray<StringName> animation_list = get_animation_list();
 
     // Normalization data
-    std::vector<float> sum(features.size(), 0.0f);
-    std::vector<float> sum_of_squares(features.size(), 0.0f);
-    std::vector<int> count(features.size(), 0);
-    std::vector<float> maxes(features.size(), 0.0f);
-    std::vector<float> mins(features.size(), 0.0f);
+    std::vector<StatsAccumulator> stats(dim_count);
 
     PackedFloat32Array data;
     // For every animation
@@ -50,17 +47,15 @@ void MMAnimationLibrary::bake_data(const MMAnimationPlayer* p_player, const Skel
         for (float time = 0; time < animation_length; time += time_step) {
             PackedFloat32Array pose_data;
             // For every feature
+            int dim_index = 0;
             for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
                 const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
                 const PackedFloat32Array feature_data = feature->bake_animation_pose(animation, time);
 
                 // Update stats
                 for (int i = 0; i < feature_data.size(); i++) {
-                    sum[feature_index] += feature_data[i];
-                    sum_of_squares[feature_index] += feature_data[i] * feature_data[i];
-                    count[feature_index]++;
-                    maxes[feature_index] = MAX(maxes[feature_index], feature_data[i]);
-                    mins[feature_index] = MIN(mins[feature_index], feature_data[i]);
+                    stats[dim_index].add_sample(feature_data[i]);
+                    dim_index++;
                 }
 
                 pose_data.append_array(feature_data);
@@ -70,32 +65,27 @@ void MMAnimationLibrary::bake_data(const MMAnimationPlayer* p_player, const Skel
     }
 
     // Compute mean and standard deviation
+    int dim_index = 0;
     for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
-        float mean = sum[feature_index] / count[feature_index];
-        float variance = (sum_of_squares[feature_index] / count[feature_index]) - (mean * mean);
-        float std_dev = sqrt(variance);
-
         MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
-        feature->set_mean(mean);
-        feature->set_std_dev(std_dev);
-        feature->set_max(maxes[feature_index]);
-        feature->set_min(mins[feature_index]);
+
+        PackedFloat32Array feature_means;
+        feature_means.resize(feature->get_dimension_count());
+        PackedFloat32Array feature_std_devs;
+        feature_std_devs.resize(feature->get_dimension_count());
+
+        for (size_t feature_element_index = 0; feature_element_index < feature->get_dimension_count();
+             feature_element_index++) {
+            feature_means.set(feature_element_index, stats[dim_index].get_mean());
+            feature_std_devs.set(feature_element_index, stats[dim_index].get_standard_deviation());
+            dim_index++;
+        }
+
+        feature->set_means(feature_means);
+        feature->set_std_devs(feature_std_devs);
     }
 
-    // Normalize data
-    for (size_t frame_index = 0; frame_index < data.size(); frame_index += dim_count) {
-        for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
-            const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
-            const size_t start_index = frame_index;
-            const size_t end_index = start_index + feature->get_dimension_count();
-            for (size_t feature_element_index = frame_index; feature_element_index < end_index;
-                 feature_element_index++) {
-                float value = data[feature_element_index];
-                value = (value - feature->get_mean()) / feature->get_std_dev();
-                data.set(feature_element_index, value);
-            }
-        }
-    }
+    _normalize_data(data, dim_count);
 
     motion_data = data.duplicate();
 }
@@ -156,10 +146,30 @@ float MMAnimationLibrary::compute_cost(const PackedFloat32Array& p_query_data,
     return cost;
 }
 
-void MMAnimationLibrary::_bind_methods() {
-    // ClassDB::bind_method(D_METHOD("bake_data", "animation_root"),
-    //                      &MMAnimationLibrary::bake_data);
+void MMAnimationLibrary::_normalize_data(PackedFloat32Array& p_data, size_t p_dim_count) const {
+    for (size_t frame_index = 0; frame_index < p_data.size(); frame_index += p_dim_count) {
+        for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
 
+            const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
+
+            for (size_t feature_element_index = 0; feature_element_index < feature->get_dimension_count();
+                 feature_element_index++) {
+                if (feature->get_std_devs()[feature_element_index] < SMALL_NUMBER) {
+                    continue;
+                }
+
+                float value = p_data[feature_element_index + frame_index];
+
+                value = (value - feature->get_means()[feature_element_index]) /
+                    feature->get_std_devs()[feature_element_index];
+
+                p_data.set(feature_element_index + frame_index, value);
+            }
+        }
+    }
+}
+
+void MMAnimationLibrary::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::ARRAY, features, PROPERTY_HINT_TYPE_STRING,
                            UtilityFunctions::str(Variant::OBJECT) + '/' + UtilityFunctions::str(Variant::BASIS) +
                                ":MMFeature",

@@ -31,10 +31,10 @@ public:
     void normalize(PackedFloat32Array& p_data) const;
     void denormalize(PackedFloat32Array& p_data) const;
 
-    GETSET(float, mean, 0.0f);
-    GETSET(float, std_dev, 1.0f);
-    GETSET(float, max, 1.0f);
-    GETSET(float, min, -1.0f);
+    GETSET(PackedFloat32Array, means);
+    GETSET(PackedFloat32Array, std_devs);
+    GETSET(PackedFloat32Array, maxes);
+    GETSET(PackedFloat32Array, mins);
 
 protected:
     static void _bind_methods();

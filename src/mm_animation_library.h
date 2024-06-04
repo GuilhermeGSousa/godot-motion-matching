@@ -32,4 +32,7 @@ public:
 
 protected:
     static void _bind_methods();
+
+private:
+    void _normalize_data(PackedFloat32Array& p_data, size_t p_dim_count) const;
 };
