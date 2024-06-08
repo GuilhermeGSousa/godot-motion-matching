@@ -30,7 +30,7 @@ public:
 
     void normalize(PackedFloat32Array& p_data) const;
     void denormalize(PackedFloat32Array& p_data) const;
-
+    float compute_cost(const PackedFloat32Array& p_motion_data, const PackedFloat32Array& p_query_data) const;
     GETSET(PackedFloat32Array, means);
     GETSET(PackedFloat32Array, std_devs);
     GETSET(PackedFloat32Array, maxes);

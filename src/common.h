@@ -1,6 +1,5 @@
 #pragma once
 
-// Macro setup. Mostly there to simplify writing all those
 #define GETSET(type, variable, ...)   \
     type variable{__VA_ARGS__};       \
     type get_##variable() const {     \

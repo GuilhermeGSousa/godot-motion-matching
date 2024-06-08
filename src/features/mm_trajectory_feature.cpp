@@ -77,7 +77,9 @@ PackedFloat32Array MMTrajectoryFeature::evaluate_runtime_data(const MMQueryInput
     PackedFloat32Array result;
     auto add_point = [this, &character_transform, &result](int index,
                                                            const std::vector<MMTrajectoryPoint>& trajectory) {
-        const Vector3 local_position = character_transform.xform_inv(trajectory[index].position);
+        const Vector3 local_position =
+            character_transform.basis.xform_inv(trajectory[index].position - character_transform.origin);
+
         result.append(local_position.x);
         if (include_height) {
             result.append(local_position.y);

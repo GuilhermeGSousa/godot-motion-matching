@@ -37,15 +37,16 @@ void MotionMatcher::_physics_process(double delta) {
         const MMQueryOutput result = _animation_player->query(query_input);
 
         // Play selected animation
-        if (result.animation_match != _animation_player->get_current_animation() ||
-            (result.time_match - _animation_player->get_current_animation_position() > search_time_threshold)) {
+        const bool is_same_animation = result.animation_match == _animation_player->get_current_animation();
+        const bool is_same_time =
+            abs(result.time_match - _animation_player->get_current_animation_position()) < SMALL_NUMBER;
+
+        if (!is_same_animation || !is_same_time) {
             _animation_player->inertialize_transition(result.animation_match, result.time_match);
             _last_query_result = result.matched_frame_data;
         }
+        _last_query_input = query_input;
     }
-
-    // Clamping the controller to the character
-    //_character->set_position(_controller->get_position());
 
     _animation_player->advance(delta);
     _animation_player->inertialize_update(delta);
@@ -56,12 +57,21 @@ const PackedFloat32Array& MotionMatcher::get_last_query_result() const {
     return _last_query_result;
 }
 
+TypedArray<Vector3> MotionMatcher::get_query_trajectory_points() const {
+    TypedArray<Vector3> result;
+    for (size_t i = 0; i < _last_query_input.trajectory.size(); i++) {
+        result.push_back(_last_query_input.trajectory[i].position);
+    }
+    return result;
+}
+
 void MotionMatcher::_on_animation_finished(StringName p_animation_name) {
     _force_transition = true;
 }
 
 void MotionMatcher::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_last_query_result"), &MotionMatcher::get_last_query_result);
+    ClassDB::bind_method(D_METHOD("get_query_trajectory_points"), &MotionMatcher::get_query_trajectory_points);
     ClassDB::bind_method(D_METHOD("_on_animation_finished", "anim"), &MotionMatcher::_on_animation_finished);
 
     BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::NODE_PATH, controller_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES,
@@ -71,5 +81,4 @@ void MotionMatcher::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::NODE_PATH, animation_player_path,
                            PROPERTY_HINT_NODE_PATH_VALID_TYPES, "MMAnimationPlayer");
     BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::FLOAT, query_time);
-    BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::FLOAT, search_time_threshold);
 }

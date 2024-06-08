@@ -52,7 +52,7 @@ void MMController::_physics_process(double delta) {
     set_velocity(new_velocity);
 
     // Rotate the character to face the direction of velocity
-    if (new_velocity.length_squared() > 0.001 && !is_strafing) {
+    if (!is_strafing) {
         Vector3 direction = new_velocity.normalized();
         set_rotation(Vector3(0.0f, Math::atan2(direction.x, direction.z), 0.0f));
     } else {

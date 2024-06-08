@@ -24,12 +24,13 @@ public:
     void bake_data(const MMAnimationPlayer* p_player, const Skeleton3D* p_skeleton);
     MMQueryOutput query(const MMQueryInput& p_query_input);
 
-    float compute_cost(const PackedFloat32Array& p_query_data, const PackedFloat32Array& p_library_data) const;
-
-    GETSET(float, sampling_rate, 1.f)
-    GETSET(PackedFloat32Array, motion_data)
     GETSET(TypedArray<MMFeature>, features)
+    GETSET(float, sampling_rate, 1.f)
 
+    // Database data
+    GETSET(PackedFloat32Array, motion_data)
+    GETSET(PackedInt32Array, db_anim_index)
+    GETSET(PackedFloat32Array, db_time_index)
 protected:
     static void _bind_methods();
 

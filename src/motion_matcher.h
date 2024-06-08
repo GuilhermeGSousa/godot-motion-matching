@@ -15,12 +15,12 @@ public:
     void _physics_process(double delta) override;
 
     const PackedFloat32Array& get_last_query_result() const;
+    TypedArray<Vector3> get_query_trajectory_points() const;
 
     GETSET(NodePath, controller_path)
     GETSET(NodePath, character_path)
     GETSET(NodePath, animation_player_path)
     GETSET(float, query_time, 0.1f)
-    GETSET(float, search_time_threshold, 0.2f)
 
 protected:
     static void _bind_methods();
@@ -35,4 +35,5 @@ private:
     bool _force_transition{false};
 
     PackedFloat32Array _last_query_result;
+    MMQueryInput _last_query_input;
 };

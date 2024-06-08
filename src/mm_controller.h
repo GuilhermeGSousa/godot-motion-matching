@@ -29,7 +29,7 @@ public:
         return _trajectory_buffer;
     }
 
-    const std::vector<MMTrajectoryPoint>& get_history() const {
+    std::vector<MMTrajectoryPoint> get_history() const {
         return _history_buffer.to_vector();
     }
 
