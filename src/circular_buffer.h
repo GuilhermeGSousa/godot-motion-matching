@@ -14,6 +14,10 @@ public:
     explicit CircularBuffer(size_t size) : max_size(size) {
     }
 
+    void clear() {
+        buffer.clear();
+    }
+
     void push(T item) {
         if (buffer.size() == max_size) {
             buffer.pop_front();
@@ -33,6 +37,10 @@ public:
 
     bool is_full() const {
         return buffer.size() == max_size;
+    }
+
+    bool is_empty() const {
+        return buffer.empty();
     }
 
     size_t capacity() const {

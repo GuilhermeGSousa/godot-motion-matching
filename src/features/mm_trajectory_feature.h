@@ -11,6 +11,7 @@ class MMTrajectoryFeature : public MMFeature {
 public:
     MMTrajectoryFeature(/* args */);
     virtual ~MMTrajectoryFeature();
+
     virtual size_t get_dimension_count() const override;
 
     virtual void setup_skeleton(const MMAnimationPlayer* p_player, const Skeleton3D* p_skeleton) override;
@@ -28,11 +29,14 @@ public:
     GETSET(float, future_delta_time, 0.1f);
     GETSET(int, future_frames, 5);
     GETSET(bool, include_height, false);
+    GETSET(bool, include_facing, true);
 
 protected:
     static void _bind_methods();
 
 private:
+    size_t _get_point_dimension_count() const;
+
     int _root_bone{-1};
     NodePath _root_bone_path;
     int _root_position_track{-1};

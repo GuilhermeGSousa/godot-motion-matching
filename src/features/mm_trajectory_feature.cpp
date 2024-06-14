@@ -9,8 +9,7 @@ MMTrajectoryFeature::~MMTrajectoryFeature() {
 }
 
 size_t MMTrajectoryFeature::get_dimension_count() const {
-    // Two velocity dimensions plus facing
-    return (include_height ? 3 : 2) * (past_frames + future_frames);
+    return _get_point_dimension_count() * (past_frames + future_frames);
 }
 
 void MMTrajectoryFeature::setup_skeleton(const MMAnimationPlayer* p_player, const Skeleton3D* p_skeleton) {
@@ -49,18 +48,23 @@ PackedFloat32Array MMTrajectoryFeature::bake_animation_pose(Ref<Animation> p_ani
             result.append(position.y);
         }
         result.append(position.z);
+        if (include_facing) {
+            const Vector3 facing = rotation.get_euler();
+            result.append(facing.y);
+        }
     };
 
-    for (size_t i = 0; i < future_frames; i++) {
+    // We do not include the first frame
+    for (size_t i = 1; i < future_frames + 1; i++) {
         const float future_time =
             UtilityFunctions::clampf(time + future_delta_time * i, 0.0f, p_animation->get_length());
 
         add_frame(future_time);
     }
 
-    for (size_t i = 0; i < past_frames; i++) {
+    for (size_t i = 1; i < past_frames + 1; i++) {
         const float past_time =
-            UtilityFunctions::clampf(time - past_delta_time * (i + 1), 0.0f, p_animation->get_length());
+            UtilityFunctions::clampf(time - past_delta_time * i + 1, 0.0f, p_animation->get_length());
 
         add_frame(past_time);
     }
@@ -69,30 +73,32 @@ PackedFloat32Array MMTrajectoryFeature::bake_animation_pose(Ref<Animation> p_ani
 }
 
 PackedFloat32Array MMTrajectoryFeature::evaluate_runtime_data(const MMQueryInput& p_query_input) const {
-    const std::vector<MMTrajectoryPoint>& trajectory = p_query_input.trajectory;
-    const std::vector<MMTrajectoryPoint>& history = p_query_input.trajectory_history;
     const Transform3D& character_transform = p_query_input.character_transform;
 
     // Get the trajectory points in local space
     PackedFloat32Array result;
-    auto add_point = [this, &character_transform, &result](int index,
-                                                           const std::vector<MMTrajectoryPoint>& trajectory) {
+    auto add_point = [this, &character_transform, &result](int index, const MMTrajectoryPoint& trajectory_point) {
         const Vector3 local_position =
-            character_transform.basis.xform_inv(trajectory[index].position - character_transform.origin);
+            character_transform.basis.xform_inv(trajectory_point.position - character_transform.origin);
 
         result.append(local_position.x);
         if (include_height) {
             result.append(local_position.y);
         }
         result.append(local_position.z);
+        if (include_facing) {
+            const float facing = trajectory_point.facing_angle;
+            result.append(facing);
+        }
     };
 
-    for (int i = 0; i < future_frames; i++) {
-        add_point(i, trajectory);
+    // We do not match the first point of the trajectory (character position)
+    for (int i = 1; i < future_frames + 1; i++) {
+        add_point(i, p_query_input.trajectory[i]);
     }
 
-    for (size_t i = 1; i < past_frames; i++) {
-        add_point(i, history);
+    for (size_t i = 1; i < past_frames + 1; i++) {
+        add_point(i, p_query_input.trajectory_history[i]);
     }
 
     return result;
@@ -103,7 +109,7 @@ TypedArray<Vector3> MMTrajectoryFeature::get_trajectory_points(const PackedFloat
     denormalize(denormalized_data);
 
     TypedArray<Vector3> result;
-    const int offset = include_height ? 3 : 2;
+    const int offset = _get_point_dimension_count();
     for (int i = 0; i < future_frames * offset; i += offset) {
 
         const Vector3 point(denormalized_data[i], include_height ? denormalized_data[i + 1] : 0,
@@ -121,4 +127,16 @@ void MMTrajectoryFeature::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::FLOAT, future_delta_time);
     BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::INT, future_frames);
     BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::BOOL, include_height);
+    BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::BOOL, include_facing);
+}
+
+size_t MMTrajectoryFeature::_get_point_dimension_count() const {
+    size_t dimensions = 2; // x, z
+    if (include_height) {
+        dimensions++; // y
+    }
+    if (include_facing) {
+        dimensions++; // facing
+    }
+    return dimensions;
 }

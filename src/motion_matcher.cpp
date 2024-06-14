@@ -12,14 +12,13 @@ void MotionMatcher::_ready() {
     _animation_player->connect("animation_finished", Callable(this, "_on_animation_finished"));
     _animation_player->set_callback_mode_process(
         godot::AnimationMixer::AnimationCallbackModeProcess::ANIMATION_CALLBACK_MODE_PROCESS_MANUAL);
-    query_time = 0.1f;
 }
 
 void MotionMatcher::_physics_process(double delta) {
     if (Engine::get_singleton()->is_editor_hint()) {
         return;
     }
-    const bool should_query = _time_since_last_query > query_time || _force_transition;
+    const bool should_query = (_time_since_last_query > (1.0 / query_frequency)) || _force_transition;
     if (should_query) {
         _time_since_last_query = 0.f;
         _force_transition = false;
@@ -28,7 +27,7 @@ void MotionMatcher::_physics_process(double delta) {
         MMQueryInput query_input;
         query_input.controller_velocity = _controller->get_velocity();
         query_input.trajectory = _controller->get_trajectory();
-        query_input.trajectory_history = _controller->get_history();
+        // query_input.trajectory_history = _controller->get_history();
         query_input.controller_transform = _controller->get_global_transform();
         query_input.character_transform = _character->get_global_transform();
         query_input.skeleton_state = _animation_player->get_skeleton_state();
@@ -53,25 +52,12 @@ void MotionMatcher::_physics_process(double delta) {
     _time_since_last_query += delta;
 }
 
-const PackedFloat32Array& MotionMatcher::get_last_query_result() const {
-    return _last_query_result;
-}
-
-TypedArray<Vector3> MotionMatcher::get_query_trajectory_points() const {
-    TypedArray<Vector3> result;
-    for (size_t i = 0; i < _last_query_input.trajectory.size(); i++) {
-        result.push_back(_last_query_input.trajectory[i].position);
-    }
-    return result;
-}
-
 void MotionMatcher::_on_animation_finished(StringName p_animation_name) {
     _force_transition = true;
 }
 
 void MotionMatcher::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_last_query_result"), &MotionMatcher::get_last_query_result);
-    ClassDB::bind_method(D_METHOD("get_query_trajectory_points"), &MotionMatcher::get_query_trajectory_points);
     ClassDB::bind_method(D_METHOD("_on_animation_finished", "anim"), &MotionMatcher::_on_animation_finished);
 
     BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::NODE_PATH, controller_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES,
@@ -80,5 +66,5 @@ void MotionMatcher::_bind_methods() {
                            "CharacterBody3D");
     BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::NODE_PATH, animation_player_path,
                            PROPERTY_HINT_NODE_PATH_VALID_TYPES, "MMAnimationPlayer");
-    BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::FLOAT, query_time);
+    BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::FLOAT, query_frequency);
 }

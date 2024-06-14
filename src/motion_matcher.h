@@ -14,13 +14,14 @@ public:
     void _ready() override;
     void _physics_process(double delta) override;
 
-    const PackedFloat32Array& get_last_query_result() const;
-    TypedArray<Vector3> get_query_trajectory_points() const;
+    const PackedFloat32Array& get_last_query_result() const {
+        return _last_query_result;
+    }
 
     GETSET(NodePath, controller_path)
     GETSET(NodePath, character_path)
     GETSET(NodePath, animation_player_path)
-    GETSET(float, query_time, 0.1f)
+    GETSET(float, query_frequency, 2.0f)
 
 protected:
     static void _bind_methods();

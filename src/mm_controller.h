@@ -26,35 +26,23 @@ public:
     Vector3 update_trajectory(const Vector3& p_current_velocity, float p_delta_t);
 
     const std::vector<MMTrajectoryPoint>& get_trajectory() const {
-        return _trajectory_buffer;
+        return _trajectory;
     }
 
-    std::vector<MMTrajectoryPoint> get_history() const {
-        return _history_buffer.to_vector();
-    }
-
-    TypedArray<Vector3> get_trajectory_positions() const {
-        TypedArray<Vector3> positions;
-        for (const auto& point : _trajectory_buffer) {
-            positions.append(point.position);
+    TypedArray<MMTrajectoryPointRC> get_trajectory_typed_array() const {
+        TypedArray<MMTrajectoryPointRC> result;
+        for (const MMTrajectoryPoint& point : _trajectory) {
+            result.push_back(memnew(MMTrajectoryPointRC(point)));
         }
-        return positions;
+        return result;
     }
 
-    TypedArray<Vector3> get_history_positions() const {
-        TypedArray<Vector3> positions;
-        for (size_t i = 0; i < _history_buffer.size(); i++) {
-            positions.append(_history_buffer[i].position);
+    TypedArray<MMTrajectoryPointRC> get_previous_trajectory_typed_array() const {
+        TypedArray<MMTrajectoryPointRC> result;
+        for (const MMTrajectoryPoint& point : _previous_trajectory) {
+            result.push_back(memnew(MMTrajectoryPointRC(point)));
         }
-        return positions;
-    }
-
-    TypedArray<float> get_trajectory_facing_angles() const {
-        TypedArray<float> facing_angles;
-        for (const auto& point : _trajectory_buffer) {
-            facing_angles.append(point.facing_angle);
-        }
-        return facing_angles;
+        return result;
     }
 
     GETSET(NodePath, camera_pivot);
@@ -68,16 +56,19 @@ public:
     GETSET(size_t, history_point_count, 3);
 
 protected:
+    static constexpr size_t HISTORY_BUFFER_SIZE{100}; // Around 1.6s
     static void _bind_methods();
 
 private:
-    void _generate_trajectory(const Vector3& p_current_velocity, const Vector3& p_current_acceleration);
+    MMTrajectoryPoint _get_current_trajectory_point() const;
+    void _generate_trajectory(const Vector3& p_current_velocity, const Vector3& p_current_acceleration,
+                              float delta_time);
     void _update_history();
 
 private:
     Node3D* _camera_pivot{nullptr};
     float _camera_pivot_height{0.f};
-    std::vector<MMTrajectoryPoint> _trajectory_buffer{trajectory_point_count};
-    CircularBuffer<MMTrajectoryPoint> _history_buffer{history_point_count};
-    float _time_until_next_history_point{0.f};
+    std::vector<MMTrajectoryPoint> _trajectory{trajectory_point_count};
+    std::vector<MMTrajectoryPoint> _previous_trajectory{history_point_count};
+    CircularBuffer<MMTrajectoryPoint> _history_buffer{HISTORY_BUFFER_SIZE};
 };
