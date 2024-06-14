@@ -82,16 +82,24 @@ void MMAnimationLibrary::bake_data(const MMAnimationPlayer* p_player, const Skel
         feature_means.resize(feature->get_dimension_count());
         PackedFloat32Array feature_std_devs;
         feature_std_devs.resize(feature->get_dimension_count());
+        PackedFloat32Array feature_mins;
+        feature_mins.resize(feature->get_dimension_count());
+        PackedFloat32Array feature_maxes;
+        feature_maxes.resize(feature->get_dimension_count());
 
         for (size_t feature_element_index = 0; feature_element_index < feature->get_dimension_count();
              feature_element_index++) {
             feature_means.set(feature_element_index, stats[feature_index][feature_element_index].get_mean());
             feature_std_devs.set(feature_element_index,
                                  stats[feature_index][feature_element_index].get_standard_deviation());
+            feature_mins.set(feature_element_index, stats[feature_index][feature_element_index].get_min());
+            feature_maxes.set(feature_element_index, stats[feature_index][feature_element_index].get_max());
         }
 
         feature->set_means(feature_means);
         feature->set_std_devs(feature_std_devs);
+        feature->set_mins(feature_mins);
+        feature->set_maxes(feature_maxes);
     }
 
     _normalize_data(data, dim_count);
@@ -155,19 +163,15 @@ void MMAnimationLibrary::_normalize_data(PackedFloat32Array& p_data, size_t p_di
         int dim_index = 0;
         for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
             const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
+            PackedFloat32Array feature_data =
+                p_data.slice(frame_index + dim_index, frame_index + dim_index + feature->get_dimension_count());
 
-            for (size_t feature_element_index = 0; feature_element_index < feature->get_dimension_count();
-                 feature_element_index++) {
-                if (feature->get_std_devs()[feature_element_index] > SMALL_NUMBER) {
-                    float value = p_data[frame_index + dim_index];
+            feature->normalize(feature_data);
 
-                    value = (value - feature->get_means()[feature_element_index]) /
-                        feature->get_std_devs()[feature_element_index];
-
-                    p_data.set(frame_index + dim_index, value);
-                }
-                dim_index++;
+            for (size_t i = 0; i < feature_data.size(); i++) {
+                p_data.set(frame_index + dim_index + i, feature_data[i]);
             }
+            dim_index += feature->get_dimension_count();
         }
     }
 }

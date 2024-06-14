@@ -16,6 +16,9 @@ class MMFeature : public Resource {
     GDCLASS(MMFeature, Resource)
 
 public:
+    enum NormalizationMode { Raw, Standard, MinMax };
+
+public:
     MMFeature(/* args */);
     virtual ~MMFeature();
     virtual void setup_skeleton(const MMAnimationPlayer* p_player, const Skeleton3D* p_skeleton){};
@@ -31,6 +34,7 @@ public:
     void normalize(PackedFloat32Array& p_data) const;
     void denormalize(PackedFloat32Array& p_data) const;
     float compute_cost(const PackedFloat32Array& p_motion_data, const PackedFloat32Array& p_query_data) const;
+    GETSET(NormalizationMode, normalization_mode, Standard);
     GETSET(PackedFloat32Array, means);
     GETSET(PackedFloat32Array, std_devs);
     GETSET(PackedFloat32Array, maxes);
@@ -38,4 +42,8 @@ public:
 
 protected:
     static void _bind_methods();
+    void _normalize_minmax(PackedFloat32Array& p_data) const;
+    void _denormalize_minmax(PackedFloat32Array& p_data) const;
+    void _normalize_standard(PackedFloat32Array& p_data) const;
+    void _denormalize_standard(PackedFloat32Array& p_data) const;
 };
