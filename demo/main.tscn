@@ -1,3 +1,38 @@
-[gd_scene format=3 uid="uid://dxkchm2v0ynla"]
+[gd_scene load_steps=7 format=3 uid="uid://dxkchm2v0ynla"]
+
+[ext_resource type="Texture2D" uid="uid://bubooafum5q7l" path="res://textures/grid_texture.png" id="1_yaac5"]
+[ext_resource type="PackedScene" uid="uid://1io8uso2bop2" path="res://scenes/rin.tscn" id="2_ady0f"]
+
+[sub_resource type="Environment" id="Environment_b0k67"]
+background_energy_multiplier = 7.75
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gwaaa"]
+size = Vector3(100, 1, 100)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vcm8j"]
+albedo_texture = ExtResource("1_yaac5")
+uv1_scale = Vector3(100, 100, 100)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pd4xa"]
+material = SubResource("StandardMaterial3D_vcm8j")
 
 [node name="main" type="Node3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -0.676876, 0.736097, 0, -0.736097, -0.676876, 0, 0, 0)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_b0k67")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_gwaaa")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D/CollisionShape3D"]
+transform = Transform3D(100, 0, 0, 0, 1, 0, 0, 0, 100, 0, -0.5, 0)
+mesh = SubResource("BoxMesh_pd4xa")
+skeleton = NodePath("../..")
+
+[node name="Rin" parent="." instance=ExtResource("2_ady0f")]

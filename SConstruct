@@ -15,17 +15,19 @@ env = SConscript("godot-cpp/SConstruct")
 # tweak this if you want to use different folders, or more folders, to store your source code in.
 env.Append(CPPPATH=["src/"])
 sources = Glob("src/*.cpp")
+sources += Glob("src/features/*.cpp")
+sources += Glob("src/math/*.cpp")
 
 if env["platform"] == "macos":
     library = env.SharedLibrary(
-        "demo/bin/libgdmotionmatching.{}.{}.framework/libgdmotionmatching.{}.{}".format(
+        "addons/motion_matching/bin/libgdmotionmatching.{}.{}.framework/libgdmotionmatching.{}.{}".format(
             env["platform"], env["target"], env["platform"], env["target"]
         ),
         source=sources,
     )
 else:
     library = env.SharedLibrary(
-        "demo/bin/libgdmotionmatching{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
+        "addons/motion_matching/bin/libgdmotionmatching{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
         source=sources,
     )
 

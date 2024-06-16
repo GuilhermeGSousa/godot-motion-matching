@@ -1,0 +1,42 @@
+[gd_scene load_steps=7 format=3 uid="uid://dp8s5wmht387t"]
+
+[ext_resource type="PackedScene" uid="uid://dhalyu0huf050" path="res://scenes/rin_simple.tscn" id="1_ig54f"]
+[ext_resource type="Texture2D" uid="uid://bubooafum5q7l" path="res://textures/grid_texture.png" id="4_qby1c"]
+
+[sub_resource type="Environment" id="Environment_b0k67"]
+background_energy_multiplier = 7.75
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gwaaa"]
+size = Vector3(100, 1, 100)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pd4xa"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wc3gp"]
+albedo_texture = ExtResource("4_qby1c")
+uv1_scale = Vector3(100, 100, 100)
+
+[node name="main" type="Node3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -0.676876, 0.736097, 0, -0.736097, -0.676876, 0, 0, 0)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_b0k67")
+
+[node name="Rin Simple" parent="." instance=ExtResource("1_ig54f")]
+transform = Transform3D(-0.00647512, 0, -0.999979, 0, 1, 0, 0.999979, 0, -0.00647512, 0, 0, 0)
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_gwaaa")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D/CollisionShape3D"]
+transform = Transform3D(100, 0, 0, 0, 1, 0, 0, 0, 100, 0, 0, 0)
+mesh = SubResource("BoxMesh_pd4xa")
+skeleton = NodePath("../..")
+surface_material_override/0 = SubResource("StandardMaterial3D_wc3gp")
+
+[node name="Camera3D" type="Camera3D" parent="StaticBody3D"]
+transform = Transform3D(-0.702778, -0.387934, 0.59633, 0, 0.838238, 0.545304, -0.711409, 0.383228, -0.589096, 12.6417, 10.1604, -11.7748)
