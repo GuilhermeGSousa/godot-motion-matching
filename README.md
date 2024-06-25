@@ -1,6 +1,6 @@
 # Motion Matching for Godot 4.3
 
-![](https://github.com/GuilhermeGSousa/godot-motion-matching/motion_matching_demo.gif)
+![](https://github.com/GuilhermeGSousa/godot-motion-matching/blob/master/motion_matching_demo.gif)
 
 A very simple motion matching implementation example in Godot 4.3, that allows for both strafe and non strafe movement, implemented following [Dan Holden's article](https://www.theorangeduck.com/page/code-vs-data-driven-displacement). 
 
