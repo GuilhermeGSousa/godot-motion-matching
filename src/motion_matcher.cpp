@@ -2,6 +2,8 @@
 
 #include <godot_cpp/classes/engine.hpp>
 
+constexpr float QUERY_TIME_ERROR = 0.05;
+
 void MotionMatcher::_ready() {
     if (Engine::get_singleton()->is_editor_hint()) {
         return;
@@ -35,12 +37,13 @@ void MotionMatcher::_physics_process(double delta) {
         const MMQueryOutput result = _animation_player->query(query_input);
 
         // Play selected animation
-        const bool is_same_animation = result.animation_match == _animation_player->get_current_animation();
-        const bool is_same_time = abs(result.time_match - _animation_player->get_current_animation_position()) < SMALL_NUMBER;
+        const bool is_same_animation = result.animation_match == _last_query_output.animation_match;
+        const bool is_same_time = abs(result.time_match - _animation_player->get_current_animation_position()) < QUERY_TIME_ERROR;
+        UtilityFunctions::print("Switching to anim " + result.animation_match + " from " + _animation_player->get_current_animation());
 
         if (!is_same_animation || !is_same_time) {
             _animation_player->inertialize_transition(result.animation_match, result.time_match);
-            _last_query_result = result.matched_frame_data;
+            _last_query_output = result;
         }
         _last_query_input = query_input;
     }

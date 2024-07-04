@@ -15,7 +15,7 @@ public:
     void _physics_process(double delta) override;
 
     const PackedFloat32Array& get_last_query_result() const {
-        return _last_query_result;
+        return _last_query_output.matched_frame_data;
     }
 
     GETSET(NodePath, controller_path)
@@ -35,6 +35,6 @@ private:
     float _time_since_last_query{0.f};
     bool _force_transition{false};
 
-    PackedFloat32Array _last_query_result;
+    MMQueryOutput _last_query_output;
     MMQueryInput _last_query_input;
 };
