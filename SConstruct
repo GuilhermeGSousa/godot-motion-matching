@@ -22,6 +22,7 @@ env.Append(
 sources = Glob("src/*.cpp")
 sources += Glob("src/features/*.cpp")
 sources += Glob("src/math/*.cpp")
+sources += Glob("src/debug/*.cpp")
 sources += Glob("third-party/imgui/*.cpp")
 sources += Glob("third-party/imgui/backends/imgui_impl_dx*.cpp")
 sources += Glob("third-party/imgui/backends/imgui_impl_win*.cpp")

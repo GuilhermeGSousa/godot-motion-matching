@@ -15,6 +15,10 @@ run/main_scene="res://main.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+GdImgui="res://scenes/gd_imgui.tscn"
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/motion_matching/plugin.cfg")

@@ -18,7 +18,8 @@ Vector3 clamp_max_magnitude(const Vector3& vector, float maxMagnitude) {
     }
 }
 
-MMController::MMController() : CharacterBody3D() {
+MMController::MMController()
+    : CharacterBody3D() {
 }
 
 MMController::~MMController() {
@@ -31,7 +32,7 @@ void MMController::_ready() {
 
     _camera_pivot = get_node<Node3D>(camera_pivot);
     _camera_pivot_height = _camera_pivot->get_global_position().y;
-    Input::get_singleton()->set_mouse_mode(Input::MOUSE_MODE_CAPTURED);
+    // Input::get_singleton()->set_mouse_mode(Input::MOUSE_MODE_CAPTURED);
 
     while (!_history_buffer.is_full()) {
         _history_buffer.push(_get_current_trajectory_point());

@@ -7,6 +7,8 @@
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/godot.hpp>
 
+#include <debug/gd_imgui.h>
+
 #include "features/mm_bone_data_feature.h"
 #include "features/mm_facing_feature.h"
 #include "features/mm_feature.h"
@@ -37,6 +39,8 @@ void initialize_example_module(ModuleInitializationLevel p_level) {
     ClassDB::register_class<MMController>();
     ClassDB::register_class<MMTrajectoryPointRC>();
     ClassDB::register_class<MotionMatcher>();
+
+    ClassDB::register_class<GdImGui>();
 }
 
 void uninitialize_example_module(ModuleInitializationLevel p_level) {
