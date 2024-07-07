@@ -13,22 +13,23 @@ env = SConscript("godot-cpp/SConstruct")
 # - LINKFLAGS are for linking flags
 
 # tweak this if you want to use different folders, or more folders, to store your source code in.
-env.Append(CPPPATH=["src/"])
+env.Append(
+    CPPPATH=[
+        "src/",
+        "third-party/imgui/",
+        "third-party/imgui/backends/",
+        ])
 sources = Glob("src/*.cpp")
 sources += Glob("src/features/*.cpp")
 sources += Glob("src/math/*.cpp")
+sources += Glob("third-party/imgui/*.cpp")
+sources += Glob("third-party/imgui/backends/imgui_impl_dx*.cpp")
+sources += Glob("third-party/imgui/backends/imgui_impl_win*.cpp")
 
-if env["platform"] == "macos":
-    library = env.SharedLibrary(
-        "addons/motion_matching/bin/libgdmotionmatching.{}.{}.framework/libgdmotionmatching.{}.{}".format(
-            env["platform"], env["target"], env["platform"], env["target"]
-        ),
-        source=sources,
-    )
-else:
-    library = env.SharedLibrary(
-        "addons/motion_matching/bin/libgdmotionmatching{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
-        source=sources,
-    )
+
+library = env.SharedLibrary(
+    "addons/motion_matching/bin/libgdmotionmatching{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
+    source=sources,
+)
 
 Default(library)
