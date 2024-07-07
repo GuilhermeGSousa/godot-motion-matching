@@ -8,7 +8,8 @@
 
 using namespace godot;
 
-MMAnimationLibrary::MMAnimationLibrary() : AnimationLibrary() {
+MMAnimationLibrary::MMAnimationLibrary()
+    : AnimationLibrary() {
 }
 
 MMAnimationLibrary::~MMAnimationLibrary() {
@@ -115,7 +116,7 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
     for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
         const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
         PackedFloat32Array feature_data = feature->evaluate_runtime_data(p_query_input);
-        feature->normalize(feature_data);
+        feature->normalize(feature_data.ptrw());
         query_vector.append_array(feature_data);
         dim_count += feature->get_dimension_count();
     }
@@ -129,10 +130,11 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
         float frame_cost = 0.f;
         for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
             const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
-            PackedFloat32Array frame_feature_data = motion_data.slice(start_feature_index, start_feature_index + feature->get_dimension_count());
 
-            PackedFloat32Array query_feature_vector = query_vector.slice(start_feature_index - start_frame_index, start_feature_index - start_frame_index + feature->get_dimension_count());
-            const float feature_cost = feature->compute_cost(query_feature_vector, frame_feature_data);
+            const float feature_cost = feature->compute_cost(
+                (query_vector.ptr() + start_feature_index - start_frame_index),
+                (motion_data.ptr() + start_feature_index));
+
             frame_cost += feature_cost;
             start_feature_index += feature->get_dimension_count();
         }
@@ -157,13 +159,7 @@ void MMAnimationLibrary::_normalize_data(PackedFloat32Array& p_data, size_t p_di
         int dim_index = 0;
         for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
             const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
-            PackedFloat32Array feature_data = p_data.slice(frame_index + dim_index, frame_index + dim_index + feature->get_dimension_count());
-
-            feature->normalize(feature_data);
-
-            for (size_t i = 0; i < feature_data.size(); i++) {
-                p_data.set(frame_index + dim_index + i, feature_data[i]);
-            }
+            feature->normalize(p_data.ptrw() + frame_index + dim_index);
             dim_index += feature->get_dimension_count();
         }
     }

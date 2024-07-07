@@ -107,7 +107,7 @@ PackedFloat32Array MMTrajectoryFeature::evaluate_runtime_data(const MMQueryInput
 
 TypedArray<MMTrajectoryPointRC> MMTrajectoryFeature::get_trajectory_points(const Transform3D& p_character_transform, const PackedFloat32Array& p_trajectory_data) const {
     PackedFloat32Array denormalized_data = PackedFloat32Array(p_trajectory_data);
-    denormalize(denormalized_data);
+    denormalize(denormalized_data.ptrw());
 
     TypedArray<MMTrajectoryPointRC> result;
     const int offset = _get_point_dimension_count();

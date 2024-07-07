@@ -16,7 +16,9 @@ class MMFeature : public Resource {
     GDCLASS(MMFeature, Resource)
 
 public:
-    enum NormalizationMode { Raw, Standard, MinMax };
+    enum NormalizationMode { Raw,
+                             Standard,
+                             MinMax };
 
 public:
     MMFeature(/* args */);
@@ -31,9 +33,10 @@ public:
 
     virtual PackedFloat32Array evaluate_runtime_data(const MMQueryInput& p_query_input) const = 0;
 
-    void normalize(PackedFloat32Array& p_data) const;
-    void denormalize(PackedFloat32Array& p_data) const;
-    float compute_cost(const PackedFloat32Array& p_motion_data, const PackedFloat32Array& p_query_data) const;
+    void normalize(float* p_data) const;
+    void denormalize(float* p_data) const;
+    float compute_cost(const float* p_motion_data, const float* p_query_data) const;
+
     GETSET(NormalizationMode, normalization_mode, Standard);
     GETSET(PackedFloat32Array, means);
     GETSET(PackedFloat32Array, std_devs);
@@ -42,8 +45,8 @@ public:
 
 protected:
     static void _bind_methods();
-    void _normalize_minmax(PackedFloat32Array& p_data) const;
-    void _denormalize_minmax(PackedFloat32Array& p_data) const;
-    void _normalize_standard(PackedFloat32Array& p_data) const;
-    void _denormalize_standard(PackedFloat32Array& p_data) const;
+    void _normalize_minmax(float* p_data) const;
+    void _denormalize_minmax(float* p_data) const;
+    void _normalize_standard(float* p_data) const;
+    void _denormalize_standard(float* p_data) const;
 };

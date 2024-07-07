@@ -61,6 +61,8 @@ void MotionMatcher::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_last_query_result"), &MotionMatcher::get_last_query_result);
     ClassDB::bind_method(D_METHOD("_on_animation_finished", "anim"), &MotionMatcher::_on_animation_finished);
 
+    ADD_SIGNAL(MethodInfo("on_query_result"), PropertyInfo(Variant::INT, "test"));
+
     BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::NODE_PATH, controller_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES, "MMController");
     BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::NODE_PATH, character_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES, "CharacterBody3D");
     BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::NODE_PATH, animation_player_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES, "MMAnimationPlayer");

@@ -8,9 +8,7 @@ MMFeature::MMFeature() {
 MMFeature::~MMFeature() {
 }
 
-void MMFeature::normalize(PackedFloat32Array& p_data) const {
-    ERR_FAIL_COND(p_data.size() != get_dimension_count());
-
+void MMFeature::normalize(float* p_data) const {
     switch (normalization_mode) {
     case Standard:
         _normalize_standard(p_data);
@@ -24,8 +22,7 @@ void MMFeature::normalize(PackedFloat32Array& p_data) const {
     }
 }
 
-void MMFeature::denormalize(PackedFloat32Array& p_data) const {
-    ERR_FAIL_COND(p_data.size() != get_dimension_count());
+void MMFeature::denormalize(float* p_data) const {
 
     switch (normalization_mode) {
     case Standard:
@@ -40,45 +37,42 @@ void MMFeature::denormalize(PackedFloat32Array& p_data) const {
     }
 }
 
-float MMFeature::compute_cost(const PackedFloat32Array& p_motion_data, const PackedFloat32Array& p_query_data) const {
-    ERR_FAIL_COND_V(p_motion_data.size() != get_dimension_count(), 0.0f);
-    ERR_FAIL_COND_V(p_query_data.size() != get_dimension_count(), 0.0f);
-
+float MMFeature::compute_cost(const float* p_motion_data, const const float* p_query_data) const {
     float cost = 0.0f;
-    for (int i = 0; i < p_motion_data.size(); ++i) {
+    for (int i = 0; i < get_dimension_count(); ++i) {
         float diff = p_motion_data[i] - p_query_data[i];
         cost += diff * diff;
     }
     return cost / get_dimension_count();
 }
 
-void MMFeature::_normalize_minmax(PackedFloat32Array& p_data) const {
-    for (int i = 0; i < p_data.size(); ++i) {
-        p_data.set(i, (p_data[i] - mins[i]) / (maxes[i] - mins[i]));
+void MMFeature::_normalize_minmax(float* p_data) const {
+    for (int i = 0; i < get_dimension_count(); ++i) {
+        p_data[i] = (p_data[i] - mins[i]) / (maxes[i] - mins[i]);
     }
 }
 
-void MMFeature::_denormalize_minmax(PackedFloat32Array& p_data) const {
-    for (int i = 0; i < p_data.size(); ++i) {
-        p_data.set(i, (p_data[i] * (maxes[i] - mins[i])) + mins[i]);
+void MMFeature::_denormalize_minmax(float* p_data) const {
+    for (int i = 0; i < get_dimension_count(); ++i) {
+        p_data[i] = (p_data[i] * (maxes[i] - mins[i])) + mins[i];
     }
 }
 
-void MMFeature::_normalize_standard(PackedFloat32Array& p_data) const {
-    for (int i = 0; i < p_data.size(); ++i) {
+void MMFeature::_normalize_standard(float* p_data) const {
+    for (int i = 0; i < get_dimension_count(); ++i) {
         if (std_devs[i] < SMALL_NUMBER) {
             continue;
         }
-        p_data.set(i, (p_data[i] - means[i]) / std_devs[i]);
+        p_data[i] = (p_data[i] - means[i]) / std_devs[i];
     }
 }
 
-void MMFeature::_denormalize_standard(PackedFloat32Array& p_data) const {
-    for (int i = 0; i < p_data.size(); ++i) {
+void MMFeature::_denormalize_standard(float* p_data) const {
+    for (int i = 0; i < get_dimension_count(); ++i) {
         if (std_devs[i] < SMALL_NUMBER) {
             continue;
         }
-        p_data.set(i, (p_data[i] * std_devs[i]) + means[i]);
+        p_data[i] = (p_data[i] * std_devs[i]) + means[i];
     }
 }
 
