@@ -25,10 +25,11 @@ public:
 
 protected:
     static void _bind_methods();
-
     void _on_animation_finished(StringName p_animation_name);
 
 private:
+    static Dictionary _output_to_dict(const MMQueryOutput& output);
+
     MMController* _controller{nullptr};
     CharacterBody3D* _character{nullptr};
     MMAnimationPlayer* _animation_player{nullptr};

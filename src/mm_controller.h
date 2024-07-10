@@ -29,18 +29,24 @@ public:
         return _trajectory;
     }
 
-    TypedArray<MMTrajectoryPointRC> get_trajectory_typed_array() const {
-        TypedArray<MMTrajectoryPointRC> result;
+    TypedArray<Dictionary> get_trajectory_typed_array() const {
+        TypedArray<Dictionary> result;
         for (const MMTrajectoryPoint& point : _trajectory) {
-            result.push_back(memnew(MMTrajectoryPointRC(point)));
+            Dictionary data;
+            data.get_or_add("position", point.position);
+            data.get_or_add("facing", point.facing_angle);
+            result.push_back(data);
         }
         return result;
     }
 
-    TypedArray<MMTrajectoryPointRC> get_previous_trajectory_typed_array() const {
-        TypedArray<MMTrajectoryPointRC> result;
+    TypedArray<Dictionary> get_previous_trajectory_typed_array() const {
+        TypedArray<Dictionary> result;
         for (const MMTrajectoryPoint& point : _previous_trajectory) {
-            result.push_back(memnew(MMTrajectoryPointRC(point)));
+            Dictionary data;
+            data.get_or_add("position", point.position);
+            data.get_or_add("facing", point.facing_angle);
+            result.push_back(data);
         }
         return result;
     }

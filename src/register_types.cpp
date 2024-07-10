@@ -35,7 +35,6 @@ void initialize_example_module(ModuleInitializationLevel p_level) {
     ClassDB::register_class<MMAnimationLibrary>();
     ClassDB::register_class<MMAnimationPlayer>();
     ClassDB::register_class<MMController>();
-    ClassDB::register_class<MMTrajectoryPointRC>();
     ClassDB::register_class<MotionMatcher>();
 }
 

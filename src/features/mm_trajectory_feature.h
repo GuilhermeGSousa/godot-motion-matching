@@ -22,7 +22,7 @@ public:
 
     virtual PackedFloat32Array evaluate_runtime_data(const MMQueryInput& p_query_input) const override;
 
-    TypedArray<MMTrajectoryPointRC> get_trajectory_points(const Transform3D& p_character_transform, const PackedFloat32Array& p_trajectory_data) const;
+    TypedArray<Dictionary> get_trajectory_points(const Transform3D& p_character_transform, const PackedFloat32Array& p_trajectory_data) const;
 
     GETSET(float, past_delta_time, 0.1f);
     GETSET(int, past_frames, 1);

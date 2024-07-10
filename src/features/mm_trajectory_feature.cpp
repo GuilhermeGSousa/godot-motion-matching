@@ -105,11 +105,11 @@ PackedFloat32Array MMTrajectoryFeature::evaluate_runtime_data(const MMQueryInput
     return result;
 }
 
-TypedArray<MMTrajectoryPointRC> MMTrajectoryFeature::get_trajectory_points(const Transform3D& p_character_transform, const PackedFloat32Array& p_trajectory_data) const {
+TypedArray<Dictionary> MMTrajectoryFeature::get_trajectory_points(const Transform3D& p_character_transform, const PackedFloat32Array& p_trajectory_data) const {
     PackedFloat32Array denormalized_data = PackedFloat32Array(p_trajectory_data);
     denormalize(denormalized_data.ptrw());
 
-    TypedArray<MMTrajectoryPointRC> result;
+    TypedArray<Dictionary> result;
     const int offset = _get_point_dimension_count();
     for (int i = 0; i < future_frames * offset; i += offset) {
         MMTrajectoryPoint point;
@@ -121,7 +121,11 @@ TypedArray<MMTrajectoryPointRC> MMTrajectoryFeature::get_trajectory_points(const
             point.facing_angle = 0.0; // TODO
         }
 
-        result.push_back(memnew(MMTrajectoryPointRC(point)));
+        Dictionary data;
+        data.get_or_add("position", point.position);
+        data.get_or_add("facing", point.facing_angle);
+
+        result.push_back(data);
     }
     return result;
 }

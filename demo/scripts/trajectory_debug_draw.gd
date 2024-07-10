@@ -34,16 +34,14 @@ func _physics_process(delta: float) -> void:
 
 		offset += feature.get_dimension_count()
 		
-
-
-func _draw_trajectory(trajectory : Array[MMTrajectoryPointRC], color : Color, include_facing : bool):
+func _draw_trajectory(trajectory : Array[Dictionary], color : Color, include_facing : bool):
 	var trajectory_points = []
 	for p in trajectory:
-		var pos = p.get_position()
+		var pos = p["position"]
 		trajectory_points.push_back(pos)
 		
 		if include_facing:
-			var dir = Vector3.FORWARD.rotated(Vector3.UP, p.get_facing_angle())
+			var dir = Vector3.FORWARD.rotated(Vector3.UP, p["facing"])
 			DebugDraw3D.draw_arrow(pos, pos - dir * 0.25, Color.ORANGE, 0.01)
 	DebugDraw3D.draw_points(trajectory_points, DebugDraw3D.POINT_TYPE_SPHERE, 0.01, color)
 

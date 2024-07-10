@@ -18,7 +18,8 @@ Vector3 clamp_max_magnitude(const Vector3& vector, float maxMagnitude) {
     }
 }
 
-MMController::MMController() : CharacterBody3D() {
+MMController::MMController()
+    : CharacterBody3D() {
 }
 
 MMController::~MMController() {

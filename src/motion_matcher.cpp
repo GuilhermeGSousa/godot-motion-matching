@@ -43,6 +43,7 @@ void MotionMatcher::_physics_process(double delta) {
 
         if (!is_same_animation || !is_same_time) {
             _animation_player->inertialize_transition(result.animation_match, result.time_match);
+            emit_signal("on_query_result", _output_to_dict(result));
             _last_query_output = result;
         }
         _last_query_input = query_input;
@@ -57,11 +58,21 @@ void MotionMatcher::_on_animation_finished(StringName p_animation_name) {
     _force_transition = true;
 }
 
+Dictionary MotionMatcher::_output_to_dict(const MMQueryOutput& output) {
+    Dictionary result;
+
+    result.get_or_add("animation", output.animation_match);
+    result.get_or_add("time", output.time_match);
+    result.get_or_add("total_cost", output.cost);
+
+    return result;
+}
+
 void MotionMatcher::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_last_query_result"), &MotionMatcher::get_last_query_result);
     ClassDB::bind_method(D_METHOD("_on_animation_finished", "anim"), &MotionMatcher::_on_animation_finished);
 
-    ADD_SIGNAL(MethodInfo("on_query_result"), PropertyInfo(Variant::INT, "test"));
+    ADD_SIGNAL(MethodInfo("on_query_result"), PropertyInfo(Variant::DICTIONARY, "data"));
 
     BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::NODE_PATH, controller_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES, "MMController");
     BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::NODE_PATH, character_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES, "CharacterBody3D");
