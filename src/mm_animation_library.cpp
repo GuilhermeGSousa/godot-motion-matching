@@ -128,6 +128,7 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
     for (size_t start_frame_index = 0; start_frame_index < motion_data.size(); start_frame_index += dim_count) {
         int start_feature_index = start_frame_index;
         float frame_cost = 0.f;
+        Dictionary feature_costs;
         for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
             const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
 
@@ -135,6 +136,7 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
                 (query_vector.ptr() + start_feature_index - start_frame_index),
                 (motion_data.ptr() + start_feature_index));
 
+            feature_costs.get_or_add(feature->get_class(), feature_cost);
             frame_cost += feature_cost;
             start_feature_index += feature->get_dimension_count();
         }
@@ -145,6 +147,7 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
             result.matched_frame_data = motion_data.slice(start_frame_index, start_frame_index + dim_count);
             result.animation_match = get_animation_list()[db_anim_index[start_frame_index / dim_count]];
             result.time_match = db_time_index[start_frame_index / dim_count];
+            result.feature_costs = feature_costs;
         }
     }
 

@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://40dkwvnb7ha0"]
+
+[ext_resource type="Script" path="res://scripts/table_cell.gd" id="1_w6qaq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kyps5"]
+
+[node name="TableCell" type="PanelContainer"]
+offset_right = 40.0
+offset_bottom = 23.0
+size_flags_horizontal = 6
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxEmpty_kyps5")
+script = ExtResource("1_w6qaq")
+
+[node name="Data" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 10
+text = "Hello"

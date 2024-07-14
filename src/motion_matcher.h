@@ -14,10 +14,6 @@ public:
     void _ready() override;
     void _physics_process(double delta) override;
 
-    const PackedFloat32Array& get_last_query_result() const {
-        return _last_query_output.matched_frame_data;
-    }
-
     GETSET(NodePath, controller_path)
     GETSET(NodePath, character_path)
     GETSET(NodePath, animation_player_path)
@@ -37,5 +33,4 @@ private:
     bool _force_transition{false};
 
     MMQueryOutput _last_query_output;
-    MMQueryInput _last_query_input;
 };

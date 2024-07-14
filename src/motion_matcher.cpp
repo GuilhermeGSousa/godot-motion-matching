@@ -37,20 +37,22 @@ void MotionMatcher::_physics_process(double delta) {
         const MMQueryOutput result = _animation_player->query(query_input);
 
         // Play selected animation
+        // TODO: It would be nice if we could use _animation_player->get_current_animation() here instead
+        // but that somtimes returns an empty string :/
         const bool is_same_animation = result.animation_match == _last_query_output.animation_match;
         const bool is_same_time = abs(result.time_match - _animation_player->get_current_animation_position()) < QUERY_TIME_ERROR;
-        UtilityFunctions::print("Switching to anim " + result.animation_match + " from " + _animation_player->get_current_animation());
 
         if (!is_same_animation || !is_same_time) {
             _animation_player->inertialize_transition(result.animation_match, result.time_match);
             emit_signal("on_query_result", _output_to_dict(result));
             _last_query_output = result;
         }
-        _last_query_input = query_input;
     }
 
-    _animation_player->advance(delta);
-    _animation_player->inertialize_update(delta);
+    if (!_animation_player->get_current_animation().is_empty()) {
+        _animation_player->advance(delta);
+        _animation_player->inertialize_update(delta);
+    }
     _time_since_last_query += delta;
 }
 
@@ -63,16 +65,17 @@ Dictionary MotionMatcher::_output_to_dict(const MMQueryOutput& output) {
 
     result.get_or_add("animation", output.animation_match);
     result.get_or_add("time", output.time_match);
+    result.get_or_add("frame_data", output.matched_frame_data);
+    result.merge(output.feature_costs);
     result.get_or_add("total_cost", output.cost);
 
     return result;
 }
 
 void MotionMatcher::_bind_methods() {
-    ClassDB::bind_method(D_METHOD("get_last_query_result"), &MotionMatcher::get_last_query_result);
     ClassDB::bind_method(D_METHOD("_on_animation_finished", "anim"), &MotionMatcher::_on_animation_finished);
 
-    ADD_SIGNAL(MethodInfo("on_query_result"), PropertyInfo(Variant::DICTIONARY, "data"));
+    ADD_SIGNAL(MethodInfo("on_query_result", PropertyInfo(Variant::DICTIONARY, "data")));
 
     BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::NODE_PATH, controller_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES, "MMController");
     BINDER_PROPERTY_PARAMS(MotionMatcher, Variant::NODE_PATH, character_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES, "CharacterBody3D");

@@ -25,4 +25,5 @@ struct MMQueryOutput {
     float time_match;
     float cost;
     PackedFloat32Array matched_frame_data;
+    Dictionary feature_costs;
 };

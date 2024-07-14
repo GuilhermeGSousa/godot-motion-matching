@@ -1,0 +1,60 @@
+[gd_scene load_steps=4 format=3 uid="uid://cjhit7pg3fwuo"]
+
+[ext_resource type="Script" path="res://scripts/debug_table.gd" id="1_s05c6"]
+[ext_resource type="PackedScene" uid="uid://40dkwvnb7ha0" path="res://scenes/table_cell.tscn" id="2_asefu"]
+[ext_resource type="PackedScene" uid="uid://dju7w4wudggh4" path="res://scenes/title_cell.tscn" id="2_dgsnu"]
+
+[node name="DebugTable" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
+script = ExtResource("1_s05c6")
+title_scene = ExtResource("2_dgsnu")
+cell_scene = ExtResource("2_asefu")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TableContainer" type="GridContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+columns = 4
+
+[node name="TitleCell" parent="Panel/TableContainer" instance=ExtResource("2_dgsnu")]
+layout_mode = 2
+
+[node name="TitleCell2" parent="Panel/TableContainer" instance=ExtResource("2_dgsnu")]
+layout_mode = 2
+
+[node name="TitleCell3" parent="Panel/TableContainer" instance=ExtResource("2_dgsnu")]
+layout_mode = 2
+
+[node name="TitleCell4" parent="Panel/TableContainer" instance=ExtResource("2_dgsnu")]
+layout_mode = 2
+
+[node name="TableCell" parent="Panel/TableContainer" instance=ExtResource("2_asefu")]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="TableCell2" parent="Panel/TableContainer" instance=ExtResource("2_asefu")]
+layout_mode = 2
+
+[node name="TableCell3" parent="Panel/TableContainer" instance=ExtResource("2_asefu")]
+layout_mode = 2
+
+[node name="TableCell4" parent="Panel/TableContainer" instance=ExtResource("2_asefu")]
+layout_mode = 2
