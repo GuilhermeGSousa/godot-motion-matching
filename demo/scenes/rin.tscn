@@ -29,7 +29,6 @@ camera_pivot = NodePath("../CameraPivot")
 trajectory_point_count = 20
 simulation_samples_per_second = 2.0
 max_speed = 3.0
-max_acceleration = 3.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Simulation Entity"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
