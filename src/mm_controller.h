@@ -23,7 +23,7 @@ public:
     virtual void _physics_process(double delta) override;
     virtual void _input(const Ref<InputEvent>& event) override;
 
-    Vector3 update_trajectory(const Vector3& p_current_velocity, float p_delta_t);
+    Vector3 update_trajectory(float p_delta_t);
 
     const std::vector<MMTrajectoryPoint>& get_trajectory() const {
         return _trajectory;
@@ -34,7 +34,9 @@ public:
         for (const MMTrajectoryPoint& point : _trajectory) {
             Dictionary data;
             data.get_or_add("position", point.position);
+            data.get_or_add("velocity", point.velocity);
             data.get_or_add("facing", point.facing_angle);
+            data.get_or_add("on_floor", point.collision_state.on_floor);
             result.push_back(data);
         }
         return result;
@@ -45,7 +47,9 @@ public:
         for (const MMTrajectoryPoint& point : _previous_trajectory) {
             Dictionary data;
             data.get_or_add("position", point.position);
+            data.get_or_add("velocity", point.velocity);
             data.get_or_add("facing", point.facing_angle);
+            data.get_or_add("on_floor", point.collision_state.on_floor);
             result.push_back(data);
         }
         return result;
@@ -53,9 +57,8 @@ public:
 
     GETSET(NodePath, camera_pivot);
     GETSET(float, simulation_samples_per_second, 10.f);
-    GETSET(float, friction, 1.f);
     GETSET(float, max_speed, 100.f);
-    GETSET(float, max_acceleration, 5.f);
+    GETSET(float, halflife, 0.5f);
     GETSET(float, mouse_sensitivity, 1.f);
     GETSET(bool, is_strafing, false);
     GETSET(size_t, trajectory_point_count, 10);
@@ -67,10 +70,14 @@ protected:
 
 private:
     MMTrajectoryPoint _get_current_trajectory_point() const;
-    void _generate_trajectory(const Vector3& p_current_velocity, const Vector3& p_current_acceleration, float delta_time);
+    void _generate_trajectory(const Vector3& p_current_velocity, const Vector3& p_target_velocity, float delta_time);
     void _update_history();
+    void _update_point(MMTrajectoryPoint& point, float delta_t);
+    void _fill_collision_state(const Ref<PhysicsTestMotionResult3D> collision_result, MMCollisionState& state);
+    void _fall_to_floor(MMTrajectoryPoint& point, float delta_t);
 
 private:
+    Vector3 _spring_acceleration;
     Node3D* _camera_pivot{nullptr};
     float _camera_pivot_height{0.f};
     std::vector<MMTrajectoryPoint> _trajectory{trajectory_point_count};
