@@ -1,12 +1,12 @@
 #pragma once
 
-#include <godot_cpp/classes/animation_player.hpp>
-#include <godot_cpp/classes/character_body3d.hpp>
-#include <godot_cpp/classes/skeleton3d.hpp>
-
 #include "common.h"
 #include "mm_bone_state.h"
 #include "mm_query.h"
+
+#include <godot_cpp/classes/animation_player.hpp>
+#include <godot_cpp/classes/character_body3d.hpp>
+#include <godot_cpp/classes/skeleton3d.hpp>
 
 using namespace godot;
 
@@ -33,23 +33,15 @@ public:
         return _skeleton;
     }
 
-    const Vector3& get_root_motion_linear_velocity() const;
-
-    const Vector3& get_root_motion_angular_velocity() const;
-
     MMQueryOutput query(const MMQueryInput& p_query_input);
 
     GETSET(float, halflife, 0.1f);
-    GETSET(NodePath, root_motion_character_path);
 
 protected:
     static void _bind_methods();
 
 private:
     void _inertialize_reset(bool skeleton_to_rest = false);
-    void _apply_root_motion(double delta);
-    void _on_animation_finished(StringName p_animation_name);
-    void _on_animation_changed(String p_animation_name);
 
 private:
     float _default_halflife{0.1f};
@@ -57,10 +49,7 @@ private:
     String _skeleton_root_bone_path;
     int32_t _skeleton_root_bone_id{-1};
     Skeleton3D* _skeleton{nullptr};
-    CharacterBody3D* _root_motion_character{nullptr};
 
     SkeletonState _skeleton_state;
     SkeletonState _skeleton_offset;
-
-    Quaternion _anim_root_rotation;
 };

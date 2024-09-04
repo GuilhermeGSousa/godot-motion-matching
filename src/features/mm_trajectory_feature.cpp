@@ -3,6 +3,11 @@
 #include "math/transforms.h"
 #include "mm_root_velocity_feature.h"
 
+#include <godot_cpp/classes/editor_node3d_gizmo_plugin.hpp>
+#include <godot_cpp/classes/point_mesh.hpp>
+#include <godot_cpp/classes/sphere_mesh.hpp>
+#include <godot_cpp/classes/standard_material3d.hpp>
+
 MMTrajectoryFeature::MMTrajectoryFeature() {
 }
 
@@ -103,6 +108,37 @@ PackedFloat32Array MMTrajectoryFeature::evaluate_runtime_data(const MMQueryInput
     }
 
     return result;
+}
+
+void MMTrajectoryFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, const Transform3D p_transform, const float* p_data) const {
+
+    Ref<StandardMaterial3D> material = p_gizmo->get_plugin()->get_material("main", p_gizmo);
+    if (material.is_null()) {
+        p_gizmo->get_plugin()->create_material("main", Color(1, 0, 0, 1));
+        material = p_gizmo->get_plugin()->get_material("main", p_gizmo);
+    }
+
+    float* dernomalized_data = new float[get_dimension_count()];
+    memcpy(dernomalized_data, p_data, sizeof(float) * get_dimension_count());
+    denormalize(dernomalized_data);
+
+    for (size_t i = 0; i < future_frames * _get_point_dimension_count(); i += _get_point_dimension_count()) {
+        Ref<SphereMesh> sphere_mesh;
+        sphere_mesh.instantiate();
+        sphere_mesh->set_radius(0.10);
+        sphere_mesh->set_height(0.10);
+        sphere_mesh->set_material(material);
+
+        MMTrajectoryPoint point;
+        point.position = Vector3(dernomalized_data[i], include_height ? dernomalized_data[i + 1] : 0, include_height ? dernomalized_data[i + 2] : dernomalized_data[i + 1]);
+        point.position = p_transform.xform(point.position);
+
+        Transform3D point_transform = Transform3D();
+        point_transform.origin = point.position;
+        p_gizmo->add_mesh(sphere_mesh, material, point_transform, nullptr);
+    }
+
+    delete[] dernomalized_data;
 }
 
 TypedArray<Dictionary> MMTrajectoryFeature::get_trajectory_points(const Transform3D& p_character_transform, const PackedFloat32Array& p_trajectory_data) const {

@@ -9,7 +9,9 @@ func _input(event: InputEvent) -> void:
 func _next() -> void:
 	var anim_list = get_animation_list()
 	print(anim_list[current_anim])
-	inertialize_transition(anim_list[current_anim], 0.1)
+	play(anim_list[current_anim])
+	seek(0.1)
+	#inertialize_transition(anim_list[current_anim], 0.1)
 	current_anim += 1
 	if current_anim >= len(anim_list):
 		current_anim = 0

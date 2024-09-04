@@ -1,13 +1,13 @@
 #pragma once
 
-#include "common.h"
-#include "mm_query.h"
-
 #include <godot_cpp/classes/animation.hpp>
 #include <godot_cpp/classes/editor_node3d_gizmo.hpp>
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/skeleton3d.hpp>
 #include <godot_cpp/variant/packed_float32_array.hpp>
+
+#include "common.h"
+#include "mm_query.h"
 
 using namespace godot;
 class MMAnimationPlayer;
@@ -32,6 +32,8 @@ public:
     virtual PackedFloat32Array bake_animation_pose(Ref<Animation> p_animation, float time) const = 0;
 
     virtual PackedFloat32Array evaluate_runtime_data(const MMQueryInput& p_query_input) const = 0;
+
+    virtual void display_data(const Ref<EditorNode3DGizmo>& p_gizmo, const Transform3D p_transform, const float* p_data) const {};
 
     void normalize(float* p_data) const;
     void denormalize(float* p_data) const;

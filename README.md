@@ -2,22 +2,18 @@
 
 ![](https://github.com/GuilhermeGSousa/godot-motion-matching/blob/master/motion_matching_demo.gif)
 
-A very simple motion matching implementation example in Godot 4.3, that allows for both strafe and non strafe movement, implemented following [Dan Holden's article](https://www.theorangeduck.com/page/code-vs-data-driven-displacement). 
+A motion matching implementation in Godot 4.3, implemented following [Dan Holden's article](https://www.theorangeduck.com/page/code-vs-data-driven-displacement). 
 
-### Implementation
-- `MMAnimationLibrary`: a **Resource** that holds not only a list of animations, but also all the extracted features data for every frame, as well as their statistics data.
-- `MMFeature`: an **Resource** that describes data used to match movement to a specific animation frame. You can find implementation examples `src/features`.
-- `MMAnimationPlayer`: an animation player that supports inertialization to transition between animations. Its it also used to make queries to a `MMAnimationLibrary`.
-- `MMController`: A simple 3rd person controller, that also generates trajectories used for motion matching queries.
-- `MotionMatcher`: Coordinates fetching query information from `MMController` and transitioning to the resulting animation.
+### Wiki
+[You can find this repo's wiki here!](https://github.com/GuilhermeGSousa/godot-motion-matching/wiki)
 
-
-### Todo
-- Implement better debugging tools
-- Use a KD Tree to accelerate queries
-- Finish implementing `MMBoneDataFeature`
-- Get more complete animation data
-- Support jumping, crouching, and parkour movements
+### Features
+You'll find on this repo:
+- A plugin that allow you to run motion matching queries on an animation dataset!
+- A `CharacterBody3D` implementing a simple movement logic.
+- Trajectory generation, including collisions and environmental checks.
+- An editor to bake and visualize motion matching features.
+- Blending nodes to qllow you to smoothly transition when switching animations.
 
 ### Credits
 

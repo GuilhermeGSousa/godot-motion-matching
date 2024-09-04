@@ -1,6 +1,5 @@
-[gd_scene load_steps=7 format=3 uid="uid://1io8uso2bop2"]
+[gd_scene load_steps=6 format=3 uid="uid://1io8uso2bop2"]
 
-[ext_resource type="Script" path="res://scripts/trajectory_debug_draw.gd" id="1_embri"]
 [ext_resource type="PackedScene" uid="uid://bjpmux7mfthoa" path="res://animation/rin.fbx" id="2_0oumo"]
 [ext_resource type="MMAnimationLibrary" uid="uid://ci0xd77t1swxb" path="res://animation/rin_anim_lib.tres" id="3_j41h7"]
 [ext_resource type="Script" path="res://scripts/loop_animation.gd" id="4_a1ab8"]
@@ -9,47 +8,22 @@
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_e64fr"]
 
-[node name="Rin" type="Node3D"]
-
-[node name="CameraPivot" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.40566, 0)
-
-[node name="Camera3D" type="Camera3D" parent="CameraPivot"]
-transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, -7.21807)
-
-[node name="DebugDraw" type="Node" parent="." node_paths=PackedStringArray("character", "controller", "matcher", "anim_player")]
-script = ExtResource("1_embri")
-character = NodePath("../Character Entity")
-controller = NodePath("../Simulation Entity")
-matcher = NodePath("../MotionMatcher")
-anim_player = NodePath("../MMAnimationPlayer")
-
-[node name="Simulation Entity" type="MMController" parent="."]
-camera_pivot = NodePath("../CameraPivot")
-trajectory_point_count = 20
-simulation_samples_per_second = 2.0
+[node name="Simulation Entity" type="MMController"]
+skeleton_path = NodePath("rin/Armature/Skeleton3D")
+animation_player_path = NodePath("MMAnimationPlayer")
 max_speed = 3.0
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Simulation Entity"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("CapsuleShape3D_nhkn4")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Simulation Entity/CollisionShape3D"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="CollisionShape3D"]
 visible = false
 mesh = SubResource("CapsuleMesh_e64fr")
 
-[node name="Character Entity" type="CharacterBody3D" parent="."]
-collision_layer = 0
-collision_mask = 0
+[node name="rin" parent="." instance=ExtResource("2_0oumo")]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Character Entity"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-shape = SubResource("CapsuleShape3D_nhkn4")
-disabled = true
-
-[node name="rin" parent="Character Entity" instance=ExtResource("2_0oumo")]
-
-[node name="Skeleton3D" parent="Character Entity/rin/Armature" index="0"]
+[node name="Skeleton3D" parent="rin/Armature" index="0"]
 bones/1/position = Vector3(0, 1.01445, -3.02878e-15)
 bones/1/scale = Vector3(1, 1, 1)
 bones/2/position = Vector3(0.0410021, 1.16488e-14, 1.79225e-09)
@@ -567,8 +541,7 @@ bones/296/position = Vector3(0.0011635, 0.0935117, 5.08575e-11)
 bones/296/rotation = Quaternion(0, 1, 6.23271e-17, 7.54979e-08)
 
 [node name="MMAnimationPlayer" type="MMAnimationPlayer" parent="."]
-root_motion_character_path = NodePath("../Character Entity")
-root_node = NodePath("../Character Entity/rin")
+root_node = NodePath("../rin")
 root_motion_track = NodePath("Armature/Skeleton3D:root")
 callback_mode_process = 0
 libraries = {
@@ -576,12 +549,7 @@ libraries = {
 }
 script = ExtResource("4_a1ab8")
 
-[node name="MotionMatcher" type="MotionMatcher" parent="."]
-controller_path = NodePath("../Simulation Entity")
-character_path = NodePath("../Character Entity")
-animation_player_path = NodePath("../MMAnimationPlayer")
-
 [node name="RootMotionView" type="RootMotionView" parent="."]
 animation_path = NodePath("../MMAnimationPlayer")
 
-[editable path="Character Entity/rin"]
+[editable path="rin"]

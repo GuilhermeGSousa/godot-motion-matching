@@ -1,12 +1,11 @@
 extends Node
 
-@export var character : CharacterBody3D
+@export var character : Node3D
 @export var controller : MMController
-@export var matcher : MotionMatcher
 @export var anim_player : MMAnimationPlayer
 
 func _ready():
-	matcher.on_query_result.connect(_on_query_result)
+	controller.on_query_result.connect(_on_query_result)
 
 func _physics_process(delta: float) -> void:
 	DebugDraw3D.draw_position(character.transform, Color.FOREST_GREEN)
