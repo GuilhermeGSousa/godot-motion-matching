@@ -7,41 +7,52 @@
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/godot.hpp>
 
+#include "editor/mm_editor.h"
+#include "editor/mm_editor_gizmo_plugin.h"
+#include "editor/mm_editor_plugin.h"
+
 #include "features/mm_bone_data_feature.h"
 #include "features/mm_facing_feature.h"
 #include "features/mm_feature.h"
 #include "features/mm_root_velocity_feature.h"
 #include "features/mm_trajectory_feature.h"
 
+#include "synchronizers/mm_clamp_synchronizer.h"
+#include "synchronizers/mm_synchronizer.h"
+
 #include "mm_animation_library.h"
 #include "mm_animation_player.h"
 #include "mm_controller.h"
 #include "mm_trajectory_point.h"
-#include "motion_matcher.h"
 
 using namespace godot;
 
 void initialize_example_module(ModuleInitializationLevel p_level) {
-    if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
-        return;
+    if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
+        ClassDB::register_internal_class<MMEditorGizmoPlugin>();
+        ClassDB::register_internal_class<MMEditor>();
+        ClassDB::register_internal_class<MMEditorPlugin>();
+
+        EditorPlugins::add_by_type<MMEditorPlugin>();
     }
 
-    ClassDB::register_abstract_class<MMFeature>();
-    ClassDB::register_class<MMTrajectoryFeature>();
-    ClassDB::register_class<MMRootVelocityFeature>();
-    ClassDB::register_class<MMFacingFeature>();
-    ClassDB::register_class<MMBoneDataFeature>();
+    if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
+        ClassDB::register_abstract_class<MMFeature>();
+        ClassDB::register_class<MMTrajectoryFeature>();
+        ClassDB::register_class<MMRootVelocityFeature>();
+        ClassDB::register_class<MMFacingFeature>();
+        ClassDB::register_class<MMBoneDataFeature>();
 
-    ClassDB::register_class<MMAnimationLibrary>();
-    ClassDB::register_class<MMAnimationPlayer>();
-    ClassDB::register_class<MMController>();
-    ClassDB::register_class<MotionMatcher>();
+        ClassDB::register_class<MMAnimationLibrary>();
+        ClassDB::register_class<MMAnimationPlayer>();
+        ClassDB::register_class<MMController>();
+
+        ClassDB::register_abstract_class<MMSynchronizer>();
+        ClassDB::register_class<MMClampSynchronizer>();
+    }
 }
 
 void uninitialize_example_module(ModuleInitializationLevel p_level) {
-    if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
-        return;
-    }
 }
 
 extern "C" {
@@ -51,7 +62,7 @@ GDExtensionBool GDE_EXPORT example_library_init(GDExtensionInterfaceGetProcAddre
 
     init_obj.register_initializer(initialize_example_module);
     init_obj.register_terminator(uninitialize_example_module);
-    init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SCENE);
+    init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SERVERS);
 
     return init_obj.init();
 }

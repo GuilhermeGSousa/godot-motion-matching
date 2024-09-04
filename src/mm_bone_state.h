@@ -1,7 +1,9 @@
 #pragma once
 
+#include <godot_cpp/classes/skeleton3d.hpp>
 #include <godot_cpp/core/math.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
+
 #include <map>
 #include <vector>
 
@@ -30,7 +32,8 @@ struct SkeletonState {
 
     SkeletonState() = default;
     ~SkeletonState() = default;
-    SkeletonState(size_t size) : bone_states(size) {
+    SkeletonState(size_t size)
+        : bone_states(size) {
     }
     SkeletonState(const Skeleton3D* skeleton) {
         const int32_t bone_count = skeleton->get_bone_count();

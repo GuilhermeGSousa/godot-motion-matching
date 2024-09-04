@@ -1,25 +1,14 @@
-[gd_scene load_steps=5 format=3 uid="uid://dhalyu0huf050"]
+[gd_scene load_steps=4 format=3 uid="uid://dhalyu0huf050"]
 
 [ext_resource type="PackedScene" uid="uid://bjpmux7mfthoa" path="res://animation/rin.fbx" id="1_l001c"]
 [ext_resource type="MMAnimationLibrary" uid="uid://ci0xd77t1swxb" path="res://animation/rin_anim_lib.tres" id="2_y4tkp"]
 [ext_resource type="Script" path="res://scripts/loop_animation.gd" id="3_22m82"]
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_nhkn4"]
-
 [node name="Rin Simple" type="Node3D"]
 
-[node name="Character Entity" type="CharacterBody3D" parent="."]
-collision_layer = 0
-collision_mask = 0
+[node name="rin" parent="." instance=ExtResource("1_l001c")]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Character Entity"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-shape = SubResource("CapsuleShape3D_nhkn4")
-disabled = true
-
-[node name="rin" parent="Character Entity" instance=ExtResource("1_l001c")]
-
-[node name="Skeleton3D" parent="Character Entity/rin/Armature" index="0"]
+[node name="Skeleton3D" parent="rin/Armature" index="0"]
 bones/1/position = Vector3(0, 1.01445, -3.02878e-15)
 bones/1/scale = Vector3(1, 1, 1)
 bones/2/position = Vector3(0.0410021, 1.16488e-14, 1.79225e-09)
@@ -537,7 +526,7 @@ bones/296/position = Vector3(0.0011635, 0.0935117, 5.08575e-11)
 bones/296/rotation = Quaternion(0, 1, 6.23271e-17, 7.54979e-08)
 
 [node name="MMAnimationPlayer" type="MMAnimationPlayer" parent="."]
-root_node = NodePath("../Character Entity/rin")
+root_node = NodePath("../rin")
 root_motion_track = NodePath("Armature/Skeleton3D:root")
 callback_mode_process = 0
 libraries = {
@@ -548,4 +537,8 @@ script = ExtResource("3_22m82")
 [node name="RootMotionView" type="RootMotionView" parent="."]
 animation_path = NodePath("../MMAnimationPlayer")
 
-[editable path="Character Entity/rin"]
+[node name="RootMotion" type="RootMotion" parent="."]
+animation_mixer_path = NodePath("../MMAnimationPlayer")
+root_path = NodePath("../rin")
+
+[editable path="rin"]

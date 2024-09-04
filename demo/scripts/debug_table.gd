@@ -1,6 +1,6 @@
 extends Control
 
-@export var motion_matcher : MotionMatcher
+@export var motion_matcher : MMController
 @export var title_scene : PackedScene
 @export var cell_scene : PackedScene
 

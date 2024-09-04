@@ -1,5 +1,7 @@
 #include "mm_controller.h"
 
+#include "math/spring.hpp"
+
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event_mouse_motion.hpp>
@@ -17,14 +19,7 @@
 
 using namespace godot;
 
-Vector3 clamp_max_magnitude(const Vector3& vector, float maxMagnitude) {
-    float magnitude = vector.length();
-    if (magnitude > maxMagnitude) {
-        return vector.normalized() * maxMagnitude;
-    } else {
-        return vector;
-    }
-}
+constexpr float QUERY_TIME_ERROR = 0.05;
 
 MMController::MMController()
     : CharacterBody3D() {
@@ -45,6 +40,15 @@ void MMController::_ready() {
     while (!_history_buffer.is_full()) {
         _history_buffer.push(_get_current_trajectory_point());
     }
+
+    _trajectory.resize(trajectory_point_count);
+    _trajectory_history.resize(history_point_count);
+
+    _skeleton = get_node<Skeleton3D>(skeleton_path);
+    _skeleton->set_as_top_level(true);
+    _animation_player = get_node<MMAnimationPlayer>(animation_player_path);
+    _animation_player->connect("animation_finished", Callable(this, "_on_animation_finished"));
+    _animation_player->set_callback_mode_process(AnimationMixer::AnimationCallbackModeProcess::ANIMATION_CALLBACK_MODE_PROCESS_PHYSICS);
 }
 
 void MMController::_process(double delta) {
@@ -61,17 +65,17 @@ void MMController::_physics_process(double delta) {
         return;
     }
 
-    Vector3 new_velocity = update_trajectory(delta);
-    set_velocity(new_velocity);
+    _update_controller(delta);
 
-    // Rotate the character to face the direction of velocity
-    if (!is_strafing) {
-        Vector3 direction = new_velocity.normalized();
-        set_rotation(Vector3(0.0f, Math::atan2(direction.x, direction.z), 0.0f));
-    } else {
-        set_rotation(Vector3(0.0f, _camera_pivot->get_rotation().y, 0.0f));
+    if (!_skeleton) {
+        return;
     }
-    move_and_slide();
+
+    _update_query(delta);
+
+    _apply_root_motion();
+
+    _update_synchronizer(delta);
 }
 
 void MMController::_input(const Ref<InputEvent>& event) {
@@ -87,7 +91,21 @@ void MMController::_input(const Ref<InputEvent>& event) {
     }
 }
 
-Vector3 MMController::update_trajectory(float delta_t) {
+void MMController::_update_controller(float delta_t) {
+    Vector3 new_velocity = _update_trajectory(delta_t);
+    set_velocity(new_velocity);
+
+    // Rotate the character to face the direction of velocity
+    if (!is_strafing) {
+        Vector3 direction = new_velocity.normalized();
+        set_rotation(Vector3(0.0f, Math::atan2(direction.x, direction.z), 0.0f));
+    } else {
+        set_rotation(Vector3(0.0f, _camera_pivot->get_rotation().y, 0.0f));
+    }
+    move_and_slide();
+}
+
+Vector3 MMController::_update_trajectory(float delta_t) {
     Vector3 current_velocity = get_velocity();
 
     const Vector2 stick_input = Input::get_singleton()->get_vector("left", "right", "down", "up", 0.1f).rotated(_camera_pivot->get_rotation().y);
@@ -111,7 +129,7 @@ Vector3 MMController::update_trajectory(float delta_t) {
 
     _generate_trajectory(new_velocity, target_velocity, delta_t);
 
-    _update_history();
+    _update_history(delta_t);
 
     return new_velocity;
 }
@@ -135,7 +153,7 @@ MMTrajectoryPoint MMController::_get_current_trajectory_point() const {
 }
 
 void MMController::_generate_trajectory(const Vector3& p_current_velocity, const Vector3& p_target_velocity, float delta_time) {
-    const float delta_t = 1.0f / simulation_samples_per_second;
+    const float delta_t = trajectory_delta_time;
 
     MMTrajectoryPoint point = _get_current_trajectory_point();
 
@@ -170,12 +188,14 @@ void MMController::_generate_trajectory(const Vector3& p_current_velocity, const
     if (_history_buffer.is_empty()) {
         return;
     }
+}
 
+void MMController::_update_history(double delta_t) {
     float time_in_past = 0.f;
     int current_index = 0;
     for (int i = _history_buffer.size() - 1; i >= 0; --i) {
-        if (time_in_past >= (1.0 / simulation_samples_per_second)) {
-            _previous_trajectory[current_index] = _history_buffer[i];
+        if (time_in_past >= history_delta_time) {
+            _trajectory_history[current_index] = _history_buffer[i];
             time_in_past = 0.f;
             current_index++;
         }
@@ -184,11 +204,9 @@ void MMController::_generate_trajectory(const Vector3& p_current_velocity, const
             break;
         }
 
-        time_in_past += delta_time;
+        time_in_past += delta_t;
     }
-}
 
-void MMController::_update_history() {
     _history_buffer.push(_get_current_trajectory_point());
 }
 
@@ -284,16 +302,112 @@ void MMController::_fall_to_floor(MMTrajectoryPoint& point, float delta_t) {
     }
 }
 
+void MMController::_on_animation_finished(StringName p_animation_name) {
+    _force_transition = true;
+}
+
+void MMController::_fill_query_input(MMQueryInput& input) {
+    input.controller_velocity = get_velocity();
+    input.trajectory = get_trajectory();
+    input.trajectory_history = get_trajectory_history();
+    input.controller_transform = get_global_transform();
+    input.character_transform = _skeleton->get_global_transform();
+    input.skeleton_state = _animation_player->get_skeleton_state();
+}
+
+void MMController::_update_query(double delta_t) {
+    const bool should_query = (_time_since_last_query > (1.0 / query_frequency)) || _force_transition;
+    if (should_query) {
+        _time_since_last_query = 0.f;
+        _force_transition = false;
+
+        // Fill query_input with data from the controller
+        MMQueryInput query_input;
+        _fill_query_input(query_input);
+
+        // Run query
+        const MMQueryOutput result = _animation_player->query(query_input);
+
+        // Play selected animation
+        // TODO: It would be nice if we could use _animation_player->get_current_animation() here instead
+        // but that somtimes returns an empty string :/
+        const bool is_same_animation = result.animation_match == _last_query_output.animation_match;
+        const bool is_same_time = abs(result.time_match - _animation_player->get_current_animation_position()) < QUERY_TIME_ERROR;
+
+        if (!is_same_animation || !is_same_time) {
+            // Non blending alternative, will probably be used once we have a better way to blend animations
+            // _animation_player->play(result.animation_match);
+            // _animation_player->seek(result.time_match);
+            _animation_player->inertialize_transition(result.animation_match, result.time_match);
+            emit_signal("on_query_result", _output_to_dict(result));
+            _last_query_output = result;
+        }
+    }
+    _time_since_last_query += delta_t;
+}
+
+void MMController::_apply_root_motion() {
+    _skeleton->set_quaternion(
+        _skeleton->get_quaternion() * _animation_player->get_root_motion_rotation());
+
+    const Vector3 movement_delta = (_animation_player->get_root_motion_rotation_accumulator().inverse() * _skeleton->get_quaternion()).xform(_animation_player->get_root_motion_position());
+
+    _skeleton->set_global_position(_skeleton->get_global_position() + movement_delta);
+}
+
+void MMController::_update_synchronizer(double delta_t) {
+    if (synchronizer.is_null()) {
+        return;
+    }
+
+    MMSyncResult sync_result = synchronizer->sync(this, _skeleton, delta_t);
+    set_global_position(sync_result.controller_position);
+    set_quaternion(sync_result.controller_rotation);
+    _skeleton->set_global_position(sync_result.character_position);
+    _skeleton->set_quaternion(sync_result.character_rotation);
+}
+
+Dictionary MMController::_output_to_dict(const MMQueryOutput& output) {
+    Dictionary result;
+
+    result.get_or_add("animation", output.animation_match);
+    result.get_or_add("time", output.time_match);
+    result.get_or_add("frame_data", output.matched_frame_data);
+    result.merge(output.feature_costs);
+    result.get_or_add("total_cost", output.cost);
+
+    return result;
+}
+
+MMAnimationPlayer* MMController::get_animation_player() const {
+    return get_node<MMAnimationPlayer>(animation_player_path);
+}
+
 void MMController::_bind_methods() {
-    ClassDB::bind_method(D_METHOD("update_trajectory", "current_velocity", "delta_t"), &MMController::update_trajectory);
     ClassDB::bind_method(D_METHOD("get_trajectory"), &MMController::get_trajectory_typed_array);
     ClassDB::bind_method(D_METHOD("get_previous_trajectory"), &MMController::get_previous_trajectory_typed_array);
+    ClassDB::bind_method(D_METHOD("_on_animation_finished", "anim"), &MMController::_on_animation_finished);
 
-    BINDER_PROPERTY_PARAMS(MMController, Variant::NODE_PATH, camera_pivot, PROPERTY_HINT_NODE_PATH_VALID_TYPES, "Node3D");
+    ADD_SIGNAL(MethodInfo("on_query_result", PropertyInfo(Variant::DICTIONARY, "data")));
+
+    ADD_GROUP("Motion Matching", "");
+    BINDER_PROPERTY_PARAMS(MMController, Variant::NODE_PATH, skeleton_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES, "Skeleton3D");
+    BINDER_PROPERTY_PARAMS(MMController, Variant::NODE_PATH, animation_player_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES, "MMAnimationPlayer");
+    BINDER_PROPERTY_PARAMS(MMController, Variant::FLOAT, query_frequency);
+    BINDER_PROPERTY_PARAMS(MMController, Variant::OBJECT, synchronizer, PROPERTY_HINT_RESOURCE_TYPE, "MMSynchronizer");
+
+    ADD_GROUP("Movement", "");
     BINDER_PROPERTY_PARAMS(MMController, Variant::FLOAT, halflife, PROPERTY_HINT_RANGE, "0.0,1.0,0.01,or_greater");
-    BINDER_PROPERTY_PARAMS(MMController, Variant::INT, trajectory_point_count);
-    BINDER_PROPERTY_PARAMS(MMController, Variant::FLOAT, simulation_samples_per_second);
     BINDER_PROPERTY_PARAMS(MMController, Variant::FLOAT, max_speed);
-    BINDER_PROPERTY_PARAMS(MMController, Variant::FLOAT, mouse_sensitivity);
     BINDER_PROPERTY_PARAMS(MMController, Variant::BOOL, is_strafing);
+
+    ADD_GROUP("Trajectory", "");
+    BINDER_PROPERTY_PARAMS(MMController, Variant::INT, trajectory_point_count);
+    BINDER_PROPERTY_PARAMS(MMController, Variant::FLOAT, trajectory_delta_time);
+    BINDER_PROPERTY_PARAMS(MMController, Variant::INT, history_point_count);
+    BINDER_PROPERTY_PARAMS(MMController, Variant::FLOAT, history_delta_time);
+
+    ADD_GROUP("Camera Control", "");
+    BINDER_PROPERTY_PARAMS(MMController, Variant::NODE_PATH, camera_pivot, PROPERTY_HINT_NODE_PATH_VALID_TYPES, "Node3D");
+    BINDER_PROPERTY_PARAMS(MMController, Variant::FLOAT, mouse_sensitivity);
 }

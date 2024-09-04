@@ -154,6 +154,54 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
     return result;
 }
 
+size_t MMAnimationLibrary::get_dim_count() const {
+    size_t dim_count = 0;
+    for (auto i = 0; i < features.size(); ++i) {
+        MMFeature* f = Object::cast_to<MMFeature>(features[i]);
+        dim_count += f->get_dimension_count();
+    }
+
+    return dim_count;
+}
+
+int32_t MMAnimationLibrary::get_animation_pose_count(String p_animation_name) const {
+    TypedArray<StringName> animation_list = get_animation_list();
+    Ref<Animation> animation = get_animation(p_animation_name);
+    if (animation.is_null()) {
+        return 0;
+    }
+
+    return static_cast<int32_t>(animation->get_length() * get_sampling_rate());
+}
+
+void MMAnimationLibrary::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, const Transform3D& p_transform, String p_animation_name, int32_t p_pose_index) const {
+    const int32_t anim_index = get_animation_list().find(p_animation_name);
+    const int32_t dim_count = get_dim_count();
+    int32_t start_frame_index = 0;
+    TypedArray<StringName> animation_list = get_animation_list();
+    for (size_t anim_index = 0; anim_index < animation_list.size(); anim_index++) {
+        const StringName& anim_name = animation_list[anim_index];
+        Ref<Animation> animation = get_animation(anim_name);
+        if (anim_name == p_animation_name) {
+            break;
+        }
+
+        const float animation_length = animation->get_length();
+        const float time_step = 1.0f / get_sampling_rate();
+        for (float time = 0; time < animation_length; time += time_step) {
+            start_frame_index += dim_count;
+        }
+    }
+
+    int32_t frame_index = start_frame_index + p_pose_index * dim_count;
+    for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
+        const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
+        const float* frame_motion_data = motion_data.ptr() + frame_index;
+        feature->display_data(p_gizmo, p_transform, frame_motion_data);
+        frame_index += feature->get_dimension_count();
+    }
+}
+
 void MMAnimationLibrary::_normalize_data(PackedFloat32Array& p_data, size_t p_dim_count) const {
     ERR_FAIL_COND(p_data.size() % p_dim_count != 0);
 
