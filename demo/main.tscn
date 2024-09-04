@@ -22,7 +22,7 @@ material = SubResource("StandardMaterial3D_vcm8j")
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_cgbp0"]
 data = PackedVector3Array(-0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5)
 
-[sub_resource type="MMClampSynchronizer" id="MMClampSynchronizer_70fpb"]
+[sub_resource type="MMClampSynchronizer" id="MMClampSynchronizer_113nr"]
 clamp_distance = 0.0
 
 [node name="main" type="Node3D"]
@@ -72,7 +72,7 @@ transform = Transform3D(11.0225, 0, 0, 0, 3.04705, 0, 0, 0, 1, 0, -0.467445, 0)
 shape = SubResource("ConcavePolygonShape3D_cgbp0")
 
 [node name="Rin" parent="." instance=ExtResource("2_ady0f")]
-synchronizer = SubResource("MMClampSynchronizer_70fpb")
+synchronizer = SubResource("MMClampSynchronizer_113nr")
 trajectory_point_count = 5
 camera_pivot = NodePath("../CameraPivot")
 

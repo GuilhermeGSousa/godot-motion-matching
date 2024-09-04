@@ -18,6 +18,7 @@
 #include "features/mm_trajectory_feature.h"
 
 #include "synchronizers/mm_clamp_synchronizer.h"
+#include "synchronizers/mm_rootmotion_synchronizer.h"
 #include "synchronizers/mm_synchronizer.h"
 
 #include "mm_animation_library.h"
@@ -49,6 +50,7 @@ void initialize_example_module(ModuleInitializationLevel p_level) {
 
         ClassDB::register_abstract_class<MMSynchronizer>();
         ClassDB::register_class<MMClampSynchronizer>();
+        ClassDB::register_class<MMRootMotionSynchronizer>();
     }
 }
 
