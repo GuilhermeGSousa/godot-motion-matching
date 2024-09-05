@@ -17,7 +17,7 @@ class MMEditorPlugin : public EditorPlugin {
 public:
     MMEditorPlugin();
 
-    virtual void _input(const Ref<InputEvent>& p_event);
+    virtual void _input(const Ref<InputEvent>& p_event) override;
 
 private:
     void _notification(int p_what);

@@ -9,6 +9,7 @@
 #include <godot_cpp/variant/typed_array.hpp>
 
 #include "common.h"
+#include "features/mm_feature.h"
 #include "mm_query.h"
 
 using namespace godot;

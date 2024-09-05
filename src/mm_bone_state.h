@@ -52,11 +52,11 @@ struct SkeletonState {
     }
 
     const BoneState& find_bone_state(const String& name) const {
-        return bone_states[bone_name_to_index.find_key(name)];
+        return bone_states[(uint32_t)bone_name_to_index.find_key(name)];
     }
 
     BoneState& find_bone_state(const String& name) {
-        return bone_states[bone_name_to_index.find_key(name)];
+        return bone_states[(uint32_t)bone_name_to_index.find_key(name)];
     }
 
     std::vector<BoneState> bone_states;

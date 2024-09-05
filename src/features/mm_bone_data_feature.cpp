@@ -11,7 +11,7 @@ void MMBoneDataFeature::setup_skeleton(const MMAnimationPlayer* p_player, const 
 void MMBoneDataFeature::setup_for_animation(Ref<Animation> animation) {
 }
 
-size_t MMBoneDataFeature::get_dimension_count() const {
+uint32_t MMBoneDataFeature::get_dimension_count() const {
     return bone_names.size() * 7;
 }
 

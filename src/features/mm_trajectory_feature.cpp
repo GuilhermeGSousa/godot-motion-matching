@@ -14,7 +14,7 @@ MMTrajectoryFeature::MMTrajectoryFeature() {
 MMTrajectoryFeature::~MMTrajectoryFeature() {
 }
 
-size_t MMTrajectoryFeature::get_dimension_count() const {
+uint32_t MMTrajectoryFeature::get_dimension_count() const {
     return _get_point_dimension_count() * (past_frames + future_frames);
 }
 
@@ -176,7 +176,7 @@ void MMTrajectoryFeature::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::BOOL, include_facing);
 }
 
-size_t MMTrajectoryFeature::_get_point_dimension_count() const {
+uint32_t MMTrajectoryFeature::_get_point_dimension_count() const {
     size_t dimensions = 2; // x, z
     if (include_height) {
         dimensions++; // y
