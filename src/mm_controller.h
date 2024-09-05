@@ -74,8 +74,8 @@ public:
     GETSET(float, halflife, 0.5f);
     GETSET(float, mouse_sensitivity, 1.f);
     GETSET(bool, is_strafing, false);
-    GETSET(size_t, trajectory_point_count, 10);
-    GETSET(size_t, history_point_count, 3);
+    GETSET(uint32_t, trajectory_point_count, 10);
+    GETSET(uint32_t, history_point_count, 3);
 
 protected:
     static constexpr size_t HISTORY_BUFFER_SIZE{100}; // Around 1.6s

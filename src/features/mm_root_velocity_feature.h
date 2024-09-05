@@ -13,7 +13,7 @@ public:
     MMRootVelocityFeature(/* args */);
     virtual ~MMRootVelocityFeature();
 
-    virtual size_t get_dimension_count() const override;
+    virtual uint32_t get_dimension_count() const override;
 
     virtual void setup_skeleton(const MMAnimationPlayer* p_player, const Skeleton3D* p_skeleton) override;
 

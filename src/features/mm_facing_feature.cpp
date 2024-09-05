@@ -3,7 +3,7 @@
 
 #include <godot_cpp/variant/transform3d.hpp>
 
-size_t MMFacingFeature::get_dimension_count() const {
+uint32_t MMFacingFeature::get_dimension_count() const {
     return 1;
 }
 

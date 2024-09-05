@@ -10,7 +10,7 @@ MMRootVelocityFeature::MMRootVelocityFeature() {
 MMRootVelocityFeature::~MMRootVelocityFeature() {
 }
 
-size_t MMRootVelocityFeature::get_dimension_count() const {
+uint32_t MMRootVelocityFeature::get_dimension_count() const {
     return 3;
 }
 
