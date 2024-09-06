@@ -153,7 +153,7 @@ TypedArray<Dictionary> MMTrajectoryFeature::get_trajectory_points(const Transfor
         point.position = p_character_transform.xform(point.position);
 
         if (include_facing) {
-            const float local_facing_angle = denormalized_data[i + include_height ? 3 : 2];
+            const float local_facing_angle = denormalized_data[i + (include_height ? 3 : 2)];
             point.facing_angle = 0.0; // TODO
         }
 
