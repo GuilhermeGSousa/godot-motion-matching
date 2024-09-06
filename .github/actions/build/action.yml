@@ -31,4 +31,3 @@ runs:
         echo "Building with flags:" platform=${{ inputs.platform }} target=${{ inputs.target }} ${{ env.SCONSFLAGS }}
 
         scons platform=${{ inputs.platform }} target=${{ inputs.target }} ${{ env.SCONSFLAGS }}
-        ls -l bin/
