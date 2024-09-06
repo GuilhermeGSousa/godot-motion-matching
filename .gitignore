@@ -19,3 +19,6 @@ bin
 *.enabled
 
 .vscode
+.cache
+
+compile_commands.json
