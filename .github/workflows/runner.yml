@@ -6,7 +6,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  macos-build:
-    if: ${{ vars.DISABLE_GODOT_CI == '' }}
-    name: 🍎 macOS
-    uses: ./.github/workflows/macos_builds.yml
+    linux-build:
+        if: ${{ vars.DISABLE_GODOT_CI == '' }}
+        name: 🐧 Linux
+        uses: ./.github/workflows/linux_builds.yml
+    
+    macos-build:
+        if: ${{ vars.DISABLE_GODOT_CI == '' }}
+        name: 🍎 macOS
+        uses: ./.github/workflows/macos_builds.yml
+    
+    windows-build:
+        if: ${{ vars.DISABLE_GODOT_CI == '' }}
+        name: 🏁 Windows
+        uses: ./.github/workflows/windows_builds.yml
