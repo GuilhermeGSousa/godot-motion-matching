@@ -47,4 +47,4 @@ jobs:
         uses: ./.github/actions/upload-artifact
         with:
           name: windows-template
-          path: addons/motion_matching/bin/*
+          path: addons/*

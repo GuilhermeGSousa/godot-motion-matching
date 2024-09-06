@@ -38,3 +38,14 @@ jobs:
         with:
           sconsflags: ${{ env.SCONSFLAGS }} ${{ matrix.sconsflags }}
           platform: linux
+
+      - name: Prepare artifact
+        run: |
+          strip addons/motion_matching/bin/libgdmotionmatching.*
+          chmod +x addons/motion_matching/bin/libgdmotionmatching.*
+      
+      - name: Upload artifact
+        uses: ./.github/actions/upload-artifact
+        with:
+          name: linux-template
+          path: addons/*

@@ -38,3 +38,14 @@ jobs:
         with:
           sconsflags: ${{ env.SCONSFLAGS }} arch=arm64
           platform: macos
+      
+      - name: Prepare artifact
+        run: |
+          chmod +x addons/motion_matching/bin/libgdmotionmatching.macos.template_release.framework/libgdmotionmatching.*
+
+      - name: Upload artifact
+        uses: ./.github/actions/upload-artifact
+        with:
+          name: macos-template
+          path: addons/*
+  
