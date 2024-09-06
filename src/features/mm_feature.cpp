@@ -37,7 +37,7 @@ void MMFeature::denormalize(float* p_data) const {
     }
 }
 
-float MMFeature::compute_cost(const float* p_motion_data, const const float* p_query_data) const {
+float MMFeature::compute_cost(const float* p_motion_data, const float* p_query_data) const {
     float cost = 0.0f;
     for (int i = 0; i < get_dimension_count(); ++i) {
         float diff = p_motion_data[i] - p_query_data[i];
