@@ -38,3 +38,13 @@ jobs:
         with:
           sconsflags: ${{ env.SCONSFLAGS }} ${{ matrix.sconsflags }}
           platform: windows
+
+      - name: Prepare artifact
+        run: |
+          Remove-Item addons/motion_matching/bin/* -Include *.exp,*.lib,*.pdb -Force
+
+      - name: Upload artifact
+        uses: ./.github/actions/upload-artifact
+        with:
+          name: windows-template
+          path: addons/motion_matching/bin/*
