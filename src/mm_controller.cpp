@@ -184,27 +184,25 @@ void MMController::_generate_trajectory(const Vector3& p_current_velocity, const
         // Update point with environment
         _update_point(point, delta_t);
     }
-
-    if (_history_buffer.is_empty()) {
-        return;
-    }
 }
 
 void MMController::_update_history(double delta_t) {
-    float time_in_past = 0.f;
-    int current_index = 0;
-    for (int i = _history_buffer.size() - 1; i >= 0; --i) {
-        if (time_in_past >= history_delta_time) {
-            _trajectory_history[current_index] = _history_buffer[i];
-            time_in_past = 0.f;
-            current_index++;
-        }
+    if (!_history_buffer.is_empty()) {
+        float time_in_past = 0.f;
+        int current_index = 0;
+        for (int i = _history_buffer.size() - 1; i >= 0; --i) {
+            if (time_in_past >= history_delta_time) {
+                _trajectory_history[current_index] = _history_buffer[i];
+                time_in_past = 0.f;
+                current_index++;
+            }
 
-        if (current_index >= history_point_count) {
-            break;
-        }
+            if (current_index >= history_point_count) {
+                break;
+            }
 
-        time_in_past += delta_t;
+            time_in_past += delta_t;
+        }
     }
 
     _history_buffer.push(_get_current_trajectory_point());
