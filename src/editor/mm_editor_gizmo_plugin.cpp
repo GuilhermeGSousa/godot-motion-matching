@@ -32,6 +32,10 @@ void MMEditorGizmoPlugin::_redraw(const Ref<EditorNode3DGizmo>& p_gizmo) {
         return;
     }
 
+    if (!animation_player->has_animation_library(_animation_lib)) {
+        return;
+    }
+
     Ref<MMAnimationLibrary> animation_library = animation_player->get_animation_library(_animation_lib);
     if (animation_library.is_null()) {
         return;
