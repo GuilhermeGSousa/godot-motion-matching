@@ -37,4 +37,4 @@ jobs:
         uses: ./.github/actions/build
         with:
           sconsflags: ${{ env.SCONSFLAGS }} ${{ matrix.sconsflags }}
-          platform: linuxbsd
+          platform: linux
