@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <deque>
 #include <vector>
 
@@ -11,7 +12,8 @@ private:
     size_t max_size;
 
 public:
-    explicit CircularBuffer(size_t size) : max_size(size) {
+    explicit CircularBuffer(size_t size)
+        : max_size(size) {
     }
 
     void clear() {
