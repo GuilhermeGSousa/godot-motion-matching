@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import os
 import sys
+from glob import glob
+from pathlib import Path
 
 env = SConscript("godot-cpp/SConstruct")
 
@@ -12,6 +14,14 @@ env = SConscript("godot-cpp/SConstruct")
 # - CPPDEFINES are for pre-processor defines
 # - LINKFLAGS are for linking flags
 
+(extension_path,) = glob("addons/*/*.gdextension")
+
+addon_path = Path(extension_path).parent
+
+project_name = Path(extension_path).stem
+
+debug_or_release = "release" if env["target"] == "template_release" else "debug"
+
 # tweak this if you want to use different folders, or more folders, to store your source code in.
 env.Append(CPPPATH=["src/"])
 sources = Glob("src/*.cpp")
@@ -22,15 +32,26 @@ sources += Glob("src/synchronizers/*.cpp")
 
 if env["platform"] == "macos":
     library = env.SharedLibrary(
-        "addons/motion_matching/bin/libgdmotionmatching.{}.{}.framework/libgdmotionmatching.{}.{}".format(
-            env["platform"], env["target"], env["platform"], env["target"]
+        "{0}/bin/lib{1}.{2}.{3}.framework/{1}.{2}.{3}".format(
+            addon_path,
+            project_name,
+            env["platform"],
+            debug_or_release,
         ),
         source=sources,
     )
 else:
     library = env.SharedLibrary(
-        "addons/motion_matching/bin/libgdmotionmatching{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
+        "{}/bin/lib{}.{}.{}.{}{}".format(
+            addon_path,
+            project_name,
+            env["platform"],
+            debug_or_release,
+            env["arch"],
+            env["SHLIBSUFFIX"],
+        ),
         source=sources,
     )
+
 
 Default(library)
