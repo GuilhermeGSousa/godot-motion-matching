@@ -17,6 +17,8 @@ bin
 *.wasm
 *.plist
 *.enabled
+*.tmp
+*.TMP
 
 .vscode
 .cache
