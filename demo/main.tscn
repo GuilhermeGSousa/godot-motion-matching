@@ -22,7 +22,7 @@ material = SubResource("StandardMaterial3D_vcm8j")
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_cgbp0"]
 data = PackedVector3Array(-0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5)
 
-[sub_resource type="MMClampSynchronizer" id="MMClampSynchronizer_113nr"]
+[sub_resource type="MMClampSynchronizer" id="MMClampSynchronizer_kxtfr"]
 clamp_distance = 0.0
 
 [node name="main" type="Node3D"]
@@ -72,9 +72,7 @@ transform = Transform3D(11.0225, 0, 0, 0, 3.04705, 0, 0, 0, 1, 0, -0.467445, 0)
 shape = SubResource("ConcavePolygonShape3D_cgbp0")
 
 [node name="Rin" parent="." instance=ExtResource("2_ady0f")]
-synchronizer = SubResource("MMClampSynchronizer_113nr")
-trajectory_point_count = 5
-camera_pivot = NodePath("../CameraPivot")
+synchronizer = SubResource("MMClampSynchronizer_kxtfr")
 
 [node name="Skeleton3D" parent="Rin/rin/Armature" index="0"]
 bones/0/position = Vector3(0.129963, 0, 0.0355273)
@@ -103,7 +101,8 @@ bones/281/rotation = Quaternion(0.755141, -0.653877, 0.0451307, 0.0130335)
 bones/282/rotation = Quaternion(-0.00462105, 0.0392285, -0.174953, 0.983784)
 bones/283/rotation = Quaternion(-0.117743, 0.0610783, 0.611722, 0.779873)
 
-[node name="CameraPivot" parent="." instance=ExtResource("4_xdhai")]
+[node name="CameraPivot" parent="." node_paths=PackedStringArray("charater") instance=ExtResource("4_xdhai")]
+charater = NodePath("../Rin")
 
 [node name="DebugDrawTrajectory" type="Node" parent="." node_paths=PackedStringArray("character", "controller", "anim_player")]
 script = ExtResource("5_gaa5p")

@@ -6,7 +6,7 @@
 
 class MMAnimationPlayer;
 class MMAnimationLibrary;
-class MMController;
+class MMCharacter;
 
 using namespace godot;
 
@@ -16,7 +16,7 @@ class MMEditor : public Control {
 public:
     MMEditor();
 
-    void set_animation_player(MMController* p_controller) {
+    void set_animation_player(MMCharacter* p_controller) {
         const bool changed = p_controller != _current_controller;
 
         _current_controller = p_controller;
@@ -34,7 +34,7 @@ private:
     void _viz_anim_selected(int p_index);
     void _viz_time_changed(float p_value);
     void _emit_animation_viz_request(String p_animation_lib, String p_animation_name, int32_t p_pose_index);
-    MMController* _current_controller;
+    MMCharacter* _current_controller;
     String _current_animation_library_name;
     String _current_animation_name;
 

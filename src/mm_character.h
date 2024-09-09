@@ -3,7 +3,7 @@
 #include "circular_buffer.h"
 #include "common.h"
 #include "mm_animation_player.h"
-#include "mm_controller.h"
+#include "mm_character.h"
 #include "mm_trajectory_point.h"
 #include "synchronizers/mm_synchronizer.h"
 
@@ -15,17 +15,15 @@
 
 using namespace godot;
 
-class MMController : public CharacterBody3D {
-    GDCLASS(MMController, CharacterBody3D)
+class MMCharacter : public CharacterBody3D {
+    GDCLASS(MMCharacter, CharacterBody3D)
 public:
-    MMController();
-    virtual ~MMController();
+    MMCharacter();
+    virtual ~MMCharacter();
 
 public:
     virtual void _ready() override;
-    virtual void _process(double delta) override;
     virtual void _physics_process(double delta) override;
-    virtual void _input(const Ref<InputEvent>& event) override;
 
     const std::vector<MMTrajectoryPoint>& get_trajectory() const {
         return _trajectory;
@@ -63,29 +61,34 @@ public:
 
     MMAnimationPlayer* get_animation_player() const;
 
+    // Trajectory
+    GETSET(float, trajectory_delta_time, 0.5f);
+    GETSET(float, history_delta_time, 0.5f);
+    GETSET(uint32_t, trajectory_point_count, 10);
+    GETSET(uint32_t, history_point_count, 3);
+    GETSET(bool, check_environment, true);
+
+    // Movement
+    GETSET(float, halflife, 0.5f);
+    GETSET(bool, is_strafing, false);
+    GETSET(float, strafe_facing, 0.f);
+    GETSET(Vector3, target_velocity);
+
+    // Motion Matching
     GETSET(NodePath, skeleton_path)
     GETSET(NodePath, animation_player_path)
     GETSET(float, query_frequency, 2.0f)
     GETSET(Ref<MMSynchronizer>, synchronizer)
-    GETSET(NodePath, camera_pivot);
-    GETSET(float, trajectory_delta_time, 0.5f);
-    GETSET(float, history_delta_time, 0.5f);
-    GETSET(float, max_speed, 100.f);
-    GETSET(float, halflife, 0.5f);
-    GETSET(float, mouse_sensitivity, 1.f);
-    GETSET(bool, is_strafing, false);
-    GETSET(uint32_t, trajectory_point_count, 10);
-    GETSET(uint32_t, history_point_count, 3);
 
 protected:
     static constexpr size_t HISTORY_BUFFER_SIZE{100}; // Around 1.6s
     static void _bind_methods();
 
 private:
-    void _update_controller(float delta_t);
+    void _update_character(float delta_t);
     Vector3 _update_trajectory(float p_delta_t);
     MMTrajectoryPoint _get_current_trajectory_point() const;
-    void _generate_trajectory(const Vector3& p_current_velocity, const Vector3& p_target_velocity, float delta_time);
+    void _generate_trajectory(const Vector3& p_current_velocity, float delta_time);
     void _update_history(double delta_t);
     void _update_point(MMTrajectoryPoint& point, float delta_t);
     void _fill_collision_state(const Ref<PhysicsTestMotionResult3D> collision_result, MMCollisionState& state);
@@ -103,10 +106,6 @@ private:
 private:
     // Controller
     Vector3 _spring_acceleration;
-
-    // Camera
-    Node3D* _camera_pivot{nullptr};
-    float _camera_pivot_height{0.f};
 
     // Trajectory
     std::vector<MMTrajectoryPoint> _trajectory;

@@ -1,7 +1,7 @@
 #include "synchronizers/mm_rootmotion_synchronizer.h"
 #include "mm_rootmotion_synchronizer.h"
 
-MMSyncResult MMRootMotionSynchronizer::sync(const MMController* controller, const Node3D* character, float delta_time) {
+MMSyncResult MMRootMotionSynchronizer::sync(const MMCharacter* controller, const Node3D* character, float delta_time) {
     MMSyncResult result;
 
     result.character_position = character->get_global_position();

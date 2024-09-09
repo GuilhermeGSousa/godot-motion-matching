@@ -10,7 +10,7 @@
 
 using namespace godot;
 
-class MMController;
+class MMCharacter;
 
 class MMAnimationPlayer : public AnimationPlayer {
     GDCLASS(MMAnimationPlayer, AnimationPlayer)

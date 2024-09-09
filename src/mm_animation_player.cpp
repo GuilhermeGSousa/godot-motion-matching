@@ -2,7 +2,7 @@
 
 #include "math/spring.hpp"
 #include "mm_animation_library.h"
-#include "mm_controller.h"
+#include "mm_character.h"
 
 #include <godot_cpp/classes/animation.hpp>
 #include <godot_cpp/classes/engine.hpp>
