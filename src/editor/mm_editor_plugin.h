@@ -2,7 +2,7 @@
 
 #include "editor/mm_editor.h"
 #include "editor/mm_editor_gizmo_plugin.h"
-#include "mm_controller.h"
+#include "mm_character.h"
 
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/editor_plugin.hpp>
@@ -29,5 +29,5 @@ private:
 
     MMEditor* _editor;
     Button* _bottom_pannel_button;
-    MMController* _current_controller;
+    MMCharacter* _current_controller;
 };

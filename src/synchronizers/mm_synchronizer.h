@@ -7,7 +7,7 @@
 
 using namespace godot;
 
-class MMController;
+class MMCharacter;
 
 struct MMSyncResult {
     Vector3 character_position;
@@ -21,7 +21,7 @@ class MMSynchronizer : public Resource {
 
 public:
     // TODO: This API isn't great and will change, and should be improved to better support GD Script
-    virtual MMSyncResult sync(const MMController* controller, const Node3D* character, float delta_time) = 0;
+    virtual MMSyncResult sync(const MMCharacter* controller, const Node3D* character, float delta_time) = 0;
 
 protected:
     static void _bind_methods();

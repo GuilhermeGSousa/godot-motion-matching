@@ -1,8 +1,8 @@
 #include "synchronizers/mm_clamp_synchronizer.h"
 
-#include "mm_controller.h"
+#include "mm_character.h"
 
-MMSyncResult MMClampSynchronizer::sync(const MMController* controller, const Node3D* character, float delta_time) {
+MMSyncResult MMClampSynchronizer::sync(const MMCharacter* controller, const Node3D* character, float delta_time) {
     MMSyncResult result;
 
     result.controller_position = controller->get_global_position();

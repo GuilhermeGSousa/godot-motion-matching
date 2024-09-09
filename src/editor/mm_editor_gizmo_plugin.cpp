@@ -2,7 +2,7 @@
 
 #include "mm_animation_library.h"
 #include "mm_animation_player.h"
-#include "mm_controller.h"
+#include "mm_character.h"
 #include "mm_editor_gizmo_plugin.h"
 
 #include <godot_cpp/classes/editor_node3d_gizmo.hpp>
@@ -12,7 +12,7 @@ MMEditorGizmoPlugin::MMEditorGizmoPlugin() {
 }
 
 bool MMEditorGizmoPlugin::_has_gizmo(Node3D* p_for_node_3d) const {
-    return p_for_node_3d->is_class("MMController");
+    return p_for_node_3d->is_class("MMCharacter");
 }
 
 String MMEditorGizmoPlugin::_get_gizmo_name() const {
@@ -22,7 +22,7 @@ String MMEditorGizmoPlugin::_get_gizmo_name() const {
 void MMEditorGizmoPlugin::_redraw(const Ref<EditorNode3DGizmo>& p_gizmo) {
     p_gizmo->clear();
 
-    MMController* controller = Object::cast_to<MMController>(p_gizmo->get_node_3d());
+    MMCharacter* controller = Object::cast_to<MMCharacter>(p_gizmo->get_node_3d());
     if (!controller) {
         return;
     }

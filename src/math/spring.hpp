@@ -110,7 +110,8 @@ static inline Quaternion quat_exp(Vector3 v, real_t eps = 1e-8) {
 template <typename T>
 static inline T clampf(T x, T min, T max) {
     static_assert(std::is_arithmetic_v<T>, "Must be arithmetic");
-    return x > max ? max : x < min ? min : x;
+    return x > max ? max : x < min ? min
+                                   : x;
 }
 
 static inline Quaternion quat_abs(Quaternion q) {

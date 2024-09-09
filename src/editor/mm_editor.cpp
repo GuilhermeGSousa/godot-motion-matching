@@ -2,7 +2,7 @@
 
 #include "mm_animation_library.h"
 #include "mm_animation_player.h"
-#include "mm_controller.h"
+#include "mm_character.h"
 #include "mm_editor.h"
 
 #include <godot_cpp/classes/button.hpp>

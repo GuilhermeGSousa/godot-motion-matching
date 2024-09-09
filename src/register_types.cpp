@@ -7,6 +7,8 @@
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/godot.hpp>
 
+#include "mm_character.h"
+
 #include "editor/mm_editor.h"
 #include "editor/mm_editor_gizmo_plugin.h"
 #include "editor/mm_editor_plugin.h"
@@ -23,7 +25,6 @@
 
 #include "mm_animation_library.h"
 #include "mm_animation_player.h"
-#include "mm_controller.h"
 #include "mm_trajectory_point.h"
 
 using namespace godot;
@@ -46,7 +47,8 @@ void initialize_example_module(ModuleInitializationLevel p_level) {
 
         ClassDB::register_class<MMAnimationLibrary>();
         ClassDB::register_class<MMAnimationPlayer>();
-        ClassDB::register_class<MMController>();
+
+        ClassDB::register_class<MMCharacter>();
 
         ClassDB::register_abstract_class<MMSynchronizer>();
         ClassDB::register_class<MMClampSynchronizer>();

@@ -17,7 +17,7 @@ void MMEditorPlugin::_input(const Ref<InputEvent>& p_event) {
 
         _current_controller = nullptr;
         for (int i = 0; i < selected_nodes.size(); i++) {
-            MMController* animation_player = Object::cast_to<MMController>(selected_nodes[i]);
+            MMCharacter* animation_player = Object::cast_to<MMCharacter>(selected_nodes[i]);
 
             if (animation_player) {
                 _current_controller = animation_player;

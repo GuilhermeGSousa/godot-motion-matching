@@ -1,7 +1,7 @@
 extends Node
 
 @export var character : Node3D
-@export var controller : MMController
+@export var controller : MMCharacter
 @export var anim_player : MMAnimationPlayer
 
 func _ready():
