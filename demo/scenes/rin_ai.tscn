@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://bjpmux7mfthoa" path="res://animation/rin.fbx" id="1_7hmcj"]
 [ext_resource type="MMAnimationLibrary" uid="uid://ci0xd77t1swxb" path="res://animation/rin_anim_lib.tres" id="2_cijw4"]
-[ext_resource type="Script" path="res://scripts/loop_animation.gd" id="3_8eeau"]
+[ext_resource type="Script" path="res://scripts/ai_controller.gd" id="4_ggi53"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_nhkn4"]
 
@@ -11,7 +11,6 @@
 [node name="Simulation Entity" type="MMCharacter"]
 skeleton_path = NodePath("rin/Armature/Skeleton3D")
 animation_player_path = NodePath("MMAnimationPlayer")
-max_speed = 3.0
 
 [node name="rin" parent="." instance=ExtResource("1_7hmcj")]
 
@@ -547,12 +546,15 @@ callback_mode_process = 0
 libraries = {
 "rin_anim_lib": ExtResource("2_cijw4")
 }
-script = ExtResource("3_8eeau")
 
 [node name="RootMotionView" type="RootMotionView" parent="."]
 animation_path = NodePath("../MMAnimationPlayer")
 
+[node name="AI Controller" type="Node3D" parent="." node_paths=PackedStringArray("character", "nav_agent")]
+script = ExtResource("4_ggi53")
+character = NodePath("..")
+nav_agent = NodePath("../NavigationAgent3D")
+
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
-debug_enabled = true
 
 [editable path="rin"]

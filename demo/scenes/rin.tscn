@@ -1,8 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://1io8uso2bop2"]
+[gd_scene load_steps=6 format=3 uid="uid://1io8uso2bop2"]
 
 [ext_resource type="PackedScene" uid="uid://bjpmux7mfthoa" path="res://animation/rin.fbx" id="2_0oumo"]
 [ext_resource type="MMAnimationLibrary" uid="uid://ci0xd77t1swxb" path="res://animation/rin_anim_lib.tres" id="3_j41h7"]
-[ext_resource type="Script" path="res://scripts/loop_animation.gd" id="4_a1ab8"]
 [ext_resource type="Script" path="res://scripts/player_controller.gd" id="4_ojh51"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_nhkn4"]
@@ -12,7 +11,6 @@
 [node name="Simulation Entity" type="MMCharacter"]
 skeleton_path = NodePath("rin/Armature/Skeleton3D")
 animation_player_path = NodePath("MMAnimationPlayer")
-max_speed = 3.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
@@ -548,7 +546,6 @@ callback_mode_process = 0
 libraries = {
 "rin_anim_lib": ExtResource("3_j41h7")
 }
-script = ExtResource("4_a1ab8")
 
 [node name="RootMotionView" type="RootMotionView" parent="."]
 animation_path = NodePath("../MMAnimationPlayer")

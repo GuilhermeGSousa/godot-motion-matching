@@ -1,0 +1,66 @@
+[gd_scene load_steps=11 format=3 uid="uid://v64xy4cxqnv8"]
+
+[ext_resource type="PackedScene" uid="uid://cjhit7pg3fwuo" path="res://scenes/debug_table.tscn" id="1_xwicd"]
+[ext_resource type="Texture2D" uid="uid://bubooafum5q7l" path="res://textures/grid_texture.png" id="2_hojux"]
+[ext_resource type="PackedScene" uid="uid://cv1i82ox5vfjl" path="res://scenes/rin_ai.tscn" id="3_2jao3"]
+[ext_resource type="PackedScene" uid="uid://b542pai5xpeq3" path="res://scenes/camera_pivot.tscn" id="4_pudro"]
+[ext_resource type="Script" path="res://scripts/trajectory_debug_draw.gd" id="5_n32hv"]
+
+[sub_resource type="Environment" id="Environment_b0k67"]
+background_energy_multiplier = 7.75
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_ohbto"]
+vertices = PackedVector3Array(-49.5, 0.5, -49.5, -49.5, 0.5, 49.5, 49.5, 0.5, 49.5, 49.5, 0.5, -49.5)
+polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gwaaa"]
+size = Vector3(100, 1, 100)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vcm8j"]
+albedo_texture = ExtResource("2_hojux")
+uv1_scale = Vector3(100, 100, 100)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pd4xa"]
+material = SubResource("StandardMaterial3D_vcm8j")
+
+[node name="main" type="Node3D"]
+
+[node name="DebugTable" parent="." node_paths=PackedStringArray("motion_matcher") instance=ExtResource("1_xwicd")]
+offset_right = -167.0
+offset_bottom = -490.0
+motion_matcher = NodePath("../AI Rin")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -0.676876, 0.736097, 0, -0.736097, -0.676876, 0, 0, 0)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_b0k67")
+
+[node name="AI Rin" parent="." instance=ExtResource("3_2jao3")]
+halflife = 0.08
+
+[node name="CameraPivot" parent="." node_paths=PackedStringArray("charater") instance=ExtResource("4_pudro")]
+charater = NodePath("../AI Rin")
+
+[node name="DebugDrawTrajectory" type="Node" parent="." node_paths=PackedStringArray("character", "controller", "anim_player")]
+script = ExtResource("5_n32hv")
+character = NodePath("../AI Rin/rin/Armature/Skeleton3D")
+controller = NodePath("../AI Rin")
+anim_player = NodePath("../AI Rin/MMAnimationPlayer")
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("NavigationMesh_ohbto")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="NavigationRegion3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_gwaaa")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/StaticBody3D/CollisionShape3D"]
+transform = Transform3D(100, 0, 0, 0, 1, 0, 0, 0, 100, 0, 0, 0)
+mesh = SubResource("BoxMesh_pd4xa")
+skeleton = NodePath("../..")
+
+[editable path="AI Rin"]
+[editable path="AI Rin/rin"]
