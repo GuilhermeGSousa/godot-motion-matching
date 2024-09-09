@@ -331,6 +331,8 @@ void MMCharacter::_update_synchronizer(double delta_t) {
         return;
     }
 
+    // TODO: This is wrong, we should not be changing the character position directly!
+    // See #33 for more information
     MMSyncResult sync_result = synchronizer->sync(this, _skeleton, delta_t);
     set_global_position(sync_result.controller_position);
     set_quaternion(sync_result.controller_rotation);

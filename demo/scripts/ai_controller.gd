@@ -10,12 +10,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		random_pos.x = randf_range(-5.0, 5.0)
 		random_pos.z = randf_range(-5.0, 5.0)
 		nav_agent.target_position = random_pos
+		print(random_pos)
 
 func _physics_process(delta: float) -> void:
-	var destination = nav_agent.get_next_path_position()
-	var delta_pos = destination - global_position
-	
-	character.target_velocity = delta_pos
-	if character.target_velocity.length() > speed:
-		character.target_velocity = delta_pos.normalized() * speed
-	
+	var next_destination = nav_agent.get_next_path_position()
+	var delta_pos_next = next_destination - global_position
+	 
+	var distance_remaining = nav_agent.get_final_position().distance_to(global_position)
+	character.target_velocity = delta_pos_next
+	if distance_remaining > speed:
+		character.target_velocity = delta_pos_next.normalized() * speed
+	nav_agent.velocity = character.velocity
