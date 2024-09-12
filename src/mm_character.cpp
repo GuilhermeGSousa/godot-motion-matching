@@ -128,7 +128,9 @@ void MMCharacter::_generate_trajectory(const Vector3& p_current_velocity, float 
 
     Vector3 spring_acceleration = _spring_acceleration;
 
-    for (size_t i = 0; i < trajectory_point_count; i++) {
+    // The first point represents the player's current position, and is not considered part
+    // of the trajectory for motion matching
+    for (size_t i = 0; i < trajectory_point_count + 1; i++) {
         _trajectory[i] = point;
 
         // Update velocity
@@ -302,8 +304,9 @@ void MMCharacter::_update_query(double delta_t) {
         // Play selected animation
         // TODO: It would be nice if we could use _animation_player->get_current_animation() here instead
         // but that somtimes returns an empty string :/
-        const bool is_same_animation = result.animation_match == _last_query_output.animation_match;
-        const bool is_same_time = abs(result.time_match - _animation_player->get_current_animation_position()) < QUERY_TIME_ERROR;
+        const bool has_current_animation = !_animation_player->get_current_animation().is_empty();
+        const bool is_same_animation = has_current_animation && result.animation_match == _last_query_output.animation_match;
+        const bool is_same_time = has_current_animation && abs(result.time_match - _animation_player->get_current_animation_position()) < QUERY_TIME_ERROR;
 
         if (!is_same_animation || !is_same_time) {
             // Non blending alternative, will probably be used once we have a better way to blend animations
