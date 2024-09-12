@@ -34,8 +34,11 @@ void MMTrajectoryFeature::setup_for_animation(Ref<Animation> animation) {
 PackedFloat32Array MMTrajectoryFeature::bake_animation_pose(Ref<Animation> p_animation, float time) const {
     PackedFloat32Array result;
 
-    const Vector3 current_pos = p_animation->position_track_interpolate(_root_position_track, time);
-    const Quaternion current_rotation = p_animation->rotation_track_interpolate(_root_rotation_track, time);
+    const Vector3 current_pos =
+        _root_position_track == -1 ? Vector3() : p_animation->position_track_interpolate(_root_position_track, time);
+
+    const Quaternion current_rotation =
+        _root_rotation_track == -1 ? Quaternion() : p_animation->rotation_track_interpolate(_root_rotation_track, time);
 
     auto add_frame = [this, &result, &p_animation, &current_pos, &current_rotation](float time) {
         Vector3 position;
@@ -71,7 +74,7 @@ PackedFloat32Array MMTrajectoryFeature::bake_animation_pose(Ref<Animation> p_ani
     }
 
     for (size_t i = 1; i < past_frames + 1; i++) {
-        const float past_time = UtilityFunctions::clampf(time - past_delta_time * i + 1, 0.0f, p_animation->get_length());
+        const float past_time = UtilityFunctions::clampf(time - past_delta_time * i, 0.0f, p_animation->get_length());
 
         add_frame(past_time);
     }
@@ -98,12 +101,13 @@ PackedFloat32Array MMTrajectoryFeature::evaluate_runtime_data(const MMQueryInput
         }
     };
 
+    // The first point of the trajectory represents the player's current state
     // We do not match the first point of the trajectory (character position)
     for (int i = 1; i < future_frames + 1; i++) {
         add_point(i, p_query_input.trajectory[i]);
     }
 
-    for (size_t i = 1; i < past_frames + 1; i++) {
+    for (size_t i = 0; i < past_frames; i++) {
         add_point(i, p_query_input.trajectory_history[i]);
     }
 
@@ -122,7 +126,24 @@ void MMTrajectoryFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, co
     memcpy(dernomalized_data, p_data, sizeof(float) * get_dimension_count());
     denormalize(dernomalized_data);
 
-    for (size_t i = 0; i < future_frames * _get_point_dimension_count(); i += _get_point_dimension_count()) {
+    size_t i = 0;
+    for (; i < future_frames * _get_point_dimension_count(); i += _get_point_dimension_count()) {
+        Ref<SphereMesh> sphere_mesh;
+        sphere_mesh.instantiate();
+        sphere_mesh->set_radius(0.10);
+        sphere_mesh->set_height(0.10);
+        sphere_mesh->set_material(material);
+
+        MMTrajectoryPoint point;
+        point.position = Vector3(dernomalized_data[i], include_height ? dernomalized_data[i + 1] : 0, include_height ? dernomalized_data[i + 2] : dernomalized_data[i + 1]);
+        point.position = p_transform.xform(point.position);
+
+        Transform3D point_transform = Transform3D();
+        point_transform.origin = point.position;
+        p_gizmo->add_mesh(sphere_mesh, material, point_transform, nullptr);
+    }
+
+    for (; i < get_dimension_count(); i += _get_point_dimension_count()) {
         Ref<SphereMesh> sphere_mesh;
         sphere_mesh.instantiate();
         sphere_mesh->set_radius(0.10);
