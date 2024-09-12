@@ -101,6 +101,9 @@ bones/281/rotation = Quaternion(0.755141, -0.653877, 0.0451307, 0.0130335)
 bones/282/rotation = Quaternion(-0.00462105, 0.0392285, -0.174953, 0.983784)
 bones/283/rotation = Quaternion(-0.117743, 0.0610783, 0.611722, 0.779873)
 
+[node name="PlayerController" parent="Rin" index="4" node_paths=PackedStringArray("camera_pivot")]
+camera_pivot = NodePath("../../CameraPivot")
+
 [node name="CameraPivot" parent="." node_paths=PackedStringArray("charater") instance=ExtResource("4_xdhai")]
 charater = NodePath("../Rin")
 
