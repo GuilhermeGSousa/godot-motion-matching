@@ -14,9 +14,7 @@
 #include "editor/mm_editor_plugin.h"
 
 #include "features/mm_bone_data_feature.h"
-#include "features/mm_facing_feature.h"
 #include "features/mm_feature.h"
-#include "features/mm_root_velocity_feature.h"
 #include "features/mm_trajectory_feature.h"
 
 #include "synchronizers/mm_clamp_synchronizer.h"
@@ -41,8 +39,6 @@ void initialize_example_module(ModuleInitializationLevel p_level) {
     if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
         ClassDB::register_abstract_class<MMFeature>();
         ClassDB::register_class<MMTrajectoryFeature>();
-        ClassDB::register_class<MMRootVelocityFeature>();
-        ClassDB::register_class<MMFacingFeature>();
         ClassDB::register_class<MMBoneDataFeature>();
 
         ClassDB::register_class<MMAnimationLibrary>();

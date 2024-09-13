@@ -1,8 +1,8 @@
 #include "mm_trajectory_feature.h"
 
 #include "math/transforms.h"
-#include "mm_root_velocity_feature.h"
 
+#include <godot_cpp/classes/animation_player.hpp>
 #include <godot_cpp/classes/editor_node3d_gizmo_plugin.hpp>
 #include <godot_cpp/classes/point_mesh.hpp>
 #include <godot_cpp/classes/sphere_mesh.hpp>
@@ -18,7 +18,7 @@ uint32_t MMTrajectoryFeature::get_dimension_count() const {
     return _get_point_dimension_count() * (past_frames + future_frames);
 }
 
-void MMTrajectoryFeature::setup_skeleton(const MMAnimationPlayer* p_player, const Skeleton3D* p_skeleton) {
+void MMTrajectoryFeature::setup_skeleton(const AnimationPlayer* p_player, const Skeleton3D* p_skeleton) {
     const StringName skel_path = p_player->get_root_motion_track().get_concatenated_names();
     const StringName root_bone_name = p_player->get_root_motion_track().get_concatenated_subnames();
     _root_bone = p_skeleton->find_bone(root_bone_name);

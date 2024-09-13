@@ -37,7 +37,7 @@ void MMCharacter::_ready() {
         _history_buffer.push(_get_current_trajectory_point());
     }
 
-    _trajectory.resize(trajectory_point_count);
+    _trajectory.resize(trajectory_point_count + 1);
     _trajectory_history.resize(history_point_count);
 
     _skeleton = get_node<Skeleton3D>(skeleton_path);
