@@ -5,15 +5,14 @@
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kyps5"]
 
 [node name="TableCell" type="PanelContainer"]
-offset_right = 40.0
-offset_bottom = 23.0
-size_flags_horizontal = 6
-size_flags_vertical = 4
+custom_minimum_size = Vector2(50, 0)
+offset_right = 50.0
+offset_bottom = 14.0
 theme_override_styles/panel = SubResource("StyleBoxEmpty_kyps5")
 script = ExtResource("1_w6qaq")
 
 [node name="Data" type="Label" parent="."]
 layout_mode = 2
-size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 10
 text = "Hello"
+text_overrun_behavior = 1
