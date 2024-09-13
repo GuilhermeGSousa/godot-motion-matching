@@ -15,7 +15,7 @@ MMAnimationLibrary::MMAnimationLibrary()
 MMAnimationLibrary::~MMAnimationLibrary() {
 }
 
-void MMAnimationLibrary::bake_data(const MMAnimationPlayer* p_player, const Skeleton3D* p_skeleton) {
+void MMAnimationLibrary::bake_data(const AnimationPlayer* p_player, const Skeleton3D* p_skeleton) {
     motion_data.clear();
     db_anim_index.clear();
     db_time_index.clear();

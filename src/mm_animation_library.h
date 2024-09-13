@@ -23,7 +23,7 @@ class MMAnimationLibrary : public AnimationLibrary {
 public:
     MMAnimationLibrary(/* args */);
     virtual ~MMAnimationLibrary();
-    void bake_data(const MMAnimationPlayer* p_player, const Skeleton3D* p_skeleton);
+    void bake_data(const AnimationPlayer* p_player, const Skeleton3D* p_skeleton);
     MMQueryOutput query(const MMQueryInput& p_query_input);
     size_t get_dim_count() const;
     int32_t get_animation_pose_count(String p_animation_name) const;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <godot_cpp/classes/animation.hpp>
+#include <godot_cpp/classes/animation_player.hpp>
 #include <godot_cpp/classes/editor_node3d_gizmo.hpp>
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/skeleton3d.hpp>
@@ -10,7 +11,6 @@
 #include "mm_query.h"
 
 using namespace godot;
-class MMAnimationPlayer;
 
 class MMFeature : public Resource {
     GDCLASS(MMFeature, Resource)
@@ -23,7 +23,7 @@ public:
 public:
     MMFeature(/* args */);
     virtual ~MMFeature();
-    virtual void setup_skeleton(const MMAnimationPlayer* p_player, const Skeleton3D* p_skeleton){};
+    virtual void setup_skeleton(const AnimationPlayer* p_player, const Skeleton3D* p_skeleton){};
 
     virtual void setup_for_animation(Ref<Animation> animation){};
 

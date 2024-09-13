@@ -4,7 +4,7 @@
 #include "mm_bone_data_feature.h"
 #include "mm_bone_state.h"
 
-void MMBoneDataFeature::setup_skeleton(const MMAnimationPlayer* p_player, const Skeleton3D* p_skeleton) {
+void MMBoneDataFeature::setup_skeleton(const AnimationPlayer* p_player, const Skeleton3D* p_skeleton) {
     _skeleton_path = p_player->get_root_motion_track().get_concatenated_names();
 }
 
