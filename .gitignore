@@ -24,3 +24,6 @@ bin
 .cache
 
 compile_commands.json
+
+# Ignored demos
+demo_*/
