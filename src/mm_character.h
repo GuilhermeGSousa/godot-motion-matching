@@ -2,11 +2,12 @@
 
 #include "circular_buffer.h"
 #include "common.h"
-#include "mm_animation_player.h"
 #include "mm_character.h"
+#include "mm_query.h"
 #include "mm_trajectory_point.h"
 #include "synchronizers/mm_synchronizer.h"
 
+#include <godot_cpp/classes/animation_player.hpp>
 #include <godot_cpp/classes/character_body3d.hpp>
 #include <godot_cpp/classes/input_event.hpp>
 #include <godot_cpp/classes/skeleton3d.hpp>
@@ -24,6 +25,8 @@ public:
 public:
     virtual void _ready() override;
     virtual void _physics_process(double delta) override;
+
+    MMQueryOutput query(const MMQueryInput& p_query_input);
 
     const std::vector<MMTrajectoryPoint>& get_trajectory() const {
         return _trajectory;
@@ -59,7 +62,8 @@ public:
         return result;
     }
 
-    MMAnimationPlayer* get_animation_player() const;
+    AnimationMixer* get_animation_mixer() const;
+    Skeleton3D* get_skeleton() const;
 
     // Trajectory
     GETSET(float, trajectory_delta_time, 0.5f);
@@ -86,6 +90,8 @@ protected:
 
 private:
     void _update_character(float delta_t);
+
+    // Trajectory
     Vector3 _update_trajectory(float p_delta_t);
     MMTrajectoryPoint _get_current_trajectory_point() const;
     void _generate_trajectory(const Vector3& p_current_velocity, float delta_time);
@@ -93,6 +99,8 @@ private:
     void _update_point(MMTrajectoryPoint& point, float delta_t);
     void _fill_collision_state(const Ref<PhysicsTestMotionResult3D> collision_result, MMCollisionState& state);
     void _fall_to_floor(MMTrajectoryPoint& point, float delta_t);
+
+    // Callbacks
     void _on_animation_finished(StringName p_animation_name);
 
     // Motion Matching
@@ -100,6 +108,10 @@ private:
     void _update_query(double delta_t);
     void _apply_root_motion();
     void _update_synchronizer(double delta_t);
+
+    // Skeleton State
+    void _reset_skeleton_state();
+    void _update_skeleton_state(double delta_t);
 
     static Dictionary _output_to_dict(const MMQueryOutput& output);
 
@@ -114,8 +126,11 @@ private:
 
     // Motion Matching
     Skeleton3D* _skeleton{nullptr};
-    MMAnimationPlayer* _animation_player{nullptr};
+    AnimationPlayer* _animation_player{nullptr};
     float _time_since_last_query{0.f};
     bool _force_transition{false};
     MMQueryOutput _last_query_output;
+
+    // Skeleton State
+    SkeletonState _skeleton_state;
 };

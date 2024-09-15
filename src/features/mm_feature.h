@@ -23,7 +23,7 @@ public:
 public:
     MMFeature(/* args */);
     virtual ~MMFeature();
-    virtual void setup_skeleton(const AnimationPlayer* p_player, const Skeleton3D* p_skeleton){};
+    virtual void setup_skeleton(const AnimationMixer* p_player, const Skeleton3D* p_skeleton){};
 
     virtual void setup_for_animation(Ref<Animation> animation){};
 

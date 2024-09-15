@@ -22,7 +22,6 @@
 #include "synchronizers/mm_synchronizer.h"
 
 #include "mm_animation_library.h"
-#include "mm_animation_player.h"
 #include "mm_trajectory_point.h"
 
 using namespace godot;
@@ -42,7 +41,6 @@ void initialize_example_module(ModuleInitializationLevel p_level) {
         ClassDB::register_class<MMBoneDataFeature>();
 
         ClassDB::register_class<MMAnimationLibrary>();
-        ClassDB::register_class<MMAnimationPlayer>();
 
         ClassDB::register_class<MMCharacter>();
 

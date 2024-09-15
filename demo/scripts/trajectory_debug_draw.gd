@@ -2,7 +2,7 @@ extends Node
 
 @export var character : Node3D
 @export var controller : MMCharacter
-@export var anim_player : MMAnimationPlayer
+@export var anim_player : AnimationPlayer
 
 func _ready():
 	controller.on_query_result.connect(_on_query_result)

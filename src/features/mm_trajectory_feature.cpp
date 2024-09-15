@@ -18,7 +18,7 @@ uint32_t MMTrajectoryFeature::get_dimension_count() const {
     return _get_point_dimension_count() * (past_frames + future_frames);
 }
 
-void MMTrajectoryFeature::setup_skeleton(const AnimationPlayer* p_player, const Skeleton3D* p_skeleton) {
+void MMTrajectoryFeature::setup_skeleton(const AnimationMixer* p_player, const Skeleton3D* p_skeleton) {
     const StringName skel_path = p_player->get_root_motion_track().get_concatenated_names();
     const StringName root_bone_name = p_player->get_root_motion_track().get_concatenated_subnames();
     _root_bone = p_skeleton->find_bone(root_bone_name);

@@ -107,7 +107,7 @@ charater = NodePath("../Rin")
 script = ExtResource("5_gaa5p")
 character = NodePath("../Rin/rin/Armature/Skeleton3D")
 controller = NodePath("../Rin")
-anim_player = NodePath("../Rin/MMAnimationPlayer")
+anim_player = NodePath("../Rin/AnimationPlayer")
 
 [editable path="Rin"]
 [editable path="Rin/rin"]

@@ -17,7 +17,7 @@ struct BoneState {
         scl = Vector3(1.0, 1.0, 1.0);
         vel = Vector3();
         ang_vel = Vector3();
-        sck_vel = Vector3();
+        scl_vel = Vector3();
     }
 
     Vector3 pos;
@@ -25,7 +25,7 @@ struct BoneState {
     Vector3 scl;
     Vector3 vel;
     Vector3 ang_vel;
-    Vector3 sck_vel;
+    Vector3 scl_vel;
 };
 
 struct SkeletonState {
