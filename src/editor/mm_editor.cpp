@@ -1,7 +1,6 @@
 #include "editor/mm_editor.h"
 
 #include "mm_animation_library.h"
-#include "mm_animation_player.h"
 #include "mm_character.h"
 #include "mm_editor.h"
 
@@ -63,6 +62,22 @@ void MMEditor::_bind_methods() {
     ClassDB::bind_method(D_METHOD("_viz_time_changed", "p_value"), &MMEditor::_viz_time_changed);
 }
 
+void MMEditor::_bake_animation_libraries(const AnimationMixer* p_mixer, const Skeleton3D* p_skeleton) {
+
+    TypedArray<StringName> animation_libraries = p_mixer->get_animation_library_list();
+
+    for (int i = 0; i < animation_libraries.size(); i++) {
+        const StringName& anim_lib_name = animation_libraries[i];
+        Ref<MMAnimationLibrary> anim_lib = p_mixer->get_animation_library(anim_lib_name);
+
+        if (anim_lib.is_null()) {
+            continue;
+        }
+
+        anim_lib->bake_data(p_mixer, p_skeleton);
+    }
+}
+
 void MMEditor::_refresh() {
     _selected_animation_index = -1;
     _current_animation_library_name = "";
@@ -72,7 +87,7 @@ void MMEditor::_refresh() {
         return;
     }
 
-    MMAnimationPlayer* animation_player = _current_controller->get_animation_player();
+    AnimationMixer* animation_player = _current_controller->get_animation_mixer();
 
     if (!animation_player) {
         return;
@@ -91,13 +106,13 @@ void MMEditor::_bake_button_pressed() {
         return;
     }
 
-    MMAnimationPlayer* animation_player = _current_controller->get_animation_player();
+    AnimationMixer* animation_mixer = _current_controller->get_animation_mixer();
 
-    if (!animation_player) {
+    if (!animation_mixer) {
         return;
     }
 
-    animation_player->bake_library_data();
+    _bake_animation_libraries(animation_mixer, _current_controller->get_skeleton());
 }
 
 void MMEditor::_viz_anim_selected(int p_index) {
@@ -107,18 +122,18 @@ void MMEditor::_viz_anim_selected(int p_index) {
         return;
     }
 
-    MMAnimationPlayer* animation_player = _current_controller->get_animation_player();
-    if (!animation_player) {
+    AnimationMixer* animation_mixer = _current_controller->get_animation_mixer();
+    if (!animation_mixer) {
         return;
     }
 
-    String animation_name = animation_player->get_animation_list()[p_index];
+    String animation_name = animation_mixer->get_animation_list()[p_index];
 
     PackedStringArray split_anim_name = animation_name.split("/");
     String anim_lib_name = split_anim_name[0];
     String anim_name = split_anim_name[1];
     UtilityFunctions::print("Selected animation: " + anim_lib_name);
-    Ref<MMAnimationLibrary> anim_lib = animation_player->get_animation_library(anim_lib_name);
+    Ref<MMAnimationLibrary> anim_lib = animation_mixer->get_animation_library(anim_lib_name);
 
     if (anim_lib.is_null()) {
         return;

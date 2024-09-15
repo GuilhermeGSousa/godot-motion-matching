@@ -1,7 +1,5 @@
 #include "mm_character.h"
 
-#include "math/spring.hpp"
-
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event_mouse_motion.hpp>
@@ -16,6 +14,7 @@
 #include <godot_cpp/variant/utility_functions.hpp>
 
 #include "math/spring.hpp"
+#include "mm_animation_library.h"
 
 using namespace godot;
 
@@ -42,7 +41,10 @@ void MMCharacter::_ready() {
 
     _skeleton = get_node<Skeleton3D>(skeleton_path);
     _skeleton->set_as_top_level(true);
-    _animation_player = get_node<MMAnimationPlayer>(animation_player_path);
+    _skeleton->reset_bone_poses();
+    _reset_skeleton_state();
+
+    _animation_player = get_node<AnimationPlayer>(animation_player_path);
     _animation_player->connect("animation_finished", Callable(this, "_on_animation_finished"));
     _animation_player->set_callback_mode_process(AnimationMixer::AnimationCallbackModeProcess::ANIMATION_CALLBACK_MODE_PROCESS_PHYSICS);
 }
@@ -58,11 +60,49 @@ void MMCharacter::_physics_process(double delta) {
         return;
     }
 
+    _update_skeleton_state(delta);
+
     _update_query(delta);
 
     _apply_root_motion();
 
     _update_synchronizer(delta);
+}
+
+MMQueryOutput MMCharacter::query(const MMQueryInput& query_input) {
+
+    TypedArray<StringName> animation_libraries = _animation_player->get_animation_library_list();
+    MMQueryOutput result;
+
+    bool found_anim_library = false;
+
+    // We should do something more sophisticated here,
+    // but for now we just use the first motion matching library we find
+    for (int i = 0; i < animation_libraries.size(); i++) {
+        const StringName& library_name = animation_libraries[i];
+        Ref<MMAnimationLibrary> library = _animation_player->get_animation_library(library_name);
+
+        if (library.is_null() || library->get_animation_list().is_empty()) {
+            continue;
+        }
+
+        result = library->query(query_input);
+        result.animation_match = UtilityFunctions::str(library_name) + "/" + result.animation_match;
+        found_anim_library = true;
+        break;
+    }
+
+    ERR_FAIL_COND_V_MSG(
+        !found_anim_library,
+        result,
+        "No Motion Matching animation library found in the MMAnimationPlayer");
+
+    ERR_FAIL_COND_V_MSG(
+        result.animation_match.is_empty(),
+        result,
+        "No animation match found, check that your animation libraries aren't empty");
+
+    return result;
 }
 
 void MMCharacter::_update_character(float delta_t) {
@@ -285,7 +325,7 @@ void MMCharacter::_fill_query_input(MMQueryInput& input) {
     input.trajectory_history = get_trajectory_history();
     input.controller_transform = get_global_transform();
     input.character_transform = _skeleton->get_global_transform();
-    input.skeleton_state = _animation_player->get_skeleton_state();
+    input.skeleton_state = _skeleton_state;
 }
 
 void MMCharacter::_update_query(double delta_t) {
@@ -299,20 +339,19 @@ void MMCharacter::_update_query(double delta_t) {
         _fill_query_input(query_input);
 
         // Run query
-        const MMQueryOutput result = _animation_player->query(query_input);
+        const MMQueryOutput result = query(query_input);
 
         // Play selected animation
         // TODO: It would be nice if we could use _animation_player->get_current_animation() here instead
         // but that somtimes returns an empty string :/
+
         const bool has_current_animation = !_animation_player->get_current_animation().is_empty();
         const bool is_same_animation = has_current_animation && result.animation_match == _last_query_output.animation_match;
         const bool is_same_time = has_current_animation && abs(result.time_match - _animation_player->get_current_animation_position()) < QUERY_TIME_ERROR;
 
         if (!is_same_animation || !is_same_time) {
-            // Non blending alternative, will probably be used once we have a better way to blend animations
-            // _animation_player->play(result.animation_match);
-            // _animation_player->seek(result.time_match);
-            _animation_player->inertialize_transition(result.animation_match, result.time_match);
+            _animation_player->play(result.animation_match);
+            _animation_player->seek(result.time_match);
             emit_signal("on_query_result", _output_to_dict(result));
             _last_query_output = result;
         }
@@ -343,6 +382,20 @@ void MMCharacter::_update_synchronizer(double delta_t) {
     _skeleton->set_quaternion(sync_result.character_rotation);
 }
 
+void MMCharacter::_reset_skeleton_state() {
+    _skeleton_state = SkeletonState(_skeleton);
+    const auto bone_count = _skeleton->get_bone_count();
+    for (int b = 0; b < bone_count; ++b) {
+        _skeleton_state[b].pos = _skeleton->get_bone_pose_position(b);
+        _skeleton_state[b].rot = _skeleton->get_bone_pose_rotation(b);
+        _skeleton_state[b].scl = _skeleton->get_bone_pose_scale(b);
+    }
+}
+
+void MMCharacter::_update_skeleton_state(double delta_t) {
+    // TODO: Update _skeleton_state
+}
+
 Dictionary MMCharacter::_output_to_dict(const MMQueryOutput& output) {
     Dictionary result;
 
@@ -355,8 +408,12 @@ Dictionary MMCharacter::_output_to_dict(const MMQueryOutput& output) {
     return result;
 }
 
-MMAnimationPlayer* MMCharacter::get_animation_player() const {
-    return get_node<MMAnimationPlayer>(animation_player_path);
+AnimationMixer* MMCharacter::get_animation_mixer() const {
+    return get_node<AnimationMixer>(animation_player_path);
+}
+
+Skeleton3D* MMCharacter::get_skeleton() const {
+    return get_node<Skeleton3D>(skeleton_path);
 }
 
 void MMCharacter::_bind_methods() {

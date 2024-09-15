@@ -10,7 +10,7 @@
 
 [node name="Simulation Entity" type="MMCharacter"]
 skeleton_path = NodePath("rin/Armature/Skeleton3D")
-animation_player_path = NodePath("MMAnimationPlayer")
+animation_player_path = NodePath("AnimationPlayer")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
@@ -539,16 +539,16 @@ bones/294/scale = Vector3(1, 1, 1)
 bones/296/position = Vector3(0.0011635, 0.0935117, 5.08575e-11)
 bones/296/rotation = Quaternion(0, 1, 6.23271e-17, 7.54979e-08)
 
-[node name="MMAnimationPlayer" type="MMAnimationPlayer" parent="."]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 root_node = NodePath("../rin")
 root_motion_track = NodePath("Armature/Skeleton3D:root")
 callback_mode_process = 0
 libraries = {
-"rin_anim_lib": ExtResource("3_j41h7")
+&"rin_anim_lib": ExtResource("3_j41h7")
 }
 
 [node name="RootMotionView" type="RootMotionView" parent="."]
-animation_path = NodePath("../MMAnimationPlayer")
+animation_path = NodePath("../AnimationPlayer")
 
 [node name="PlayerController" type="Node" parent="." node_paths=PackedStringArray("character")]
 script = ExtResource("4_ojh51")

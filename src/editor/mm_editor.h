@@ -1,10 +1,11 @@
 #pragma once
 
+#include <godot_cpp/classes/animation_mixer.hpp>
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/h_slider.hpp>
 #include <godot_cpp/classes/option_button.hpp>
+#include <godot_cpp/classes/skeleton3d.hpp>
 
-class MMAnimationPlayer;
 class MMAnimationLibrary;
 class MMCharacter;
 
@@ -29,6 +30,7 @@ protected:
     static void _bind_methods();
 
 private:
+    static void _bake_animation_libraries(const AnimationMixer* p_mixer, const Skeleton3D* p_skeleton);
     void _refresh();
     void _bake_button_pressed();
     void _viz_anim_selected(int p_index);

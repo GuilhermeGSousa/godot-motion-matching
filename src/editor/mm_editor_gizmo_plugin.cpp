@@ -1,12 +1,12 @@
 #include "editor/mm_editor_gizmo_plugin.h"
 
-#include "mm_animation_library.h"
-#include "mm_animation_player.h"
-#include "mm_character.h"
-#include "mm_editor_gizmo_plugin.h"
-
+#include <godot_cpp/classes/animation_mixer.hpp>
 #include <godot_cpp/classes/editor_node3d_gizmo.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
+
+#include "mm_animation_library.h"
+#include "mm_character.h"
+#include "mm_editor_gizmo_plugin.h"
 
 MMEditorGizmoPlugin::MMEditorGizmoPlugin() {
 }
@@ -27,16 +27,16 @@ void MMEditorGizmoPlugin::_redraw(const Ref<EditorNode3DGizmo>& p_gizmo) {
         return;
     }
 
-    MMAnimationPlayer* animation_player = controller->get_animation_player();
-    if (!animation_player) {
+    AnimationMixer* animation_mixer = controller->get_animation_mixer();
+    if (!animation_mixer) {
         return;
     }
 
-    if (!animation_player->has_animation_library(_animation_lib)) {
+    if (!animation_mixer->has_animation_library(_animation_lib)) {
         return;
     }
 
-    Ref<MMAnimationLibrary> animation_library = animation_player->get_animation_library(_animation_lib);
+    Ref<MMAnimationLibrary> animation_library = animation_mixer->get_animation_library(_animation_lib);
     if (animation_library.is_null()) {
         return;
     }
