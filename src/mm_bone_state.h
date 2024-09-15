@@ -59,6 +59,14 @@ struct SkeletonState {
         return bone_states[(uint32_t)bone_name_to_index.find_key(name)];
     }
 
+    void reset_velocities() {
+        for (BoneState& state : bone_states) {
+            state.vel = Vector3();
+            state.ang_vel = Vector3();
+            state.scl_vel = Vector3();
+        }
+    }
+
     std::vector<BoneState> bone_states;
     Dictionary bone_name_to_index; // Give me a real unordered_map please :(
 };

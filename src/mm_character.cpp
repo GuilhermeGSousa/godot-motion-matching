@@ -1,5 +1,8 @@
 #include "mm_character.h"
 
+#include "math/spring.hpp"
+#include "mm_animation_library.h"
+
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event_mouse_motion.hpp>
@@ -11,10 +14,8 @@
 #include <godot_cpp/classes/shape3d.hpp>
 #include <godot_cpp/classes/world3d.hpp>
 #include <godot_cpp/core/property_info.hpp>
+#include <godot_cpp/variant/transform3d.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
-
-#include "math/spring.hpp"
-#include "mm_animation_library.h"
 
 using namespace godot;
 
@@ -39,14 +40,23 @@ void MMCharacter::_ready() {
     _trajectory.resize(trajectory_point_count + 1);
     _trajectory_history.resize(history_point_count);
 
-    _skeleton = get_node<Skeleton3D>(skeleton_path);
-    _skeleton->set_as_top_level(true);
-    _skeleton->reset_bone_poses();
-    _reset_skeleton_state();
-
     _animation_player = get_node<AnimationPlayer>(animation_player_path);
-    _animation_player->connect("animation_finished", Callable(this, "_on_animation_finished"));
-    _animation_player->set_callback_mode_process(AnimationMixer::AnimationCallbackModeProcess::ANIMATION_CALLBACK_MODE_PROCESS_PHYSICS);
+    if (_animation_player) {
+        _animation_player->connect("animation_finished", Callable(this, "_on_animation_finished"));
+        _animation_player->set_callback_mode_process(AnimationMixer::AnimationCallbackModeProcess::ANIMATION_CALLBACK_MODE_PROCESS_PHYSICS);
+    }
+
+    _skeleton = get_node<Skeleton3D>(skeleton_path);
+    if (_skeleton && _animation_player) {
+        StringName root_node_path = _animation_player->get_root_motion_track().get_concatenated_subnames();
+        _root_bone_idx = _skeleton->find_bone(root_node_path);
+
+        _skeleton->set_as_top_level(true);
+        _skeleton->reset_bone_poses();
+
+        _skeleton_state = SkeletonState(_skeleton);
+        _reset_skeleton_state();
+    }
 }
 
 void MMCharacter::_physics_process(double delta) {
@@ -382,18 +392,41 @@ void MMCharacter::_update_synchronizer(double delta_t) {
     _skeleton->set_quaternion(sync_result.character_rotation);
 }
 
-void MMCharacter::_reset_skeleton_state() {
-    _skeleton_state = SkeletonState(_skeleton);
-    const auto bone_count = _skeleton->get_bone_count();
-    for (int b = 0; b < bone_count; ++b) {
-        _skeleton_state[b].pos = _skeleton->get_bone_pose_position(b);
-        _skeleton_state[b].rot = _skeleton->get_bone_pose_rotation(b);
-        _skeleton_state[b].scl = _skeleton->get_bone_pose_scale(b);
+void MMCharacter::_fill_current_skeleton_state(SkeletonState& p_state) const {
+    Transform3D root_bone_pose = _skeleton->get_bone_global_pose(_root_bone_idx);
+
+    for (int b = 0; b < _skeleton->get_bone_count(); ++b) {
+        Transform3D bone_pose = _skeleton->get_bone_global_pose(b);
+        p_state[b].pos = root_bone_pose.xform(bone_pose.origin);
+        p_state[b].vel = Vector3();
+        p_state[b].rot = bone_pose.basis.get_quaternion();
+        p_state[b].ang_vel = Vector3();
+        p_state[b].scl = bone_pose.basis.get_scale();
+        p_state[b].scl_vel = Vector3();
     }
 }
 
+void MMCharacter::_reset_skeleton_state() {
+    _fill_current_skeleton_state(_skeleton_state);
+    _skeleton_state.reset_velocities();
+}
+
 void MMCharacter::_update_skeleton_state(double delta_t) {
-    // TODO: Update _skeleton_state
+    SkeletonState current_state(_skeleton);
+    _fill_current_skeleton_state(current_state);
+
+    for (int b = 0; b < _skeleton->get_bone_count(); ++b) {
+        BoneState& state = _skeleton_state[b];
+        const BoneState& current = current_state[b];
+
+        state.vel = (current.pos - state.pos) / delta_t;
+        state.ang_vel = Spring::quat_differentiate_angular_velocity(current.rot, state.rot, delta_t);
+        state.scl_vel = (current.scl - state.scl) / delta_t;
+
+        state.pos = current.pos;
+        state.rot = current.rot;
+        state.scl = current.scl;
+    }
 }
 
 Dictionary MMCharacter::_output_to_dict(const MMQueryOutput& output) {
@@ -420,6 +453,7 @@ void MMCharacter::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_trajectory"), &MMCharacter::get_trajectory_typed_array);
     ClassDB::bind_method(D_METHOD("get_previous_trajectory"), &MMCharacter::get_previous_trajectory_typed_array);
     ClassDB::bind_method(D_METHOD("_on_animation_finished", "anim"), &MMCharacter::_on_animation_finished);
+    ClassDB::bind_method(D_METHOD("get_skeleton_state"), &MMCharacter::get_skeleton_state);
 
     ADD_SIGNAL(MethodInfo("on_query_result", PropertyInfo(Variant::DICTIONARY, "data")));
 

@@ -544,7 +544,7 @@ root_node = NodePath("../rin")
 root_motion_track = NodePath("Armature/Skeleton3D:root")
 callback_mode_process = 0
 libraries = {
-&"rin_anim_lib": ExtResource("3_j41h7")
+"rin_anim_lib": ExtResource("3_j41h7")
 }
 
 [node name="RootMotionView" type="RootMotionView" parent="."]

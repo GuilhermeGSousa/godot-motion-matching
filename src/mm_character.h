@@ -49,6 +49,17 @@ public:
         return result;
     }
 
+    TypedArray<Dictionary> get_skeleton_state() const {
+        TypedArray<Dictionary> result;
+        for (const BoneState& state : _skeleton_state.bone_states) {
+            Dictionary data;
+            data.get_or_add("position", state.pos);
+            data.get_or_add("velocity", state.vel);
+            result.push_back(data);
+        }
+        return result;
+    }
+
     TypedArray<Dictionary> get_previous_trajectory_typed_array() const {
         TypedArray<Dictionary> result;
         for (const MMTrajectoryPoint& point : _trajectory_history) {
@@ -110,6 +121,7 @@ private:
     void _update_synchronizer(double delta_t);
 
     // Skeleton State
+    void _fill_current_skeleton_state(SkeletonState& p_state) const;
     void _reset_skeleton_state();
     void _update_skeleton_state(double delta_t);
 
@@ -133,4 +145,5 @@ private:
 
     // Skeleton State
     SkeletonState _skeleton_state;
+    int32_t _root_bone_idx{-1};
 };
