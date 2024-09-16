@@ -28,6 +28,7 @@ sources = Glob("src/*.cpp")
 sources += Glob("src/editor/*.cpp")
 sources += Glob("src/features/*.cpp")
 sources += Glob("src/math/*.cpp")
+sources += Glob("src/modifiers/*.cpp")
 sources += Glob("src/synchronizers/*.cpp")
 
 if env["platform"] == "macos":
