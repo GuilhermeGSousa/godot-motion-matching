@@ -17,6 +17,8 @@
 #include "features/mm_feature.h"
 #include "features/mm_trajectory_feature.h"
 
+#include "modifiers/damped_skeleton_modifier.h"
+
 #include "synchronizers/mm_clamp_synchronizer.h"
 #include "synchronizers/mm_rootmotion_synchronizer.h"
 #include "synchronizers/mm_synchronizer.h"
@@ -43,6 +45,8 @@ void initialize_example_module(ModuleInitializationLevel p_level) {
         ClassDB::register_class<MMAnimationLibrary>();
 
         ClassDB::register_class<MMCharacter>();
+
+        ClassDB::register_class<DampedSkeletonModifier>();
 
         ClassDB::register_abstract_class<MMSynchronizer>();
         ClassDB::register_class<MMClampSynchronizer>();
