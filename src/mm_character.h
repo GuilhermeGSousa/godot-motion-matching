@@ -36,19 +36,6 @@ public:
         return _trajectory_history;
     }
 
-    TypedArray<Dictionary> get_trajectory_typed_array() const {
-        TypedArray<Dictionary> result;
-        for (const MMTrajectoryPoint& point : _trajectory) {
-            Dictionary data;
-            data.get_or_add("position", point.position);
-            data.get_or_add("velocity", point.velocity);
-            data.get_or_add("facing", point.facing_angle);
-            data.get_or_add("on_floor", point.collision_state.on_floor);
-            result.push_back(data);
-        }
-        return result;
-    }
-
     TypedArray<Dictionary> get_skeleton_state() const {
         TypedArray<Dictionary> result;
         for (const BoneState& state : _skeleton_state.bone_states) {
@@ -60,9 +47,17 @@ public:
         return result;
     }
 
+    TypedArray<Dictionary> get_trajectory_typed_array() const {
+        return trajectory_to_dict(_trajectory);
+    }
+
     TypedArray<Dictionary> get_previous_trajectory_typed_array() const {
+        return trajectory_to_dict(_trajectory_history);
+    }
+
+    TypedArray<Dictionary> trajectory_to_dict(const std::vector<MMTrajectoryPoint>& p_trajectory) const {
         TypedArray<Dictionary> result;
-        for (const MMTrajectoryPoint& point : _trajectory_history) {
+        for (const MMTrajectoryPoint& point : p_trajectory) {
             Dictionary data;
             data.get_or_add("position", point.position);
             data.get_or_add("velocity", point.velocity);
@@ -105,7 +100,7 @@ private:
     // Trajectory
     Vector3 _update_trajectory(float p_delta_t);
     MMTrajectoryPoint _get_current_trajectory_point() const;
-    void _generate_trajectory(const Vector3& p_current_velocity, float delta_time);
+    void _generate_trajectory(float delta_time);
     void _update_history(double delta_t);
     void _update_point(MMTrajectoryPoint& point, float delta_t);
     void _fill_collision_state(const Ref<PhysicsTestMotionResult3D> collision_result, MMCollisionState& state);
