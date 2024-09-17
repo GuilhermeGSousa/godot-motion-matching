@@ -133,20 +133,22 @@ Vector3 MMCharacter::_update_trajectory(float delta_t) {
     Vector3 current_velocity = get_velocity();
 
     // Update the velocity.
+    const Vector3 up_velocity = current_velocity.dot(get_up_direction()) * get_up_direction();
+    Vector3 ground_velocity = current_velocity - up_velocity;
     Array result = Spring::simple_spring_damper_exact(
-        current_velocity,
+        ground_velocity,
         _spring_acceleration,
         target_velocity,
         halflife,
         delta_t);
-    Vector3 new_velocity = result[0];
+    Vector3 new_velocity = (Vector3)result[0] + up_velocity;
     _spring_acceleration = result[1];
 
     if (!is_on_floor()) {
         new_velocity += get_gravity() * delta_t;
     }
 
-    _generate_trajectory(new_velocity, delta_t);
+    _generate_trajectory(delta_t);
 
     _update_history(delta_t);
 
@@ -171,7 +173,7 @@ MMTrajectoryPoint MMCharacter::_get_current_trajectory_point() const {
     return point;
 }
 
-void MMCharacter::_generate_trajectory(const Vector3& p_current_velocity, float delta_time) {
+void MMCharacter::_generate_trajectory(float delta_time) {
     const float delta_t = trajectory_delta_time;
 
     MMTrajectoryPoint point = _get_current_trajectory_point();
@@ -187,11 +189,11 @@ void MMCharacter::_generate_trajectory(const Vector3& p_current_velocity, float 
         const Vector3 up_velocity = point.velocity.dot(get_up_direction()) * get_up_direction();
         Vector3 ground_velocity = point.velocity - up_velocity;
         Array result = Spring::simple_spring_damper_exact(ground_velocity, spring_acceleration, target_velocity, halflife, delta_t);
-        point.velocity = result[0];
+        point.velocity = (Vector3)result[0] + up_velocity;
         spring_acceleration = result[1];
 
         if (!point.collision_state.on_floor) {
-            point.velocity += up_velocity + get_gravity() * delta_t;
+            point.velocity += get_gravity() * delta_t;
         }
 
         // Update facing
@@ -242,6 +244,7 @@ void MMCharacter::_update_point(MMTrajectoryPoint& point, float delta_t) {
     params->set_from(point.get_transform(get_up_direction()));
     params->set_motion(motion);
     params->set_max_collisions(6);
+    params->set_recovery_as_collision_enabled(false);
 
     Ref<PhysicsTestMotionResult3D> collision_result;
     collision_result.instantiate();
@@ -266,8 +269,13 @@ void MMCharacter::_update_point(MMTrajectoryPoint& point, float delta_t) {
 
     // Update final position
     Vector3 result_velocity = point.velocity;
+    point.position += collision_result->get_travel();
+
     if (point.collision_state.against_wall) {
+
         result_velocity = result_velocity.slide(point.collision_state.wall_normal);
+        // Slide must be horizontal, no climbing walls!
+        result_velocity.y = 0.0;
     }
 
     if (point.collision_state.on_floor) {
@@ -275,7 +283,8 @@ void MMCharacter::_update_point(MMTrajectoryPoint& point, float delta_t) {
     }
 
     point.velocity = result_velocity;
-    point.position += point.velocity * delta_t;
+    // Move the remaining part of motion
+    point.position += point.velocity * delta_t * (1.0 - collision_result->get_collision_safe_fraction());
 
     _fall_to_floor(point, delta_t);
 }
@@ -319,7 +328,7 @@ void MMCharacter::_fall_to_floor(MMTrajectoryPoint& point, float delta_t) {
             get_rid(),
             params,
             collision_result)) {
-        point.position = collision_result->get_collision_point();
+        point.position += collision_result->get_travel();
         point.collision_state.on_floor = true;
         point.collision_state.floor_normal = collision_result->get_collision_normal();
     }
@@ -459,7 +468,7 @@ void MMCharacter::_bind_methods() {
 
     ADD_GROUP("Motion Matching", "");
     BINDER_PROPERTY_PARAMS(MMCharacter, Variant::NODE_PATH, skeleton_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES, "Skeleton3D");
-    BINDER_PROPERTY_PARAMS(MMCharacter, Variant::NODE_PATH, animation_player_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES, "MMAnimationPlayer");
+    BINDER_PROPERTY_PARAMS(MMCharacter, Variant::NODE_PATH, animation_player_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES, "AnimationPlayer");
     BINDER_PROPERTY_PARAMS(MMCharacter, Variant::FLOAT, query_frequency);
     BINDER_PROPERTY_PARAMS(MMCharacter, Variant::OBJECT, synchronizer, PROPERTY_HINT_RESOURCE_TYPE, "MMSynchronizer");
 
