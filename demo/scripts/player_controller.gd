@@ -12,5 +12,5 @@ func _physics_process(delta: float) -> void:
 	character.target_velocity = desired_velocity
 
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("jump"):
+	if event.is_action_pressed("jump") and character.is_on_floor():
 		character.velocity += Vector3.UP * jump_speed
