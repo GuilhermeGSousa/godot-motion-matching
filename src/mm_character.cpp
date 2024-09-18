@@ -192,10 +192,6 @@ void MMCharacter::_generate_trajectory(float delta_time) {
         point.velocity = (Vector3)result[0] + up_velocity;
         spring_acceleration = result[1];
 
-        if (!point.collision_state.on_floor) {
-            point.velocity += get_gravity() * delta_t;
-        }
-
         // Update facing
         if (point.velocity.length_squared() > SMALL_NUMBER && !is_strafing) {
             Vector3 direction = point.velocity.normalized();
@@ -206,7 +202,8 @@ void MMCharacter::_generate_trajectory(float delta_time) {
 
         if (check_environment) {
             // Update point with environment
-            _update_point(point, delta_t);
+            _move_with_collisions(point, delta_t);
+            _fall_to_floor(point, delta_t);
         } else {
             point.position += point.velocity * delta_t;
         }
@@ -235,7 +232,7 @@ void MMCharacter::_update_history(double delta_t) {
     _history_buffer.push(_get_current_trajectory_point());
 }
 
-void MMCharacter::_update_point(MMTrajectoryPoint& point, float delta_t) {
+void MMCharacter::_move_with_collisions(MMTrajectoryPoint& point, float delta_t) {
     const real_t margin = 0.001;
     const Vector3 motion = point.velocity * delta_t;
 
@@ -259,9 +256,7 @@ void MMCharacter::_update_point(MMTrajectoryPoint& point, float delta_t) {
         point.position += motion;
 
         // We reset the collision state
-        point.collision_state = MMCollisionState();
-
-        _fall_to_floor(point, delta_t);
+        point.collision_state.reset();
         return;
     }
 
@@ -275,6 +270,7 @@ void MMCharacter::_update_point(MMTrajectoryPoint& point, float delta_t) {
 
         result_velocity = result_velocity.slide(point.collision_state.wall_normal);
         // Slide must be horizontal, no climbing walls!
+        // Note: This would be a good place to add a climbing feature
         result_velocity.y = 0.0;
     }
 
@@ -285,8 +281,6 @@ void MMCharacter::_update_point(MMTrajectoryPoint& point, float delta_t) {
     point.velocity = result_velocity;
     // Move the remaining part of motion
     point.position += point.velocity * delta_t * (1.0 - collision_result->get_collision_safe_fraction());
-
-    _fall_to_floor(point, delta_t);
 }
 
 void MMCharacter::_fill_collision_state(const Ref<PhysicsTestMotionResult3D> collision_result, MMCollisionState& state) {
@@ -314,12 +308,11 @@ void MMCharacter::_fill_collision_state(const Ref<PhysicsTestMotionResult3D> col
 }
 
 void MMCharacter::_fall_to_floor(MMTrajectoryPoint& point, float delta_t) {
-    const Vector3 up_velocity = point.velocity.dot(get_up_direction()) * get_up_direction() + get_gravity() * delta_t;
-
+    const Vector3 motion = get_gravity() * delta_t * delta_t;
     Ref<PhysicsTestMotionParameters3D> params;
     params.instantiate();
     params->set_from(point.get_transform(get_up_direction()));
-    params->set_motion(up_velocity * delta_t);
+    params->set_motion(motion);
 
     Ref<PhysicsTestMotionResult3D> collision_result;
     collision_result.instantiate();
@@ -329,8 +322,13 @@ void MMCharacter::_fall_to_floor(MMTrajectoryPoint& point, float delta_t) {
             params,
             collision_result)) {
         point.position += collision_result->get_travel();
+        point.velocity.y = 0.0;
         point.collision_state.on_floor = true;
         point.collision_state.floor_normal = collision_result->get_collision_normal();
+    } else {
+        point.position += motion;
+        point.velocity += get_gravity() * delta_t;
+        point.collision_state.on_floor = false;
     }
 }
 

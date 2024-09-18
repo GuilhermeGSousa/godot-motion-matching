@@ -102,7 +102,7 @@ private:
     MMTrajectoryPoint _get_current_trajectory_point() const;
     void _generate_trajectory(float delta_time);
     void _update_history(double delta_t);
-    void _update_point(MMTrajectoryPoint& point, float delta_t);
+    void _move_with_collisions(MMTrajectoryPoint& point, float delta_t);
     void _fill_collision_state(const Ref<PhysicsTestMotionResult3D> collision_result, MMCollisionState& state);
     void _fall_to_floor(MMTrajectoryPoint& point, float delta_t);
 

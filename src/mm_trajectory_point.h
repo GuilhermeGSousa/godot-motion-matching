@@ -13,6 +13,11 @@ struct MMCollisionState {
     Vector3 floor_position;
     bool against_wall = false;
     Vector3 wall_normal;
+
+    void reset() {
+        on_floor = false;
+        against_wall = false;
+    }
 };
 
 struct MMTrajectoryPoint {

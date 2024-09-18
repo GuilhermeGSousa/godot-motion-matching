@@ -71,6 +71,7 @@ transform = Transform3D(11.0225, 0, 0, 0, 3.04705, 0, 0, 0, 1, 0, -0.467445, 0)
 shape = SubResource("ConcavePolygonShape3D_cgbp0")
 
 [node name="Rin" parent="." instance=ExtResource("2_ady0f")]
+history_delta_time = 0.1
 
 [node name="Skeleton3D" parent="Rin/rin/Armature" index="0"]
 transform = Transform3D(1, 0, 0, 0, 1, -1.62921e-07, 0, 1.62921e-07, 1, 0, 0, 0)
@@ -79,7 +80,7 @@ bones/0/position = Vector3(0.129963, 0, 0.0355273)
 bones/0/rotation = Quaternion(0, 0.911942, 0, 0.410319)
 
 [node name="PlayerController" parent="Rin" index="4" node_paths=PackedStringArray("camera_pivot")]
-max_speed = 1.0
+jump_speed = 6.0
 camera_pivot = NodePath("../../CameraPivot")
 
 [node name="CameraPivot" parent="." node_paths=PackedStringArray("charater") instance=ExtResource("4_xdhai")]
