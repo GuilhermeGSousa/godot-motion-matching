@@ -7,8 +7,6 @@
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/godot.hpp>
 
-#include "mm_character.h"
-
 #include "editor/mm_editor.h"
 #include "editor/mm_editor_gizmo_plugin.h"
 #include "editor/mm_editor_plugin.h"
@@ -19,12 +17,15 @@
 
 #include "modifiers/damped_skeleton_modifier.h"
 
+#include "mm_animation_library.h"
+#include "mm_animation_node.h"
+#include "mm_character.h"
+#include "mm_query.h"
+#include "mm_trajectory_point.h"
+
 #include "synchronizers/mm_clamp_synchronizer.h"
 #include "synchronizers/mm_rootmotion_synchronizer.h"
 #include "synchronizers/mm_synchronizer.h"
-
-#include "mm_animation_library.h"
-#include "mm_trajectory_point.h"
 
 using namespace godot;
 
@@ -43,8 +44,10 @@ void initialize_example_module(ModuleInitializationLevel p_level) {
         ClassDB::register_class<MMBoneDataFeature>();
 
         ClassDB::register_class<MMAnimationLibrary>();
+        ClassDB::register_class<MMAnimationNode>();
 
         ClassDB::register_class<MMCharacter>();
+        ClassDB::register_class<MMQueryInputRefCounted>();
 
         ClassDB::register_class<DampedSkeletonModifier>();
 

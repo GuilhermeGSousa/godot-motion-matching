@@ -1,5 +1,6 @@
 #pragma once
 
+#include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/classes/skeleton3d.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/transform3d.hpp>
@@ -26,4 +27,12 @@ struct MMQueryOutput {
     float cost;
     PackedFloat32Array matched_frame_data;
     Dictionary feature_costs;
+};
+
+class MMQueryInputRefCounted : public RefCounted {
+    GDCLASS(MMQueryInputRefCounted, RefCounted);
+
+protected:
+    static void _bind_methods() {
+    }
 };
