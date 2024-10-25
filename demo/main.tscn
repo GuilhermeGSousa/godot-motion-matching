@@ -83,8 +83,8 @@ bones/0/rotation = Quaternion(0, 0.911942, 0, 0.410319)
 jump_speed = 6.0
 camera_pivot = NodePath("../../CameraPivot")
 
-[node name="CameraPivot" parent="." node_paths=PackedStringArray("charater") instance=ExtResource("4_xdhai")]
-charater = NodePath("../Rin")
+[node name="CameraPivot" parent="." node_paths=PackedStringArray("character") instance=ExtResource("4_xdhai")]
+character = NodePath("../Rin")
 
 [node name="DebugDrawTrajectory" type="Node" parent="." node_paths=PackedStringArray("character", "controller", "anim_player")]
 script = ExtResource("5_gaa5p")

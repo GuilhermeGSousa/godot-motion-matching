@@ -15,7 +15,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	var next_destination = nav_agent.get_next_path_position()
 	var delta_pos_next = next_destination - global_position
-	 
+
 	var distance_remaining = nav_agent.get_final_position().distance_to(global_position)
 	character.target_velocity = delta_pos_next
 	if distance_remaining > speed:

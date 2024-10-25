@@ -6,7 +6,7 @@ bin
 
 *.obj
 
-*.dll 
+*.dll
 *.exp
 *.lib
 *.ilk

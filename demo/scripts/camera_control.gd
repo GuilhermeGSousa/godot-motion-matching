@@ -1,6 +1,6 @@
 extends Node3D
 
-@export var charater : MMCharacter
+@export var character : MMCharacter
 @export var sensitivity = 0.5
 
 var height = 0
@@ -8,8 +8,8 @@ var height = 0
 func _ready() -> void:
 	height = global_position.y
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	
-	
+
+
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		var mouse_event : InputEventMouseMotion = event
@@ -21,6 +21,6 @@ func _input(event: InputEvent) -> void:
 		rotation_degrees = current_rot
 
 func _process(delta: float) -> void:
-	global_position = charater.global_position
+	global_position = character.global_position
 	global_position.y += height
-	charater.strafe_facing = rotation.y
+	character.strafe_facing = rotation.y

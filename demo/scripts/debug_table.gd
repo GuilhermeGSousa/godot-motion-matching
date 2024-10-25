@@ -10,23 +10,23 @@ var cells: Array[TableCell] = []
 func _ready() -> void:
 	for c in table.get_children():
 		c.queue_free()
-	
+
 	table.columns = 4
 	motion_matcher.on_query_result.connect(_on_query_result)
-	
+
 func _on_query_result(data: Dictionary):
 
 	for c in cells:
 		c.queue_free()
 	cells.clear()
-	
+
 	table.columns = len(data.keys()) - 1
-	
+
 	for key in data.keys():
 		if (key == "frame_data"):
 			continue
 		add_title(key)
-		
+
 	for val in data.values():
 		if (val is PackedFloat32Array):
 			continue

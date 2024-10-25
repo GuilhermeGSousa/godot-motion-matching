@@ -1,3 +1,33 @@
+/**************************************************************************/
+/*  mm_character.cpp                                                      */
+/**************************************************************************/
+/*                         This file is part of:                          */
+/*                             GODOT ENGINE                               */
+/*                        https://godotengine.org                         */
+/**************************************************************************/
+/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
+/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
+/*                                                                        */
+/* Permission is hereby granted, free of charge, to any person obtaining  */
+/* a copy of this software and associated documentation files (the        */
+/* "Software"), to deal in the Software without restriction, including    */
+/* without limitation the rights to use, copy, modify, merge, publish,    */
+/* distribute, sublicense, and/or sell copies of the Software, and to     */
+/* permit persons to whom the Software is furnished to do so, subject to  */
+/* the following conditions:                                              */
+/*                                                                        */
+/* The above copyright notice and this permission notice shall be         */
+/* included in all copies or substantial portions of the Software.        */
+/*                                                                        */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
+/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
+/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
+/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
+/**************************************************************************/
+
 #include "mm_character.h"
 
 #include "math/spring.hpp"
@@ -294,7 +324,7 @@ void MMCharacter::_update_query(double delta_t) {
 
         // Play selected animation
         // TODO: It would be nice if we could use _animation_player->get_current_animation() here instead
-        // but that somtimes returns an empty string :/
+        // but that sometimes returns an empty string :/
 
         const bool has_current_animation = !_animation_player->get_current_animation().is_empty();
         const bool is_same_animation = has_current_animation && result.animation_match == _last_query_output.animation_match;
@@ -419,30 +449,28 @@ void MMCharacter::_bind_methods() {
 }
 void MMCharacter::_notification(int p_what) {
     switch (p_what) {
-        case NOTIFICATION_PHYSICS_PROCESS:
-        {
+    case NOTIFICATION_PHYSICS_PROCESS: {
 
-    if (Engine::get_singleton()->is_editor_hint()) {
-        return;
-    }
-    double delta = get_physics_process_delta_time();
+        if (Engine::get_singleton()->is_editor_hint()) {
+            return;
+        }
+        double delta = get_physics_process_delta_time();
 
-    _update_character(delta);
+        _update_character(delta);
 
-    if (!_skeleton) {
-        return;
-    }
+        if (!_skeleton) {
+            return;
+        }
 
-    _update_skeleton_state(delta);
+        _update_skeleton_state(delta);
 
-    _update_query(delta);
+        _update_query(delta);
 
-    _apply_root_motion();
+        _apply_root_motion();
 
-    _update_synchronizer(delta);
-}break;
-    case NOTIFICATION_READY:
-    {
+        _update_synchronizer(delta);
+    } break;
+    case NOTIFICATION_READY: {
 
         if (Engine::get_singleton()->is_editor_hint()) {
             return;
@@ -472,6 +500,6 @@ void MMCharacter::_notification(int p_what) {
             _skeleton_state = SkeletonState(_skeleton);
             _reset_skeleton_state();
         }
-    }break;
+    } break;
     }
 }
