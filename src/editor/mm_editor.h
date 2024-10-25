@@ -1,15 +1,13 @@
 #pragma once
 
-#include <godot_cpp/classes/animation_mixer.hpp>
-#include <godot_cpp/classes/control.hpp>
-#include <godot_cpp/classes/h_slider.hpp>
-#include <godot_cpp/classes/option_button.hpp>
-#include <godot_cpp/classes/skeleton3d.hpp>
+#include "scene/animation/animation_mixer.h"
+#include "scene/gui/control.h"
+#include "scene/gui/slider.h"
+#include "scene/gui/option_button.h"
+#include "scene/3d/skeleton_3d.h"
 
 class MMAnimationLibrary;
 class MMCharacter;
-
-using namespace godot;
 
 class MMEditor : public Control {
     GDCLASS(MMEditor, Control)

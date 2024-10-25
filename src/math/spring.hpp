@@ -2,17 +2,11 @@
 
 #include <math.h>
 
-#include <cmath>
-#include <godot_cpp/classes/project_settings.hpp>
-#include <godot_cpp/classes/ref.hpp>
-#include <godot_cpp/classes/ref_counted.hpp>
-#include <godot_cpp/classes/resource.hpp>
-#include <godot_cpp/core/class_db.hpp>
-#include <godot_cpp/core/method_bind.hpp>
-#include <godot_cpp/variant/dictionary.hpp>
-#include <godot_cpp/variant/variant.hpp>
-
-using namespace godot;
+#include "core/config/project_settings.h"
+#include "core/object/ref_counted.h"
+#include "core/io/resource.h"
+#include "core/object/class_db.h"
+#include "core/object/method_bind.h"
 
 namespace Spring {
 
@@ -26,21 +20,21 @@ static inline real_t fast_negexp(real_t x) {
     return 1.0 / (1.0 + x + 0.48 * x * x + 0.235 * x * x * x);
 }
 
-static Vector3 damp_adjustment_exact(Vector3 g, real_t halflife, real_t dt, real_t eps = 1e-8) {
-    real_t factor = 1.0 - fast_negexp((Spring::Ln2 * dt) / (halflife + eps));
-    return g * factor;
-}
+// static Vector3 damp_adjustment_exact(Vector3 g, real_t halflife, real_t dt, real_t eps = 1e-8) {
+//     real_t factor = 1.0 - fast_negexp((Spring::Ln2 * dt) / (halflife + eps));
+//     return g * factor;
+// }
 
-static Quaternion damp_adjustment_exact_quat(Quaternion g, real_t halflife, real_t dt, real_t eps = 1e-8) {
-    real_t factor = 1.0 - fast_negexp((Spring::Ln2 * dt) / (halflife + eps));
-    return Quaternion().slerp(g, factor).normalized();
-}
+// static Quaternion damp_adjustment_exact_quat(Quaternion g, real_t halflife, real_t dt, real_t eps = 1e-8) {
+//     real_t factor = 1.0 - fast_negexp((Spring::Ln2 * dt) / (halflife + eps));
+//     return Quaternion().slerp(g, factor).normalized();
+// }
 
-static Variant damper_exponential(Variant variable, Variant goal, real_t damping, real_t dt) {
-    real_t ft = 1.0 / (real_t)ProjectSettings::get_singleton()->get("physics/common/physics_ticks_per_second");
-    real_t factor = 1.0 - pow(1.0 / (1.0 - ft * damping), -dt / ft);
-    return Math::lerp(variable, goal, factor);
-}
+// static Variant damper_exponential(Variant variable, Variant goal, real_t damping, real_t dt) {
+//     real_t ft = 1.0 / (real_t)ProjectSettings::get_singleton()->get("physics/common/physics_ticks_per_second");
+//     real_t factor = 1.0 - pow(1.0 / (1.0 - ft * damping), -dt / ft);
+//     return Math::lerp(variable, goal, factor);
+// }
 
 static inline Variant damper_exact(Variant variable, Variant goal, real_t halflife, real_t dt, real_t eps = 1e-5) {
     return Math::lerp(variable, goal, 1.0 - fast_negexp((Spring::Ln2 * dt) / (halflife + eps)));
@@ -345,21 +339,24 @@ static Dictionary character_update(Vector3 pos, Vector3 vel, Vector3 acc, Quater
         Vector3 j0 = (quaternion * q_goal.inverse()).get_euler();
         Vector3 j1 = angular_velocity + j0 * y;
         real_t eydt = fast_negexp(y * dt);
-        answer["quaternion"] = (Quaternion(eydt * (j0 + j1 * dt)) * q_goal).normalized();
+        Vector3 axis = (j0 + j1 * dt).normalized();
+        real_t angle = (j0 + j1 * dt).length() * eydt;
+        Quaternion rotation(axis, angle);
+        answer["quaternion"] = (Quaternion(axis, angle) * q_goal).normalized();
         answer["angular_velocity"] = eydt * (angular_velocity - j1 * y * dt);
         answer["delta"] = dt;
     }
     return answer;
 }
 
-static Dictionary character_predict(Vector3 x, Vector3 v, Vector3 a, Quaternion q, Vector3 angular_v, Vector3 v_goal, Quaternion q_goal, real_t halflife_v, real_t halflife_q, const PackedFloat32Array dts) {
-    Dictionary answer;
-    for (int i = 0; i < dts.size(); i++) {
-        real_t dt = dts[i];
-        answer[i] = character_update(x, v, a, q, angular_v, v_goal, q_goal, halflife_v, halflife_q, dt);
-    }
-    return answer;
-}
+// static Dictionary character_predict(Vector3 x, Vector3 v, Vector3 a, Quaternion q, Vector3 angular_v, Vector3 v_goal, Quaternion q_goal, real_t halflife_v, real_t halflife_q, const PackedFloat32Array dts) {
+//     Dictionary answer;
+//     for (int i = 0; i < dts.size(); i++) {
+//         real_t dt = dts[i];
+//         answer[i] = character_update(x, v, a, q, angular_v, v_goal, q_goal, halflife_v, halflife_q, dt);
+//     }
+//     return answer;
+// }
 
 static inline void inertialize_transition(Vector3& off_x, Vector3& off_v, const Vector3 src_x, const Vector3 src_v, const Vector3 dst_x, const Vector3 dst_v) {
     off_x = (src_x + off_x) - dst_x;

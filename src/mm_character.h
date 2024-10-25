@@ -7,25 +7,39 @@
 #include "mm_trajectory_point.h"
 #include "synchronizers/mm_synchronizer.h"
 
-#include <godot_cpp/classes/animation_player.hpp>
-#include <godot_cpp/classes/character_body3d.hpp>
-#include <godot_cpp/classes/input_event.hpp>
-#include <godot_cpp/classes/skeleton3d.hpp>
-#include <godot_cpp/variant/array.hpp>
-#include <godot_cpp/variant/variant.hpp>
-
-using namespace godot;
+#include "scene/animation/animation_player.h"
+#include "scene/3d/physics/character_body_3d.h"
+#include "core/input/input_event.h"
+#include "scene/3d/skeleton_3d.h"
 
 class MMCharacter : public CharacterBody3D {
     GDCLASS(MMCharacter, CharacterBody3D)
+
+private:
+    // Controller
+    Vector3 _spring_acceleration;
+
+    // Trajectory
+    std::vector<MMTrajectoryPoint> _trajectory;
+    std::vector<MMTrajectoryPoint> _trajectory_history;
+    CircularBuffer<MMTrajectoryPoint> _history_buffer{HISTORY_BUFFER_SIZE};
+
+    // Motion Matching
+    Skeleton3D* _skeleton{nullptr};
+    AnimationPlayer* _animation_player{nullptr};
+    float _time_since_last_query{0.f};
+    bool _force_transition{false};
+    MMQueryOutput _last_query_output;
+
+    // Skeleton State
+    SkeletonState _skeleton_state;
+    int32_t _root_bone_idx{-1};
+
 public:
     MMCharacter();
     virtual ~MMCharacter();
 
 public:
-    virtual void _ready() override;
-    virtual void _physics_process(double delta) override;
-
     MMQueryOutput query(const MMQueryInput& p_query_input);
 
     const std::vector<MMTrajectoryPoint>& get_trajectory() const {
@@ -94,6 +108,9 @@ protected:
     static constexpr size_t HISTORY_BUFFER_SIZE{100}; // Around 1.6s
     static void _bind_methods();
 
+public:
+    void _notification(int p_what);
+
 private:
     void _update_character(float delta_t);
 
@@ -121,24 +138,4 @@ private:
     void _update_skeleton_state(double delta_t);
 
     static Dictionary _output_to_dict(const MMQueryOutput& output);
-
-private:
-    // Controller
-    Vector3 _spring_acceleration;
-
-    // Trajectory
-    std::vector<MMTrajectoryPoint> _trajectory;
-    std::vector<MMTrajectoryPoint> _trajectory_history;
-    CircularBuffer<MMTrajectoryPoint> _history_buffer{HISTORY_BUFFER_SIZE};
-
-    // Motion Matching
-    Skeleton3D* _skeleton{nullptr};
-    AnimationPlayer* _animation_player{nullptr};
-    float _time_since_last_query{0.f};
-    bool _force_transition{false};
-    MMQueryOutput _last_query_output;
-
-    // Skeleton State
-    SkeletonState _skeleton_state;
-    int32_t _root_bone_idx{-1};
 };

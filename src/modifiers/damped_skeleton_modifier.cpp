@@ -3,21 +3,6 @@
 #include "damped_skeleton_modifier.h"
 #include "math/spring.hpp"
 
-void DampedSkeletonModifier::_ready() {
-
-    Skeleton3D* skeleton = get_skeleton();
-
-    if (skeleton) {
-        _skeleton_state = SkeletonState(skeleton);
-        for (int b = 0; b < skeleton->get_bone_count(); ++b) {
-            BoneState& bone = _skeleton_state[b];
-            bone.pos = skeleton->get_bone_pose_position(b);
-            bone.rot = skeleton->get_bone_pose_rotation(b);
-            bone.scl = skeleton->get_bone_pose_scale(b);
-        }
-    }
-}
-
 void DampedSkeletonModifier::_process_modification() {
     if (!is_active()) {
         return;
@@ -58,4 +43,20 @@ void DampedSkeletonModifier::_process_modification() {
 
 void DampedSkeletonModifier::_bind_methods() {
     BINDER_PROPERTY_PARAMS(DampedSkeletonModifier, Variant::FLOAT, halflife);
+}
+void DampedSkeletonModifier::_notification(int32_t p_what) {
+    switch (p_what) {
+    case NOTIFICATION_READY:
+        Skeleton3D* skeleton = get_skeleton();
+
+        if (skeleton) {
+            _skeleton_state = SkeletonState(skeleton);
+            for (int b = 0; b < skeleton->get_bone_count(); ++b) {
+                BoneState& bone = _skeleton_state[b];
+                bone.pos = skeleton->get_bone_pose_position(b);
+                bone.rot = skeleton->get_bone_pose_rotation(b);
+                bone.scl = skeleton->get_bone_pose_scale(b);
+            }
+        }
+    }
 }

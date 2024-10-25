@@ -1,12 +1,8 @@
 #include "mm_animation_library.h"
 
-#include <godot_cpp/variant/utility_functions.hpp>
-
 #include "common.h"
 #include "features/mm_feature.h"
 #include "math/stats.hpp"
-
-using namespace godot;
 
 MMAnimationLibrary::MMAnimationLibrary()
     : AnimationLibrary() {
@@ -27,7 +23,8 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
         f->setup_skeleton(p_player, p_skeleton);
     }
 
-    TypedArray<StringName> animation_list = get_animation_list();
+    List<StringName> animation_list;
+    get_animation_list(&animation_list);
 
     // Normalization data
     std::vector<std::vector<StatsAccumulator>> stats(features.size());
@@ -35,7 +32,7 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
     PackedFloat32Array data;
     // For every animation
     for (size_t anim_index = 0; anim_index < animation_list.size(); anim_index++) {
-        const StringName& anim_name = animation_list[anim_index];
+        const StringName& anim_name = animation_list.get(anim_index);
         Ref<Animation> animation = get_animation(anim_name);
 
         // Initialize features
@@ -109,7 +106,8 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
     // TODO: Use fancier search algorithms
     // TODO: Do this using an offset array instead
 
-    const TypedArray<StringName> animation_list = get_animation_list();
+    List<StringName> animation_list;
+    get_animation_list(&animation_list);
 
     int32_t dim_count = 0;
     PackedFloat32Array query_vector = PackedFloat32Array();
@@ -123,7 +121,6 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
 
     float cost = FLT_MAX;
     MMQueryOutput result;
-    int current_index = 0;
 
     for (size_t start_frame_index = 0; start_frame_index < motion_data.size(); start_frame_index += dim_count) {
         int start_feature_index = start_frame_index;
@@ -145,7 +142,8 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
             cost = frame_cost;
             result.cost = cost;
             result.matched_frame_data = motion_data.slice(start_frame_index, start_frame_index + dim_count);
-            result.animation_match = get_animation_list()[db_anim_index[start_frame_index / dim_count]];
+            get_animation_list(&animation_list);
+            result.animation_match = animation_list.get(db_anim_index[start_frame_index / dim_count]);
             result.time_match = db_time_index[start_frame_index / dim_count];
             result.feature_costs = feature_costs;
         }
@@ -165,22 +163,22 @@ size_t MMAnimationLibrary::get_dim_count() const {
 }
 
 int32_t MMAnimationLibrary::get_animation_pose_count(String p_animation_name) const {
-    TypedArray<StringName> animation_list = get_animation_list();
+    List<StringName> animation_list;
+    get_animation_list(&animation_list);
     Ref<Animation> animation = get_animation(p_animation_name);
     if (animation.is_null()) {
         return 0;
     }
-
     return static_cast<int32_t>(animation->get_length() * get_sampling_rate());
 }
 
 void MMAnimationLibrary::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, const Transform3D& p_transform, String p_animation_name, int32_t p_pose_index) const {
-    const int32_t anim_index = get_animation_list().find(p_animation_name);
+    List<StringName> animation_list;
+    get_animation_list(&animation_list);
     const int32_t dim_count = get_dim_count();
     int32_t start_frame_index = 0;
-    TypedArray<StringName> animation_list = get_animation_list();
-    for (size_t anim_index = 0; anim_index < animation_list.size(); anim_index++) {
-        const StringName& anim_name = animation_list[anim_index];
+    for (List<StringName>::Element* element = animation_list.find(p_animation_name); element; element = element->next()) {
+        const StringName& anim_name = element->get();
         Ref<Animation> animation = get_animation(anim_name);
         if (anim_name == p_animation_name) {
             break;
@@ -217,7 +215,7 @@ void MMAnimationLibrary::_normalize_data(PackedFloat32Array& p_data, size_t p_di
 }
 
 void MMAnimationLibrary::_bind_methods() {
-    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::ARRAY, features, PROPERTY_HINT_TYPE_STRING, UtilityFunctions::str(Variant::OBJECT) + '/' + UtilityFunctions::str(Variant::BASIS) + ":MMFeature", PROPERTY_USAGE_DEFAULT);
+    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::ARRAY, features, PROPERTY_HINT_TYPE_STRING, Variant::get_type_name(Variant::OBJECT) + '/' + Variant::get_type_name(Variant::BASIS) + ":MMFeature", PROPERTY_USAGE_DEFAULT);
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::FLOAT, sampling_rate);
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_FLOAT32_ARRAY, motion_data);
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_INT32_ARRAY, db_anim_index);

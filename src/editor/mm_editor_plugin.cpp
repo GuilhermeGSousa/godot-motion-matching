@@ -1,17 +1,16 @@
 #include "editor/mm_editor_plugin.h"
 
-#include <godot_cpp/classes/editor_interface.hpp>
-#include <godot_cpp/classes/editor_selection.hpp>
-#include <godot_cpp/classes/input_event.hpp>
-#include <godot_cpp/classes/object.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
+
+#include "editor/editor_interface.h"
+#include "core/input/input_event.h"
+#include "editor/editor_data.h"
 
 #include "mm_editor_plugin.h"
 
 MMEditorPlugin::MMEditorPlugin() {
 }
 
-void MMEditorPlugin::_input(const Ref<InputEvent>& p_event) {
+void MMEditorPlugin::input(const Ref<InputEvent>& p_event) {
     if (p_event->is_class("InputEventMouseButton") && p_event->is_released()) {
         TypedArray<Node> selected_nodes = get_editor_interface()->get_selection()->get_selected_nodes();
 

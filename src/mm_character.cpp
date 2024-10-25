@@ -3,22 +3,6 @@
 #include "math/spring.hpp"
 #include "mm_animation_library.h"
 
-#include <godot_cpp/classes/engine.hpp>
-#include <godot_cpp/classes/input.hpp>
-#include <godot_cpp/classes/input_event_mouse_motion.hpp>
-#include <godot_cpp/classes/node3d.hpp>
-#include <godot_cpp/classes/physics_server3d.hpp>
-#include <godot_cpp/classes/physics_test_motion_parameters3d.hpp>
-#include <godot_cpp/classes/physics_test_motion_result3d.hpp>
-#include <godot_cpp/classes/project_settings.hpp>
-#include <godot_cpp/classes/shape3d.hpp>
-#include <godot_cpp/classes/world3d.hpp>
-#include <godot_cpp/core/property_info.hpp>
-#include <godot_cpp/variant/transform3d.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
-
-using namespace godot;
-
 constexpr float QUERY_TIME_ERROR = 0.05;
 
 MMCharacter::MMCharacter()
@@ -28,60 +12,10 @@ MMCharacter::MMCharacter()
 MMCharacter::~MMCharacter() {
 }
 
-void MMCharacter::_ready() {
-    if (Engine::get_singleton()->is_editor_hint()) {
-        return;
-    }
-
-    while (!_history_buffer.is_full()) {
-        _history_buffer.push(_get_current_trajectory_point());
-    }
-
-    _trajectory.resize(trajectory_point_count + 1);
-    _trajectory_history.resize(history_point_count);
-
-    _animation_player = get_node<AnimationPlayer>(animation_player_path);
-    if (_animation_player) {
-        _animation_player->connect("animation_finished", Callable(this, "_on_animation_finished"));
-        _animation_player->set_callback_mode_process(AnimationMixer::AnimationCallbackModeProcess::ANIMATION_CALLBACK_MODE_PROCESS_PHYSICS);
-    }
-
-    _skeleton = get_node<Skeleton3D>(skeleton_path);
-    if (_skeleton && _animation_player) {
-        StringName root_node_path = _animation_player->get_root_motion_track().get_concatenated_subnames();
-        _root_bone_idx = _skeleton->find_bone(root_node_path);
-
-        _skeleton->set_as_top_level(true);
-        _skeleton->reset_bone_poses();
-
-        _skeleton_state = SkeletonState(_skeleton);
-        _reset_skeleton_state();
-    }
-}
-
-void MMCharacter::_physics_process(double delta) {
-    if (Engine::get_singleton()->is_editor_hint()) {
-        return;
-    }
-
-    _update_character(delta);
-
-    if (!_skeleton) {
-        return;
-    }
-
-    _update_skeleton_state(delta);
-
-    _update_query(delta);
-
-    _apply_root_motion();
-
-    _update_synchronizer(delta);
-}
-
 MMQueryOutput MMCharacter::query(const MMQueryInput& query_input) {
 
-    TypedArray<StringName> animation_libraries = _animation_player->get_animation_library_list();
+    List<StringName> animation_libraries;
+    _animation_player->get_animation_library_list(&animation_libraries);
     MMQueryOutput result;
 
     bool found_anim_library = false;
@@ -89,15 +23,16 @@ MMQueryOutput MMCharacter::query(const MMQueryInput& query_input) {
     // We should do something more sophisticated here,
     // but for now we just use the first motion matching library we find
     for (int i = 0; i < animation_libraries.size(); i++) {
-        const StringName& library_name = animation_libraries[i];
+        const StringName& library_name = animation_libraries.get(i);
         Ref<MMAnimationLibrary> library = _animation_player->get_animation_library(library_name);
-
-        if (library.is_null() || library->get_animation_list().is_empty()) {
+        List<StringName> animation_list;
+        library->get_animation_list(&animation_list);
+        if (library.is_null() || animation_list.is_empty()) {
             continue;
         }
 
         result = library->query(query_input);
-        result.animation_match = UtilityFunctions::str(library_name) + "/" + result.animation_match;
+        result.animation_match = String(library_name) + "/" + result.animation_match;
         found_anim_library = true;
         break;
     }
@@ -233,7 +168,6 @@ void MMCharacter::_update_history(double delta_t) {
 }
 
 void MMCharacter::_move_with_collisions(MMTrajectoryPoint& point, float delta_t) {
-    const real_t margin = 0.001;
     const Vector3 motion = point.velocity * delta_t;
 
     Ref<PhysicsTestMotionParameters3D> params;
@@ -248,8 +182,8 @@ void MMCharacter::_move_with_collisions(MMTrajectoryPoint& point, float delta_t)
 
     bool is_colliding = PhysicsServer3D::get_singleton()->body_test_motion(
         get_rid(),
-        params,
-        collision_result);
+        params->get_parameters(),
+        collision_result->get_result_ptr());
 
     if (!is_colliding) {
         // We move in the direction of motion as usual
@@ -319,8 +253,8 @@ void MMCharacter::_fall_to_floor(MMTrajectoryPoint& point, float delta_t) {
 
     if (PhysicsServer3D::get_singleton()->body_test_motion(
             get_rid(),
-            params,
-            collision_result)) {
+            params->get_parameters(),
+            collision_result->get_result_ptr())) {
         point.position += collision_result->get_travel();
         point.velocity.y = 0.0;
         point.collision_state.on_floor = true;
@@ -449,11 +383,11 @@ Dictionary MMCharacter::_output_to_dict(const MMQueryOutput& output) {
 }
 
 AnimationMixer* MMCharacter::get_animation_mixer() const {
-    return get_node<AnimationMixer>(animation_player_path);
+    return cast_to<AnimationMixer>(get_node_or_null(animation_player_path));
 }
 
 Skeleton3D* MMCharacter::get_skeleton() const {
-    return get_node<Skeleton3D>(skeleton_path);
+    return cast_to<Skeleton3D>(get_node_or_null(skeleton_path));
 }
 
 void MMCharacter::_bind_methods() {
@@ -482,4 +416,62 @@ void MMCharacter::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMCharacter, Variant::FLOAT, trajectory_delta_time);
     BINDER_PROPERTY_PARAMS(MMCharacter, Variant::INT, history_point_count);
     BINDER_PROPERTY_PARAMS(MMCharacter, Variant::FLOAT, history_delta_time);
+}
+void MMCharacter::_notification(int p_what) {
+    switch (p_what) {
+        case NOTIFICATION_PHYSICS_PROCESS:
+        {
+
+    if (Engine::get_singleton()->is_editor_hint()) {
+        return;
+    }
+    double delta = get_physics_process_delta_time();
+
+    _update_character(delta);
+
+    if (!_skeleton) {
+        return;
+    }
+
+    _update_skeleton_state(delta);
+
+    _update_query(delta);
+
+    _apply_root_motion();
+
+    _update_synchronizer(delta);
+}break;
+    case NOTIFICATION_READY:
+    {
+
+        if (Engine::get_singleton()->is_editor_hint()) {
+            return;
+        }
+
+        while (!_history_buffer.is_full()) {
+            _history_buffer.push(_get_current_trajectory_point());
+        }
+
+        _trajectory.resize(trajectory_point_count + 1);
+        _trajectory_history.resize(history_point_count);
+
+        _animation_player = cast_to<AnimationPlayer>(get_node(animation_player_path));
+        if (_animation_player) {
+            _animation_player->connect("animation_finished", Callable(this, "_on_animation_finished"));
+            _animation_player->set_callback_mode_process(AnimationMixer::AnimationCallbackModeProcess::ANIMATION_CALLBACK_MODE_PROCESS_PHYSICS);
+        }
+
+        _skeleton = cast_to<Skeleton3D>(get_node(skeleton_path));
+        if (_skeleton && _animation_player) {
+            StringName root_node_path = _animation_player->get_root_motion_track().get_concatenated_subnames();
+            _root_bone_idx = _skeleton->find_bone(root_node_path);
+
+            _skeleton->set_as_top_level(true);
+            _skeleton->reset_bone_poses();
+
+            _skeleton_state = SkeletonState(_skeleton);
+            _reset_skeleton_state();
+        }
+    }break;
+    }
 }

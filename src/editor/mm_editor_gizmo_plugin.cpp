@@ -1,25 +1,24 @@
-#include "editor/mm_editor_gizmo_plugin.h"
 
-#include <godot_cpp/classes/animation_mixer.hpp>
-#include <godot_cpp/classes/editor_node3d_gizmo.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
+#include "modules/motion_matching/src/mm_animation_library.h"
+#include "modules/motion_matching/src/mm_character.h"
+#include "scene/animation/animation_mixer.h"
+#include "editor/plugins/node_3d_editor_gizmos.h"
 
-#include "mm_animation_library.h"
 #include "mm_character.h"
 #include "mm_editor_gizmo_plugin.h"
 
 MMEditorGizmoPlugin::MMEditorGizmoPlugin() {
 }
 
-bool MMEditorGizmoPlugin::_has_gizmo(Node3D* p_for_node_3d) const {
+bool MMEditorGizmoPlugin::has_gizmo(Node3D* p_for_node_3d) {
     return p_for_node_3d->is_class("MMCharacter");
 }
 
-String MMEditorGizmoPlugin::_get_gizmo_name() const {
+String MMEditorGizmoPlugin::get_gizmo_name() const {
     return "MMEditorGizmo";
 }
 
-void MMEditorGizmoPlugin::_redraw(const Ref<EditorNode3DGizmo>& p_gizmo) {
+void MMEditorGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
     p_gizmo->clear();
 
     MMCharacter* controller = Object::cast_to<MMCharacter>(p_gizmo->get_node_3d());

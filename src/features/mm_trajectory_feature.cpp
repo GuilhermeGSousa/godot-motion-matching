@@ -2,11 +2,11 @@
 
 #include "math/transforms.h"
 
-#include <godot_cpp/classes/animation_player.hpp>
-#include <godot_cpp/classes/editor_node3d_gizmo_plugin.hpp>
-#include <godot_cpp/classes/point_mesh.hpp>
-#include <godot_cpp/classes/sphere_mesh.hpp>
-#include <godot_cpp/classes/standard_material3d.hpp>
+#include "scene/animation/animation_player.h"
+#include "editor/plugins/node_3d_editor_gizmos.h"
+#include "scene/resources/mesh.h"
+#include "scene/resources/3d/primitive_meshes.h"
+#include "scene/resources/material.h"
 
 MMTrajectoryFeature::MMTrajectoryFeature() {
 }
@@ -23,7 +23,7 @@ void MMTrajectoryFeature::setup_skeleton(const AnimationMixer* p_player, const S
     const StringName root_bone_name = p_player->get_root_motion_track().get_concatenated_subnames();
     _root_bone = p_skeleton->find_bone(root_bone_name);
 
-    _root_bone_path = UtilityFunctions::str(skel_path) + ":" + UtilityFunctions::str(root_bone_name);
+    _root_bone_path = String(skel_path) + ":" + String(root_bone_name);
 }
 
 void MMTrajectoryFeature::setup_for_animation(Ref<Animation> animation) {
@@ -68,13 +68,13 @@ PackedFloat32Array MMTrajectoryFeature::bake_animation_pose(Ref<Animation> p_ani
 
     // We do not include the first frame
     for (size_t i = 1; i < future_frames + 1; i++) {
-        const float future_time = UtilityFunctions::clampf(time + future_delta_time * i, 0.0f, p_animation->get_length());
+        const float future_time = CLAMP(time + future_delta_time * i, 0.0f, p_animation->get_length());
 
         add_frame(future_time);
     }
 
     for (size_t i = 1; i < past_frames + 1; i++) {
-        const float past_time = UtilityFunctions::clampf(time - past_delta_time * i, 0.0f, p_animation->get_length());
+        const float past_time = CLAMP(time - past_delta_time * i, 0.0f, p_animation->get_length());
 
         add_frame(past_time);
     }
@@ -96,7 +96,6 @@ PackedFloat32Array MMTrajectoryFeature::evaluate_runtime_data(const MMQueryInput
         }
         result.append(local_position.z);
         if (include_facing) {
-            const float facing = trajectory_point.facing_angle;
             result.append(global_to_local_facing_angle(trajectory_point.facing_angle, character_transform));
         }
     };
@@ -174,7 +173,7 @@ TypedArray<Dictionary> MMTrajectoryFeature::get_trajectory_points(const Transfor
         point.position = p_character_transform.xform(point.position);
 
         if (include_facing) {
-            const float local_facing_angle = denormalized_data[i + (include_height ? 3 : 2)];
+            // const float local_facing_angle = denormalized_data[i + (include_height ? 3 : 2)];
             point.facing_angle = 0.0; // TODO
         }
 

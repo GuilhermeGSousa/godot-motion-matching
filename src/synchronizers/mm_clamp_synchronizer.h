@@ -4,8 +4,6 @@
 
 #include "common.h"
 
-using namespace godot;
-
 class MMClampSynchronizer : public MMSynchronizer {
     GDCLASS(MMClampSynchronizer, MMSynchronizer)
 

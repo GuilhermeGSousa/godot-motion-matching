@@ -1,13 +1,8 @@
 #pragma once
 
-#include <godot_cpp/classes/skeleton3d.hpp>
-#include <godot_cpp/core/math.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
+#include "scene/3d/skeleton_3d.h"
 
-#include <map>
 #include <vector>
-
-using namespace godot;
 
 struct BoneState {
 

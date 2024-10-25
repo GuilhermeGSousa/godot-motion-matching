@@ -1,18 +1,12 @@
 #pragma once
 
-#include <godot_cpp/classes/animation_library.hpp>
-#include <godot_cpp/classes/editor_node3d_gizmo.hpp>
-#include <godot_cpp/classes/node3d.hpp>
-#include <godot_cpp/classes/object.hpp>
-#include <godot_cpp/classes/ref.hpp>
-#include <godot_cpp/classes/skeleton3d.hpp>
-#include <godot_cpp/variant/typed_array.hpp>
+#include "scene/resources/animation_library.h"
+#include "editor/plugins/node_3d_editor_gizmos.h"
+#include "scene/3d/skeleton_3d.h"
 
 #include "common.h"
 #include "features/mm_feature.h"
 #include "mm_query.h"
-
-using namespace godot;
 
 class MMFeature;
 class MMAnimationPlayer;

@@ -3,8 +3,6 @@
 #include "common.h"
 #include "features/mm_feature.h"
 
-using namespace godot;
-
 class MMTrajectoryFeature : public MMFeature {
     GDCLASS(MMTrajectoryFeature, MMFeature)
 

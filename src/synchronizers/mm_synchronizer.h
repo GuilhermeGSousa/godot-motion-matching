@@ -1,11 +1,8 @@
 #pragma once
 
-#include <godot_cpp/classes/node3d.hpp>
-#include <godot_cpp/classes/resource.hpp>
+#include "scene/3d/node_3d.h"
 
 #include "common.h"
-
-using namespace godot;
 
 class MMCharacter;
 

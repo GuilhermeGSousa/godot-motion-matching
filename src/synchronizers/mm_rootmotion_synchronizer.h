@@ -4,8 +4,6 @@
 
 #include "common.h"
 
-using namespace godot;
-
 class MMRootMotionSynchronizer : public MMSynchronizer {
     GDCLASS(MMRootMotionSynchronizer, MMSynchronizer)
 

@@ -1,19 +1,18 @@
 #pragma once
 
-#include <godot_cpp/classes/editor_node3d_gizmo_plugin.hpp>
-#include <godot_cpp/classes/node3d.hpp>
-
-using namespace godot;
+#include "editor/plugins/node_3d_editor_gizmos.h"
+#include "scene/3d/node_3d.h"
 
 class MMEditorGizmoPlugin : public EditorNode3DGizmoPlugin {
     GDCLASS(MMEditorGizmoPlugin, EditorNode3DGizmoPlugin)
 
 public:
     MMEditorGizmoPlugin();
-    virtual bool _has_gizmo(Node3D* p_for_node_3d) const override;
-    virtual String _get_gizmo_name() const override;
-    virtual void _redraw(const Ref<EditorNode3DGizmo>& p_gizmo) override;
-    virtual int32_t _get_priority() const override {
+
+	virtual bool has_gizmo(Node3D *p_spatial) override;
+    virtual String get_gizmo_name() const override;
+	virtual void redraw(EditorNode3DGizmo *p_gizmo) override;
+    virtual int32_t get_priority() const override {
         return -1;
     }
 

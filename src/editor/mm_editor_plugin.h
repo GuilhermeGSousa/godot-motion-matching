@@ -3,13 +3,12 @@
 #include "editor/mm_editor.h"
 #include "editor/mm_editor_gizmo_plugin.h"
 #include "mm_character.h"
+#include "modules/motion_matching/src/editor/mm_editor_gizmo_plugin.h"
 
-#include <godot_cpp/classes/button.hpp>
-#include <godot_cpp/classes/editor_plugin.hpp>
-#include <godot_cpp/classes/input_event.hpp>
-#include <godot_cpp/classes/ref.hpp>
-
-using namespace godot;
+#include "scene/gui/button.h"
+#include "editor/plugins/editor_plugin.h"
+#include "core/input/input_event.h"
+#include "core/object/ref_counted.h"
 
 class MMEditorPlugin : public EditorPlugin {
     GDCLASS(MMEditorPlugin, EditorPlugin)
@@ -17,7 +16,7 @@ class MMEditorPlugin : public EditorPlugin {
 public:
     MMEditorPlugin();
 
-    virtual void _input(const Ref<InputEvent>& p_event) override;
+    virtual void input(const Ref<InputEvent>& p_event) override;
 
 private:
     void _notification(int p_what);

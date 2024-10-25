@@ -17,7 +17,7 @@ uint32_t MMBoneDataFeature::get_dimension_count() const {
 PackedFloat32Array MMBoneDataFeature::bake_animation_pose(Ref<Animation> p_animation, float time) const {
     PackedFloat32Array result;
     for (size_t i = 0; i < bone_names.size(); ++i) {
-        const String bone_path = UtilityFunctions::str(_skeleton_path) + UtilityFunctions::str(":") + bone_names[i];
+        const String bone_path = String(_skeleton_path) + String(":") + bone_names[i];
 
         const int32_t pos_track = p_animation->find_track(bone_path, Animation::TrackType::TYPE_POSITION_3D);
         const int32_t rot_track = p_animation->find_track(bone_path, Animation::TrackType::TYPE_ROTATION_3D);

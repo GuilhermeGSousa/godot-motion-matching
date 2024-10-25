@@ -1,16 +1,13 @@
 #pragma once
 
-#include <godot_cpp/classes/animation.hpp>
-#include <godot_cpp/classes/animation_player.hpp>
-#include <godot_cpp/classes/editor_node3d_gizmo.hpp>
-#include <godot_cpp/classes/resource.hpp>
-#include <godot_cpp/classes/skeleton3d.hpp>
-#include <godot_cpp/variant/packed_float32_array.hpp>
+#include "scene/resources/animation.h"
+#include "scene/animation/animation_player.h"
+#include "editor/plugins/node_3d_editor_gizmos.h"
+#include "core/io/resource.h"
+#include "scene/3d/skeleton_3d.h"
 
 #include "common.h"
 #include "mm_query.h"
-
-using namespace godot;
 
 class MMFeature : public Resource {
     GDCLASS(MMFeature, Resource)
