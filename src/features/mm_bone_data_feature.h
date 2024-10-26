@@ -42,7 +42,7 @@ public:
 
     virtual void setup_for_animation(Ref<Animation> animation) override;
 
-    virtual uint32_t get_dimension_count() const override;
+    virtual int64_t get_dimension_count() const override;
 
     virtual PackedFloat32Array bake_animation_pose(Ref<Animation> p_animation, float time) const override;
 

@@ -67,7 +67,7 @@ void MMFeature::denormalize(float* p_data) const {
 
 float MMFeature::compute_cost(const float* p_motion_data, const float* p_query_data) const {
     float cost = 0.0f;
-    for (int i = 0; i < get_dimension_count(); ++i) {
+    for (uint32_t i = 0; i < get_dimension_count(); ++i) {
         float diff = p_motion_data[i] - p_query_data[i];
         cost += diff * diff;
     }
@@ -75,19 +75,19 @@ float MMFeature::compute_cost(const float* p_motion_data, const float* p_query_d
 }
 
 void MMFeature::_normalize_minmax(float* p_data) const {
-    for (int i = 0; i < get_dimension_count(); ++i) {
+    for (uint32_t i = 0; i < get_dimension_count(); ++i) {
         p_data[i] = (p_data[i] - mins[i]) / (maxes[i] - mins[i]);
     }
 }
 
 void MMFeature::_denormalize_minmax(float* p_data) const {
-    for (int i = 0; i < get_dimension_count(); ++i) {
+    for (uint32_t i = 0; i < get_dimension_count(); ++i) {
         p_data[i] = (p_data[i] * (maxes[i] - mins[i])) + mins[i];
     }
 }
 
 void MMFeature::_normalize_standard(float* p_data) const {
-    for (int i = 0; i < get_dimension_count(); ++i) {
+    for (uint32_t i = 0; i < get_dimension_count(); ++i) {
         if (std_devs[i] < SMALL_NUMBER) {
             continue;
         }
@@ -96,7 +96,7 @@ void MMFeature::_normalize_standard(float* p_data) const {
 }
 
 void MMFeature::_denormalize_standard(float* p_data) const {
-    for (int i = 0; i < get_dimension_count(); ++i) {
+    for (uint32_t i = 0; i < get_dimension_count(); ++i) {
         if (std_devs[i] < SMALL_NUMBER) {
             continue;
         }

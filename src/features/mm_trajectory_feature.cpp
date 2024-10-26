@@ -35,6 +35,7 @@
 #include "scene/resources/3d/primitive_meshes.h"
 #include "scene/resources/material.h"
 #include "scene/resources/mesh.h"
+#include <cstdint>
 
 #ifdef TOOLS_ENABLED
 #include "editor/plugins/node_3d_editor_gizmos.h"
@@ -46,7 +47,7 @@ MMTrajectoryFeature::MMTrajectoryFeature() {
 MMTrajectoryFeature::~MMTrajectoryFeature() {
 }
 
-uint32_t MMTrajectoryFeature::get_dimension_count() const {
+int64_t MMTrajectoryFeature::get_dimension_count() const {
     return _get_point_dimension_count() * (past_frames + future_frames);
 }
 
@@ -99,13 +100,13 @@ PackedFloat32Array MMTrajectoryFeature::bake_animation_pose(Ref<Animation> p_ani
     };
 
     // We do not include the first frame
-    for (size_t i = 1; i < future_frames + 1; i++) {
+    for (int64_t i = 1; i < future_frames + 1; i++) {
         const float future_time = CLAMP(time + future_delta_time * i, 0.0f, p_animation->get_length());
 
         add_frame(future_time);
     }
 
-    for (size_t i = 1; i < past_frames + 1; i++) {
+    for (int64_t i = 1; i < past_frames + 1; i++) {
         const float past_time = CLAMP(time - past_delta_time * i, 0.0f, p_animation->get_length());
 
         add_frame(past_time);

@@ -33,6 +33,7 @@
 
 #include "common.h"
 #include "features/mm_feature.h"
+#include <cstdint>
 
 class MMTrajectoryFeature : public MMFeature {
     GDCLASS(MMTrajectoryFeature, MMFeature)
@@ -41,7 +42,7 @@ public:
     MMTrajectoryFeature(/* args */);
     virtual ~MMTrajectoryFeature();
 
-    virtual uint32_t get_dimension_count() const override;
+    virtual int64_t get_dimension_count() const override;
 
     virtual void setup_skeleton(const AnimationMixer* p_player, const Skeleton3D* p_skeleton) override;
 
@@ -57,10 +58,10 @@ public:
 
     TypedArray<Dictionary> get_trajectory_points(const Transform3D& p_character_transform, const PackedFloat32Array& p_trajectory_data) const;
 
-    GETSET(float, past_delta_time, 0.1f);
-    GETSET(int, past_frames, 1);
-    GETSET(float, future_delta_time, 0.1f);
-    GETSET(int, future_frames, 5);
+    GETSET(double, past_delta_time, 0.1);
+    GETSET(int64_t, past_frames, 1);
+    GETSET(double, future_delta_time, 0.1);
+    GETSET(int64_t, future_frames, 5);
     GETSET(bool, include_height, false);
     GETSET(bool, include_facing, true);
 

@@ -58,7 +58,7 @@ public:
 
     virtual void setup_for_animation(Ref<Animation> animation) {};
 
-    virtual uint32_t get_dimension_count() const = 0;
+    virtual int64_t get_dimension_count() const = 0;
 
     virtual PackedFloat32Array bake_animation_pose(Ref<Animation> p_animation, float time) const = 0;
 

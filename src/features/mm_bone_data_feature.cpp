@@ -40,7 +40,7 @@ void MMBoneDataFeature::setup_skeleton(const AnimationMixer* p_player, const Ske
 void MMBoneDataFeature::setup_for_animation(Ref<Animation> animation) {
 }
 
-uint32_t MMBoneDataFeature::get_dimension_count() const {
+int64_t MMBoneDataFeature::get_dimension_count() const {
     return bone_names.size() * 7;
 }
 
