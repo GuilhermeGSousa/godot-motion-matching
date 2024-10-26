@@ -7,7 +7,6 @@ Import('env')
 env.Append(CPPPATH=["src/"])
 sources = Glob("*.cpp")
 sources += Glob("src/*.cpp")
-sources += Glob("src/editor/*.cpp")
 sources += Glob("src/features/*.cpp")
 sources += Glob("src/math/*.cpp")
 sources += Glob("src/modifiers/*.cpp")
@@ -15,3 +14,6 @@ sources += Glob("src/synchronizers/*.cpp")
 
 module_env = env.Clone()
 module_env.add_source_files(env.modules_sources, sources)
+
+if env.editor_build:
+    module_env.add_source_files(env.modules_sources, "editor/*.cpp")
