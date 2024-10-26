@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="MMCharacter" inherits="CharacterBody3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_previous_trajectory" qualifiers="const">
+			<return type="Dictionary[]" />
+			<description>
+			</description>
+		</method>
+		<method name="get_skeleton_state" qualifiers="const">
+			<return type="Dictionary[]" />
+			<description>
+			</description>
+		</method>
+		<method name="get_trajectory" qualifiers="const">
+			<return type="Dictionary[]" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="animation_player_path" type="NodePath" setter="set_animation_player_path" getter="get_animation_player_path" default="NodePath(&quot;&quot;)">
+		</member>
+		<member name="check_environment" type="bool" setter="set_check_environment" getter="get_check_environment" default="true">
+		</member>
+		<member name="halflife" type="float" setter="set_halflife" getter="get_halflife" default="0.5">
+		</member>
+		<member name="history_delta_time" type="float" setter="set_history_delta_time" getter="get_history_delta_time" default="0.5">
+		</member>
+		<member name="history_point_count" type="int" setter="set_history_point_count" getter="get_history_point_count" default="3">
+		</member>
+		<member name="is_strafing" type="bool" setter="set_is_strafing" getter="get_is_strafing" default="false">
+		</member>
+		<member name="query_frequency" type="float" setter="set_query_frequency" getter="get_query_frequency" default="2.0">
+		</member>
+		<member name="skeleton_path" type="NodePath" setter="set_skeleton_path" getter="get_skeleton_path" default="NodePath(&quot;&quot;)">
+		</member>
+		<member name="strafe_facing" type="float" setter="set_strafe_facing" getter="get_strafe_facing" default="0.0">
+		</member>
+		<member name="synchronizer" type="MMSynchronizer" setter="set_synchronizer" getter="get_synchronizer">
+		</member>
+		<member name="target_velocity" type="Vector3" setter="set_target_velocity" getter="get_target_velocity" default="Vector3(0, 0, 0)">
+		</member>
+		<member name="trajectory_delta_time" type="float" setter="set_trajectory_delta_time" getter="get_trajectory_delta_time" default="0.5">
+		</member>
+		<member name="trajectory_point_count" type="int" setter="set_trajectory_point_count" getter="get_trajectory_point_count" default="10">
+		</member>
+	</members>
+	<signals>
+		<signal name="on_query_result">
+			<param index="0" name="data" type="Dictionary" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

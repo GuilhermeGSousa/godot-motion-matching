@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="MMTrajectoryFeature" inherits="MMFeature" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_trajectory_points" qualifiers="const">
+			<return type="Dictionary[]" />
+			<param index="0" name="character_transform" type="Transform3D" />
+			<param index="1" name="trajectory_data" type="PackedFloat32Array" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="future_delta_time" type="float" setter="set_future_delta_time" getter="get_future_delta_time" default="0.1">
+		</member>
+		<member name="future_frames" type="int" setter="set_future_frames" getter="get_future_frames" default="5">
+		</member>
+		<member name="include_facing" type="bool" setter="set_include_facing" getter="get_include_facing" default="true">
+		</member>
+		<member name="include_height" type="bool" setter="set_include_height" getter="get_include_height" default="false">
+		</member>
+		<member name="past_delta_time" type="float" setter="set_past_delta_time" getter="get_past_delta_time" default="0.1">
+		</member>
+		<member name="past_frames" type="int" setter="set_past_frames" getter="get_past_frames" default="1">
+		</member>
+	</members>
+</class>
