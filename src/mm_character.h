@@ -84,10 +84,10 @@ public:
     TypedArray<Dictionary> get_skeleton_state() const {
         TypedArray<Dictionary> result;
         for (const BoneState& state : _skeleton_state.bone_states) {
-            Dictionary data;
-            data.get_or_add("position", state.pos);
-            data.get_or_add("velocity", state.vel);
-            result.push_back(data);
+            Dictionary character_data;
+            character_data.get_or_add("position", state.pos);
+            character_data.get_or_add("velocity", state.vel);
+            result.push_back(character_data);
         }
         return result;
     }
@@ -103,12 +103,12 @@ public:
     TypedArray<Dictionary> trajectory_to_dict(const std::vector<MMTrajectoryPoint>& p_trajectory) const {
         TypedArray<Dictionary> result;
         for (const MMTrajectoryPoint& point : p_trajectory) {
-            Dictionary data;
-            data.get_or_add("position", point.position);
-            data.get_or_add("velocity", point.velocity);
-            data.get_or_add("facing", point.facing_angle);
-            data.get_or_add("on_floor", point.collision_state.on_floor);
-            result.push_back(data);
+            Dictionary trajectory_data;
+            trajectory_data.get_or_add("position", point.position);
+            trajectory_data.get_or_add("velocity", point.velocity);
+            trajectory_data.get_or_add("facing", point.facing_angle);
+            trajectory_data.get_or_add("on_floor", point.collision_state.on_floor);
+            result.push_back(trajectory_data);
         }
         return result;
     }
