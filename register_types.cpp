@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  common.h                                                              */
+/*  register_types.cpp                                                    */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,27 +28,50 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef COMMON_H
-#define COMMON_H
+#include "register_types.h"
 
-#define GETSET(type, variable, ...)   \
-    type variable{__VA_ARGS__};       \
-    type get_##variable() const {     \
-        return variable;              \
-    }                                 \
-    void set_##variable(type value) { \
-        variable = value;             \
+#include "mm_character.h"
+
+#ifdef TOOLS_ENABLED
+#include "editor/mm_editor.h"
+#include "editor/mm_editor_gizmo_plugin.h"
+#include "editor/mm_editor_plugin.h"
+#endif
+
+#include "features/mm_bone_data_feature.h"
+#include "features/mm_feature.h"
+#include "features/mm_trajectory_feature.h"
+
+#include "modifiers/damped_skeleton_modifier.h"
+
+#include "synchronizers/mm_clamp_synchronizer.h"
+#include "synchronizers/mm_rootmotion_synchronizer.h"
+#include "synchronizers/mm_synchronizer.h"
+
+#include "mm_animation_library.h"
+#include "mm_trajectory_point.h"
+
+void initialize_motion_matching_module(ModuleInitializationLevel p_level) {
+    if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
+        ClassDB::register_abstract_class<MMFeature>();
+        ClassDB::register_class<MMTrajectoryFeature>();
+        ClassDB::register_class<MMBoneDataFeature>();
+
+        ClassDB::register_class<MMAnimationLibrary>();
+
+        ClassDB::register_class<MMCharacter>();
+
+        ClassDB::register_class<DampedSkeletonModifier>();
+        ClassDB::register_abstract_class<MMSynchronizer>();
+        ClassDB::register_class<MMClampSynchronizer>();
+        ClassDB::register_class<MMRootMotionSynchronizer>();
     }
+#ifdef TOOLS_ENABLED
+    if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
+        EditorPlugins::add_by_type<MMEditorPlugin>();
+    }
+#endif
+}
 
-#define STR(x) #x
-
-#define STRING_PREFIX(prefix, s) STR(prefix##s)
-
-#define BINDER_PROPERTY_PARAMS(type, variant_type, variable, ...)                                  \
-    ClassDB::bind_method(D_METHOD(STRING_PREFIX(set_, variable), "value"), &type::set_##variable); \
-    ClassDB::bind_method(D_METHOD(STRING_PREFIX(get_, variable)), &type::get_##variable);          \
-    ClassDB::add_property(get_class_static(), PropertyInfo(variant_type, #variable, ##__VA_ARGS__), STRING_PREFIX(set_, variable), STRING_PREFIX(get_, variable));
-
-#define SMALL_NUMBER 1.e-8
-
-#endif // COMMON_H
+void uninitialize_motion_matching_module(ModuleInitializationLevel p_level) {
+}

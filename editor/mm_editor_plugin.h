@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  common.h                                                              */
+/*  mm_editor_plugin.h                                                    */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,27 +28,39 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef MM_EDITOR_PLUGIN_H
+#define MM_EDITOR_PLUGIN_H
 
-#define GETSET(type, variable, ...)   \
-    type variable{__VA_ARGS__};       \
-    type get_##variable() const {     \
-        return variable;              \
-    }                                 \
-    void set_##variable(type value) { \
-        variable = value;             \
-    }
+#include "core/os/memory.h"
+#include "mm_character.h"
+#include "mm_editor.h"
+#include "mm_editor_gizmo_plugin.h"
 
-#define STR(x) #x
+#include "core/input/input_event.h"
+#include "core/object/ref_counted.h"
+#include "editor/plugins/editor_plugin.h"
+#include "modules/motion_matching/src/mm_character.h"
+#include "scene/gui/button.h"
 
-#define STRING_PREFIX(prefix, s) STR(prefix##s)
+class MMEditorPlugin : public EditorPlugin {
+    GDCLASS(MMEditorPlugin, EditorPlugin)
 
-#define BINDER_PROPERTY_PARAMS(type, variant_type, variable, ...)                                  \
-    ClassDB::bind_method(D_METHOD(STRING_PREFIX(set_, variable), "value"), &type::set_##variable); \
-    ClassDB::bind_method(D_METHOD(STRING_PREFIX(get_, variable)), &type::get_##variable);          \
-    ClassDB::add_property(get_class_static(), PropertyInfo(variant_type, #variable, ##__VA_ARGS__), STRING_PREFIX(set_, variable), STRING_PREFIX(get_, variable));
+public:
+    MMEditorPlugin();
+    ~MMEditorPlugin();
 
-#define SMALL_NUMBER 1.e-8
+    virtual void make_visible(bool p_visible) override;
+    virtual bool handles(Object* p_node) const override;
+    virtual void edit(Object* p_object) override;
 
-#endif // COMMON_H
+private:
+    static void _bind_methods() {};
+
+    Ref<MMEditorGizmoPlugin> _gizmo_plugin;
+
+    MMEditor* _editor;
+    Button* _bottom_panel_button;
+    MMCharacter* _current_controller;
+};
+
+#endif // MM_EDITOR_PLUGIN_H

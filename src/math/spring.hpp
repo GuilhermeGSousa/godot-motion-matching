@@ -1,18 +1,43 @@
-#pragma once
+/**************************************************************************/
+/*  spring.hpp                                                            */
+/**************************************************************************/
+/*                         This file is part of:                          */
+/*                             GODOT ENGINE                               */
+/*                        https://godotengine.org                         */
+/**************************************************************************/
+/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
+/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
+/*                                                                        */
+/* Permission is hereby granted, free of charge, to any person obtaining  */
+/* a copy of this software and associated documentation files (the        */
+/* "Software"), to deal in the Software without restriction, including    */
+/* without limitation the rights to use, copy, modify, merge, publish,    */
+/* distribute, sublicense, and/or sell copies of the Software, and to     */
+/* permit persons to whom the Software is furnished to do so, subject to  */
+/* the following conditions:                                              */
+/*                                                                        */
+/* The above copyright notice and this permission notice shall be         */
+/* included in all copies or substantial portions of the Software.        */
+/*                                                                        */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
+/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
+/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
+/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
+/**************************************************************************/
+
+#ifndef SPRING_HPP
+#define SPRING_HPP
 
 #include <math.h>
 
-#include <cmath>
-#include <godot_cpp/classes/project_settings.hpp>
-#include <godot_cpp/classes/ref.hpp>
-#include <godot_cpp/classes/ref_counted.hpp>
-#include <godot_cpp/classes/resource.hpp>
-#include <godot_cpp/core/class_db.hpp>
-#include <godot_cpp/core/method_bind.hpp>
-#include <godot_cpp/variant/dictionary.hpp>
-#include <godot_cpp/variant/variant.hpp>
-
-using namespace godot;
+#include "core/config/project_settings.h"
+#include "core/io/resource.h"
+#include "core/object/class_db.h"
+#include "core/object/method_bind.h"
+#include "core/object/ref_counted.h"
 
 namespace Spring {
 
@@ -26,21 +51,21 @@ static inline real_t fast_negexp(real_t x) {
     return 1.0 / (1.0 + x + 0.48 * x * x + 0.235 * x * x * x);
 }
 
-static Vector3 damp_adjustment_exact(Vector3 g, real_t halflife, real_t dt, real_t eps = 1e-8) {
-    real_t factor = 1.0 - fast_negexp((Spring::Ln2 * dt) / (halflife + eps));
-    return g * factor;
-}
+// static Vector3 damp_adjustment_exact(Vector3 g, real_t halflife, real_t dt, real_t eps = 1e-8) {
+//     real_t factor = 1.0 - fast_negexp((Spring::Ln2 * dt) / (halflife + eps));
+//     return g * factor;
+// }
 
-static Quaternion damp_adjustment_exact_quat(Quaternion g, real_t halflife, real_t dt, real_t eps = 1e-8) {
-    real_t factor = 1.0 - fast_negexp((Spring::Ln2 * dt) / (halflife + eps));
-    return Quaternion().slerp(g, factor).normalized();
-}
+// static Quaternion damp_adjustment_exact_quat(Quaternion g, real_t halflife, real_t dt, real_t eps = 1e-8) {
+//     real_t factor = 1.0 - fast_negexp((Spring::Ln2 * dt) / (halflife + eps));
+//     return Quaternion().slerp(g, factor).normalized();
+// }
 
-static Variant damper_exponential(Variant variable, Variant goal, real_t damping, real_t dt) {
-    real_t ft = 1.0 / (real_t)ProjectSettings::get_singleton()->get("physics/common/physics_ticks_per_second");
-    real_t factor = 1.0 - pow(1.0 / (1.0 - ft * damping), -dt / ft);
-    return Math::lerp(variable, goal, factor);
-}
+// static Variant damper_exponential(Variant variable, Variant goal, real_t damping, real_t dt) {
+//     real_t ft = 1.0 / (real_t)ProjectSettings::get_singleton()->get("physics/common/physics_ticks_per_second");
+//     real_t factor = 1.0 - pow(1.0 / (1.0 - ft * damping), -dt / ft);
+//     return Math::lerp(variable, goal, factor);
+// }
 
 static inline Variant damper_exact(Variant variable, Variant goal, real_t halflife, real_t dt, real_t eps = 1e-5) {
     return Math::lerp(variable, goal, 1.0 - fast_negexp((Spring::Ln2 * dt) / (halflife + eps)));
@@ -140,45 +165,45 @@ static inline Vector3 quat_differentiate_angular_velocity(Quaternion next, Quate
     return quat_to_scaled_angle_axis(quat_abs(next * curr.inverse()), eps) / dt;
 }
 
-static void _spring_damper_exact(real_t& x, real_t& v, real_t x_goal, real_t v_goal, real_t damping_ratio, real_t halflife, real_t dt, real_t eps = 1e-5) {
-    real_t g = x_goal;
-    real_t q = v_goal;
-    real_t d = halflife_to_damping(halflife);
-    real_t s = damping_ratio_to_stiffness(damping_ratio, d);
-    real_t c = g + (d * q) / (s + eps);
-    real_t y = d / 2.0;
+// static void _spring_damper_exact(real_t& x, real_t& v, real_t x_goal, real_t v_goal, real_t damping_ratio, real_t halflife, real_t dt, real_t eps = 1e-5) {
+//     real_t g = x_goal;
+//     real_t q = v_goal;
+//     real_t d = halflife_to_damping(halflife);
+//     real_t s = damping_ratio_to_stiffness(damping_ratio, d);
+//     real_t c = g + (d * q) / (s + eps);
+//     real_t y = d / 2.0;
 
-    if (std::abs(s - (d * d) / 4.0) < eps) { // Critically Damped
-        real_t j0 = x - c;
-        real_t j1 = v + j0 * y;
-        real_t eydt = std::exp(-y * dt);
-        x = j0 * eydt + dt * j1 * eydt + c;
-        v = -y * j0 * eydt - y * dt * j1 * eydt + j1 * eydt;
-    } else if (s - (d * d) / 4.0 > 0.0) { // Under Damped
-        real_t w = std::sqrt(s - (d * d) / 4.0);
-        real_t j = std::sqrt(std::pow(v + y * (x - c), 2) / (std::pow(w, 2) + eps) + std::pow(x - c, 2));
-        real_t p = std::atan((v + (x - c) * y) / (-(x - c) * w + eps));
+//     if (std::abs(s - (d * d) / 4.0) < eps) { // Critically Damped
+//         real_t j0 = x - c;
+//         real_t j1 = v + j0 * y;
+//         real_t eydt = std::exp(-y * dt);
+//         x = j0 * eydt + dt * j1 * eydt + c;
+//         v = -y * j0 * eydt - y * dt * j1 * eydt + j1 * eydt;
+//     } else if (s - (d * d) / 4.0 > 0.0) { // Under Damped
+//         real_t w = std::sqrt(s - (d * d) / 4.0);
+//         real_t j = std::sqrt(std::pow(v + y * (x - c), 2) / (std::pow(w, 2) + eps) + std::pow(x - c, 2));
+//         real_t p = std::atan((v + (x - c) * y) / (-(x - c) * w + eps));
 
-        // j = (x - c) > 0.0 ? j : -j;
-        j = (x - c) > 0.0 ? j : -j;
+//         // j = (x - c) > 0.0 ? j : -j;
+//         j = (x - c) > 0.0 ? j : -j;
 
-        real_t eydt = std::exp(-y * dt);
+//         real_t eydt = std::exp(-y * dt);
 
-        x = j * eydt * std::cos(w * dt + p) + c;
-        v = -y * j * eydt * std::cos(w * dt + p) - w * j * eydt * std::sin(w * dt + p);
-    } else if (s - (d * d) / 4.0 < 0.0) { // Over Damped
-        real_t y0 = (d + std::sqrt(std::pow(d, 2) - 4.0 * s)) / 2.0;
-        real_t y1 = (d - std::sqrt(std::pow(d, 2) - 4.0 * s)) / 2.0;
-        real_t j1 = (c * y0 - x * y0 - v) / (y1 - y0);
-        real_t j0 = x - j1 - c;
+//         x = j * eydt * std::cos(w * dt + p) + c;
+//         v = -y * j * eydt * std::cos(w * dt + p) - w * j * eydt * std::sin(w * dt + p);
+//     } else if (s - (d * d) / 4.0 < 0.0) { // Over Damped
+//         real_t y0 = (d + std::sqrt(std::pow(d, 2) - 4.0 * s)) / 2.0;
+//         real_t y1 = (d - std::sqrt(std::pow(d, 2) - 4.0 * s)) / 2.0;
+//         real_t j1 = (c * y0 - x * y0 - v) / (y1 - y0);
+//         real_t j0 = x - j1 - c;
 
-        real_t ey0dt = std::exp(-y0 * dt);
-        real_t ey1dt = std::exp(-y1 * dt);
+//         real_t ey0dt = std::exp(-y0 * dt);
+//         real_t ey1dt = std::exp(-y1 * dt);
 
-        x = j0 * ey0dt + j1 * ey1dt + c;
-        v = -y0 * j0 * ey0dt - y1 * j1 * ey1dt;
-    }
-}
+//         x = j0 * ey0dt + j1 * ey1dt + c;
+//         v = -y0 * j0 * ey0dt - y1 * j1 * ey1dt;
+//     }
+// }
 
 static void _critical_spring_damper_exact(real_t& x, real_t& v, real_t x_goal, real_t v_goal, real_t halflife, real_t dt) {
     real_t g = x_goal;
@@ -328,38 +353,41 @@ static inline PackedFloat32Array timed_spring_damper_exact(real_t x, real_t v, r
     return result;
 }
 
-static Dictionary character_update(Vector3 pos, Vector3 vel, Vector3 acc, Quaternion quaternion, Vector3 angular_velocity, Vector3 v_goal, Quaternion q_goal, real_t halflife_vel, real_t halflife_rot, real_t dt) {
-    Dictionary answer;
-    {
-        real_t y = halflife_to_damping(halflife_vel) / 2.0;
-        Vector3 j0 = vel - v_goal;
-        Vector3 j1 = acc + j0 * y;
-        real_t eydt = fast_negexp(y * dt);
+// static Dictionary character_update(Vector3 pos, Vector3 vel, Vector3 acc, Quaternion quaternion, Vector3 angular_velocity, Vector3 v_goal, Quaternion q_goal, real_t halflife_vel, real_t halflife_rot, real_t dt) {
+//     Dictionary answer;
+//     {
+//         real_t y = halflife_to_damping(halflife_vel) / 2.0;
+//         Vector3 j0 = vel - v_goal;
+//         Vector3 j1 = acc + j0 * y;
+//         real_t eydt = fast_negexp(y * dt);
 
-        answer["world_position"] = eydt * ((-j1 / (y * y)) + ((-j0 - j1 * dt) / y)) + (j1 / (y * y)) + j0 / y + v_goal * dt + pos;
-        answer["velocity"] = eydt * (j0 + j1 * dt) + v_goal;
-        answer["acceleration"] = eydt * (acc - j1 * y * dt);
-    }
-    {
-        real_t y = halflife_to_damping(halflife_rot) / 2.0;
-        Vector3 j0 = (quaternion * q_goal.inverse()).get_euler();
-        Vector3 j1 = angular_velocity + j0 * y;
-        real_t eydt = fast_negexp(y * dt);
-        answer["quaternion"] = (Quaternion(eydt * (j0 + j1 * dt)) * q_goal).normalized();
-        answer["angular_velocity"] = eydt * (angular_velocity - j1 * y * dt);
-        answer["delta"] = dt;
-    }
-    return answer;
-}
+//         answer["world_position"] = eydt * ((-j1 / (y * y)) + ((-j0 - j1 * dt) / y)) + (j1 / (y * y)) + j0 / y + v_goal * dt + pos;
+//         answer["velocity"] = eydt * (j0 + j1 * dt) + v_goal;
+//         answer["acceleration"] = eydt * (acc - j1 * y * dt);
+//     }
+//     {
+//         real_t y = halflife_to_damping(halflife_rot) / 2.0;
+//         Vector3 j0 = (quaternion * q_goal.inverse()).get_euler();
+//         Vector3 j1 = angular_velocity + j0 * y;
+//         real_t eydt = fast_negexp(y * dt);
+//         Vector3 axis = (j0 + j1 * dt).normalized();
+//         real_t angle = (j0 + j1 * dt).length() * eydt;
+//         Quaternion rotation(axis, angle);
+//         answer["quaternion"] = (Quaternion(axis, angle) * q_goal).normalized();
+//         answer["angular_velocity"] = eydt * (angular_velocity - j1 * y * dt);
+//         answer["delta"] = dt;
+//     }
+//     return answer;
+// }
 
-static Dictionary character_predict(Vector3 x, Vector3 v, Vector3 a, Quaternion q, Vector3 angular_v, Vector3 v_goal, Quaternion q_goal, real_t halflife_v, real_t halflife_q, const PackedFloat32Array dts) {
-    Dictionary answer;
-    for (int i = 0; i < dts.size(); i++) {
-        real_t dt = dts[i];
-        answer[i] = character_update(x, v, a, q, angular_v, v_goal, q_goal, halflife_v, halflife_q, dt);
-    }
-    return answer;
-}
+// static Dictionary character_predict(Vector3 x, Vector3 v, Vector3 a, Quaternion q, Vector3 angular_v, Vector3 v_goal, Quaternion q_goal, real_t halflife_v, real_t halflife_q, const PackedFloat32Array dts) {
+//     Dictionary answer;
+//     for (int i = 0; i < dts.size(); i++) {
+//         real_t dt = dts[i];
+//         answer[i] = character_update(x, v, a, q, angular_v, v_goal, q_goal, halflife_v, halflife_q, dt);
+//     }
+//     return answer;
+// }
 
 static inline void inertialize_transition(Vector3& off_x, Vector3& off_v, const Vector3 src_x, const Vector3 src_v, const Vector3 dst_x, const Vector3 dst_v) {
     off_x = (src_x + off_x) - dst_x;
@@ -398,3 +426,5 @@ static inline Dictionary binded_inertia_transition(const Vector3 off_x, const Ve
     return result;
 }
 }; // namespace Spring
+
+#endif // SPRING_HPP

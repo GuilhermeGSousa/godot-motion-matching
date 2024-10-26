@@ -6,7 +6,7 @@ bin
 
 *.obj
 
-*.dll 
+*.dll
 *.exp
 *.lib
 *.ilk
@@ -27,3 +27,6 @@ compile_commands.json
 
 # Ignored demos
 demo_*/
+
+# Python
+__pycache__

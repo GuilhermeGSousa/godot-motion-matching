@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  common.h                                                              */
+/*  mm_editor.h                                                           */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,27 +28,51 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef MM_EDITOR_H
+#define MM_EDITOR_H
 
-#define GETSET(type, variable, ...)   \
-    type variable{__VA_ARGS__};       \
-    type get_##variable() const {     \
-        return variable;              \
-    }                                 \
-    void set_##variable(type value) { \
-        variable = value;             \
+#include "scene/3d/skeleton_3d.h"
+#include "scene/animation/animation_mixer.h"
+#include "scene/gui/control.h"
+#include "scene/gui/option_button.h"
+#include "scene/gui/slider.h"
+
+class MMAnimationLibrary;
+class MMCharacter;
+
+class MMEditor : public Control {
+    GDCLASS(MMEditor, Control)
+
+public:
+    MMEditor();
+
+    void set_character(MMCharacter* p_controller) {
+        const bool changed = p_controller != _current_controller;
+
+        _current_controller = p_controller;
+        if (changed) {
+            _refresh();
+        }
     }
 
-#define STR(x) #x
+protected:
+    static void _bind_methods();
 
-#define STRING_PREFIX(prefix, s) STR(prefix##s)
+private:
+    static void _bake_animation_libraries(const AnimationMixer* p_mixer, const Skeleton3D* p_skeleton);
+    void _refresh();
+    void _bake_button_pressed();
+    void _viz_anim_selected(int p_index);
+    void _viz_time_changed(float p_value);
+    void _emit_animation_viz_request(String p_animation_lib, String p_animation_name, int32_t p_pose_index);
+    MMCharacter* _current_controller;
+    String _current_animation_library_name;
+    String _current_animation_name;
 
-#define BINDER_PROPERTY_PARAMS(type, variant_type, variable, ...)                                  \
-    ClassDB::bind_method(D_METHOD(STRING_PREFIX(set_, variable), "value"), &type::set_##variable); \
-    ClassDB::bind_method(D_METHOD(STRING_PREFIX(get_, variable)), &type::get_##variable);          \
-    ClassDB::add_property(get_class_static(), PropertyInfo(variant_type, #variable, ##__VA_ARGS__), STRING_PREFIX(set_, variable), STRING_PREFIX(get_, variable));
+    // UI Elements
+    OptionButton* _viz_animation_option_button;
+    HSlider* _viz_time_slider;
 
-#define SMALL_NUMBER 1.e-8
-
-#endif // COMMON_H
+    int _selected_animation_index = -1;
+};
+#endif // MM_EDITOR_H
