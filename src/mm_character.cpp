@@ -448,6 +448,7 @@ void MMCharacter::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMCharacter, Variant::INT, history_point_count);
     BINDER_PROPERTY_PARAMS(MMCharacter, Variant::FLOAT, history_delta_time);
 }
+
 void MMCharacter::_notification(int p_what) {
     switch (p_what) {
     case NOTIFICATION_PHYSICS_PROCESS: {
@@ -472,6 +473,7 @@ void MMCharacter::_notification(int p_what) {
         _update_synchronizer(delta);
     } break;
     case NOTIFICATION_READY: {
+        set_physics_process(true);
 
         if (Engine::get_singleton()->is_editor_hint()) {
             return;
