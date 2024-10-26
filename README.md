@@ -4,6 +4,11 @@
 
 A motion matching implementation in Godot 4.3, implemented following [Dan Holden's article](https://www.theorangeduck.com/page/code-vs-data-driven-displacement). 
 
+:warning: **This repo is a work in progress!** :warning:
+
+### Demo
+The demo has now moved to a separate repository. You can find it [here!](https://github.com/GuilhermeGSousa/godot-motion-matching-demo).
+
 ### Wiki
 [You can find this repo's wiki here!](https://github.com/GuilhermeGSousa/godot-motion-matching/wiki)
 
