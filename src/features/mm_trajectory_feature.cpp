@@ -101,13 +101,13 @@ PackedFloat32Array MMTrajectoryFeature::bake_animation_pose(Ref<Animation> p_ani
 
     // We do not include the first frame
     for (int64_t i = 1; i < future_frames + 1; i++) {
-        const float future_time = CLAMP(time + future_delta_time * i, 0.0f, p_animation->get_length());
+        const double future_time = CLAMP(time + future_delta_time * i, 0.0f, p_animation->get_length());
 
         add_frame(future_time);
     }
 
     for (int64_t i = 1; i < past_frames + 1; i++) {
-        const float past_time = CLAMP(time - past_delta_time * i, 0.0f, p_animation->get_length());
+        const double past_time = CLAMP(time - past_delta_time * i, 0.0f, p_animation->get_length());
 
         add_frame(past_time);
     }
