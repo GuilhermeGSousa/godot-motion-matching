@@ -27,3 +27,6 @@ compile_commands.json
 
 # Ignored demos
 demo_*/
+
+# Python
+__pycache__
