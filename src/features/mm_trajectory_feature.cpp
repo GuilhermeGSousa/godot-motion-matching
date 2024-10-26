@@ -73,16 +73,16 @@ PackedFloat32Array MMTrajectoryFeature::bake_animation_pose(Ref<Animation> p_ani
     const Quaternion current_rotation =
         _root_rotation_track == -1 ? Quaternion() : p_animation->rotation_track_interpolate(_root_rotation_track, time);
 
-    auto add_frame = [this, &result, &p_animation, &current_pos, &current_rotation](double time) {
+    auto add_frame = [this, &result, &p_animation, &current_pos, &current_rotation](double p_time) {
         Vector3 position;
         Quaternion rotation;
         if (_root_position_track != -1) {
-            position = p_animation->position_track_interpolate(_root_position_track, time) - current_pos;
+            position = p_animation->position_track_interpolate(_root_position_track, p_time) - current_pos;
             position = current_rotation.xform_inv(position);
         }
 
         if (_root_rotation_track != -1) {
-            rotation = p_animation->rotation_track_interpolate(_root_rotation_track, time) * current_rotation.inverse();
+            rotation = p_animation->rotation_track_interpolate(_root_rotation_track, p_time) * current_rotation.inverse();
         }
 
         result.append(position.x);
