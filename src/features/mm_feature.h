@@ -32,10 +32,13 @@
 #define MM_FEATURE_H
 
 #include "core/io/resource.h"
-#include "editor/plugins/node_3d_editor_gizmos.h"
 #include "scene/3d/skeleton_3d.h"
 #include "scene/animation/animation_player.h"
 #include "scene/resources/animation.h"
+
+#ifdef TOOLS_ENABLED
+#include "editor/plugins/node_3d_editor_gizmos.h"
+#endif
 
 #include "common.h"
 #include "mm_query.h"

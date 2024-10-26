@@ -31,7 +31,10 @@
 #ifndef MM_ANIMATION_LIBRARY_H
 #define MM_ANIMATION_LIBRARY_H
 
+#ifdef TOOLS_ENABLED
 #include "editor/plugins/node_3d_editor_gizmos.h"
+#endif
+
 #include "scene/3d/skeleton_3d.h"
 #include "scene/resources/animation_library.h"
 

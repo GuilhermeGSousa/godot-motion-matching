@@ -31,12 +31,14 @@
 #include "mm_trajectory_feature.h"
 
 #include "math/transforms.h"
-
-#include "editor/plugins/node_3d_editor_gizmos.h"
 #include "scene/animation/animation_player.h"
 #include "scene/resources/3d/primitive_meshes.h"
 #include "scene/resources/material.h"
 #include "scene/resources/mesh.h"
+
+#ifdef TOOLS_ENABLED
+#include "editor/plugins/node_3d_editor_gizmos.h"
+#endif
 
 MMTrajectoryFeature::MMTrajectoryFeature() {
 }
