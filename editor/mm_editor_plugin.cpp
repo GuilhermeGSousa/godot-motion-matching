@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "editor/mm_editor_plugin.h"
+#include "mm_editor_plugin.h"
 
 #include "core/input/input_event.h"
 #include "editor/editor_data.h"

@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "editor/mm_editor.h"
+#include "mm_editor.h"
 
 #include "editor/editor_interface.h"
 #include "mm_animation_library.h"
