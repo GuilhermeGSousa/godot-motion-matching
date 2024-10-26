@@ -152,7 +152,7 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
     float cost = FLT_MAX;
     MMQueryOutput result;
 
-    for (size_t start_frame_index = 0; start_frame_index < motion_data.size(); start_frame_index += dim_count) {
+    for (int64_t start_frame_index = 0; start_frame_index < motion_data.size(); start_frame_index += dim_count) {
         int start_feature_index = start_frame_index;
         float frame_cost = 0.f;
         Dictionary feature_costs;
