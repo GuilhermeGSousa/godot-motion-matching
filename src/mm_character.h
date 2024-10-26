@@ -1,4 +1,35 @@
-#pragma once
+/**************************************************************************/
+/*  mm_character.h                                                        */
+/**************************************************************************/
+/*                         This file is part of:                          */
+/*                             GODOT ENGINE                               */
+/*                        https://godotengine.org                         */
+/**************************************************************************/
+/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
+/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
+/*                                                                        */
+/* Permission is hereby granted, free of charge, to any person obtaining  */
+/* a copy of this software and associated documentation files (the        */
+/* "Software"), to deal in the Software without restriction, including    */
+/* without limitation the rights to use, copy, modify, merge, publish,    */
+/* distribute, sublicense, and/or sell copies of the Software, and to     */
+/* permit persons to whom the Software is furnished to do so, subject to  */
+/* the following conditions:                                              */
+/*                                                                        */
+/* The above copyright notice and this permission notice shall be         */
+/* included in all copies or substantial portions of the Software.        */
+/*                                                                        */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
+/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
+/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
+/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
+/**************************************************************************/
+
+#ifndef MM_CHARACTER_H
+#define MM_CHARACTER_H
 
 #include "circular_buffer.h"
 #include "common.h"
@@ -7,25 +38,39 @@
 #include "mm_trajectory_point.h"
 #include "synchronizers/mm_synchronizer.h"
 
-#include <godot_cpp/classes/animation_player.hpp>
-#include <godot_cpp/classes/character_body3d.hpp>
-#include <godot_cpp/classes/input_event.hpp>
-#include <godot_cpp/classes/skeleton3d.hpp>
-#include <godot_cpp/variant/array.hpp>
-#include <godot_cpp/variant/variant.hpp>
-
-using namespace godot;
+#include "core/input/input_event.h"
+#include "scene/3d/physics/character_body_3d.h"
+#include "scene/3d/skeleton_3d.h"
+#include "scene/animation/animation_player.h"
 
 class MMCharacter : public CharacterBody3D {
     GDCLASS(MMCharacter, CharacterBody3D)
+
+private:
+    // Controller
+    Vector3 _spring_acceleration;
+
+    // Trajectory
+    std::vector<MMTrajectoryPoint> _trajectory;
+    std::vector<MMTrajectoryPoint> _trajectory_history;
+    CircularBuffer<MMTrajectoryPoint> _history_buffer{HISTORY_BUFFER_SIZE};
+
+    // Motion Matching
+    Skeleton3D* _skeleton{nullptr};
+    AnimationPlayer* _animation_player{nullptr};
+    float _time_since_last_query{0.f};
+    bool _force_transition{false};
+    MMQueryOutput _last_query_output;
+
+    // Skeleton State
+    SkeletonState _skeleton_state;
+    int32_t _root_bone_idx{-1};
+
 public:
     MMCharacter();
     virtual ~MMCharacter();
 
 public:
-    virtual void _ready() override;
-    virtual void _physics_process(double delta) override;
-
     MMQueryOutput query(const MMQueryInput& p_query_input);
 
     const std::vector<MMTrajectoryPoint>& get_trajectory() const {
@@ -39,10 +84,10 @@ public:
     TypedArray<Dictionary> get_skeleton_state() const {
         TypedArray<Dictionary> result;
         for (const BoneState& state : _skeleton_state.bone_states) {
-            Dictionary data;
-            data.get_or_add("position", state.pos);
-            data.get_or_add("velocity", state.vel);
-            result.push_back(data);
+            Dictionary character_data;
+            character_data.get_or_add("position", state.pos);
+            character_data.get_or_add("velocity", state.vel);
+            result.push_back(character_data);
         }
         return result;
     }
@@ -51,19 +96,19 @@ public:
         return trajectory_to_dict(_trajectory);
     }
 
-    TypedArray<Dictionary> get_previous_trajectory_typed_array() const {
+    TypedArray<Dictionary> get_trajectory_history_typed_array() const {
         return trajectory_to_dict(_trajectory_history);
     }
 
     TypedArray<Dictionary> trajectory_to_dict(const std::vector<MMTrajectoryPoint>& p_trajectory) const {
         TypedArray<Dictionary> result;
         for (const MMTrajectoryPoint& point : p_trajectory) {
-            Dictionary data;
-            data.get_or_add("position", point.position);
-            data.get_or_add("velocity", point.velocity);
-            data.get_or_add("facing", point.facing_angle);
-            data.get_or_add("on_floor", point.collision_state.on_floor);
-            result.push_back(data);
+            Dictionary trajectory_data;
+            trajectory_data.get_or_add("position", point.position);
+            trajectory_data.get_or_add("velocity", point.velocity);
+            trajectory_data.get_or_add("facing", point.facing_angle);
+            trajectory_data.get_or_add("on_floor", point.collision_state.on_floor);
+            result.push_back(trajectory_data);
         }
         return result;
     }
@@ -94,6 +139,9 @@ protected:
     static constexpr size_t HISTORY_BUFFER_SIZE{100}; // Around 1.6s
     static void _bind_methods();
 
+public:
+    void _notification(int p_what);
+
 private:
     void _update_character(float delta_t);
 
@@ -121,24 +169,6 @@ private:
     void _update_skeleton_state(double delta_t);
 
     static Dictionary _output_to_dict(const MMQueryOutput& output);
-
-private:
-    // Controller
-    Vector3 _spring_acceleration;
-
-    // Trajectory
-    std::vector<MMTrajectoryPoint> _trajectory;
-    std::vector<MMTrajectoryPoint> _trajectory_history;
-    CircularBuffer<MMTrajectoryPoint> _history_buffer{HISTORY_BUFFER_SIZE};
-
-    // Motion Matching
-    Skeleton3D* _skeleton{nullptr};
-    AnimationPlayer* _animation_player{nullptr};
-    float _time_since_last_query{0.f};
-    bool _force_transition{false};
-    MMQueryOutput _last_query_output;
-
-    // Skeleton State
-    SkeletonState _skeleton_state;
-    int32_t _root_bone_idx{-1};
 };
+
+#endif // MM_CHARACTER_H

@@ -1,13 +1,44 @@
-#include "editor/mm_editor.h"
+/**************************************************************************/
+/*  mm_editor.cpp                                                         */
+/**************************************************************************/
+/*                         This file is part of:                          */
+/*                             GODOT ENGINE                               */
+/*                        https://godotengine.org                         */
+/**************************************************************************/
+/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
+/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
+/*                                                                        */
+/* Permission is hereby granted, free of charge, to any person obtaining  */
+/* a copy of this software and associated documentation files (the        */
+/* "Software"), to deal in the Software without restriction, including    */
+/* without limitation the rights to use, copy, modify, merge, publish,    */
+/* distribute, sublicense, and/or sell copies of the Software, and to     */
+/* permit persons to whom the Software is furnished to do so, subject to  */
+/* the following conditions:                                              */
+/*                                                                        */
+/* The above copyright notice and this permission notice shall be         */
+/* included in all copies or substantial portions of the Software.        */
+/*                                                                        */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
+/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
+/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
+/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
+/**************************************************************************/
 
+#include "mm_editor.h"
+
+#include "editor/editor_interface.h"
 #include "mm_animation_library.h"
 #include "mm_character.h"
 #include "mm_editor.h"
 
-#include <godot_cpp/classes/button.hpp>
-#include <godot_cpp/classes/tab_bar.hpp>
-#include <godot_cpp/classes/tab_container.hpp>
-#include <godot_cpp/classes/v_box_container.hpp>
+#include "scene/gui/box_container.h"
+#include "scene/gui/button.h"
+#include "scene/gui/tab_bar.h"
+#include "scene/gui/tab_container.h"
 
 MMEditor::MMEditor() {
     TabContainer* tab_container = memnew(TabContainer);
@@ -64,10 +95,11 @@ void MMEditor::_bind_methods() {
 
 void MMEditor::_bake_animation_libraries(const AnimationMixer* p_mixer, const Skeleton3D* p_skeleton) {
 
-    TypedArray<StringName> animation_libraries = p_mixer->get_animation_library_list();
+    List<StringName> animation_libraries;
+    p_mixer->get_animation_library_list(&animation_libraries);
 
     for (int i = 0; i < animation_libraries.size(); i++) {
-        const StringName& anim_lib_name = animation_libraries[i];
+        const StringName& anim_lib_name = animation_libraries.get(i);
         Ref<MMAnimationLibrary> anim_lib = p_mixer->get_animation_library(anim_lib_name);
 
         if (anim_lib.is_null()) {
@@ -92,11 +124,11 @@ void MMEditor::_refresh() {
     if (!animation_player) {
         return;
     }
-
-    Array animations = animation_player->get_animation_list();
+    List<StringName> animations;
+    animation_player->get_animation_list(&animations);
     _viz_animation_option_button->clear();
     for (int i = 0; i < animations.size(); i++) {
-        String animation_name = animations[i];
+        String animation_name = animations.get(i);
         _viz_animation_option_button->add_item(animation_name, i);
     }
 }
@@ -126,13 +158,14 @@ void MMEditor::_viz_anim_selected(int p_index) {
     if (!animation_mixer) {
         return;
     }
-
-    String animation_name = animation_mixer->get_animation_list()[p_index];
+    List<StringName> animations_list;
+    animation_mixer->get_animation_list(&animations_list);
+    String animation_name = animations_list.get(p_index);
 
     PackedStringArray split_anim_name = animation_name.split("/");
     String anim_lib_name = split_anim_name[0];
     String anim_name = split_anim_name[1];
-    UtilityFunctions::print("Selected animation: " + anim_lib_name);
+    print_line("Selected animation: " + anim_lib_name);
     Ref<MMAnimationLibrary> anim_lib = animation_mixer->get_animation_library(anim_lib_name);
 
     if (anim_lib.is_null()) {

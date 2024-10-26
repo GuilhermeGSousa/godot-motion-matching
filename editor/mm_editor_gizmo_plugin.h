@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  common.h                                                              */
+/*  mm_editor_gizmo_plugin.h                                              */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,27 +28,33 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef MM_EDITOR_GIZMO_PLUGIN_H
+#define MM_EDITOR_GIZMO_PLUGIN_H
 
-#define GETSET(type, variable, ...)   \
-    type variable{__VA_ARGS__};       \
-    type get_##variable() const {     \
-        return variable;              \
-    }                                 \
-    void set_##variable(type value) { \
-        variable = value;             \
+#include "editor/plugins/node_3d_editor_gizmos.h"
+#include "scene/3d/node_3d.h"
+
+class MMEditorGizmoPlugin : public EditorNode3DGizmoPlugin {
+    GDCLASS(MMEditorGizmoPlugin, EditorNode3DGizmoPlugin)
+
+public:
+    MMEditorGizmoPlugin();
+
+    virtual bool has_gizmo(Node3D* p_spatial) override;
+    virtual String get_gizmo_name() const override;
+    virtual void redraw(EditorNode3DGizmo* p_gizmo) override;
+    virtual int32_t get_priority() const override {
+        return -1;
     }
 
-#define STR(x) #x
+    void on_anim_viz_requested(String p_animation_lib, String p_animation_name, int32_t p_pose_index);
 
-#define STRING_PREFIX(prefix, s) STR(prefix##s)
+protected:
+    static void _bind_methods();
 
-#define BINDER_PROPERTY_PARAMS(type, variant_type, variable, ...)                                  \
-    ClassDB::bind_method(D_METHOD(STRING_PREFIX(set_, variable), "value"), &type::set_##variable); \
-    ClassDB::bind_method(D_METHOD(STRING_PREFIX(get_, variable)), &type::get_##variable);          \
-    ClassDB::add_property(get_class_static(), PropertyInfo(variant_type, #variable, ##__VA_ARGS__), STRING_PREFIX(set_, variable), STRING_PREFIX(get_, variable));
-
-#define SMALL_NUMBER 1.e-8
-
-#endif // COMMON_H
+private:
+    String _animation_lib;
+    String _animation_name;
+    int32_t _pose_index;
+};
+#endif // MM_EDITOR_GIZMO_PLUGIN_H
