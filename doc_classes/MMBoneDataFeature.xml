@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="MMBoneDataFeature" inherits="MMFeature" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="bone_names" type="PackedStringArray" setter="set_bone_names" getter="get_bone_names" default="PackedStringArray()">
+		</member>
+	</members>
+</class>

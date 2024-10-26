@@ -1,12 +1,45 @@
+/**************************************************************************/
+/*  mm_trajectory_feature.cpp                                             */
+/**************************************************************************/
+/*                         This file is part of:                          */
+/*                             GODOT ENGINE                               */
+/*                        https://godotengine.org                         */
+/**************************************************************************/
+/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
+/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
+/*                                                                        */
+/* Permission is hereby granted, free of charge, to any person obtaining  */
+/* a copy of this software and associated documentation files (the        */
+/* "Software"), to deal in the Software without restriction, including    */
+/* without limitation the rights to use, copy, modify, merge, publish,    */
+/* distribute, sublicense, and/or sell copies of the Software, and to     */
+/* permit persons to whom the Software is furnished to do so, subject to  */
+/* the following conditions:                                              */
+/*                                                                        */
+/* The above copyright notice and this permission notice shall be         */
+/* included in all copies or substantial portions of the Software.        */
+/*                                                                        */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
+/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
+/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
+/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
+/**************************************************************************/
+
 #include "mm_trajectory_feature.h"
 
 #include "math/transforms.h"
+#include "scene/animation/animation_player.h"
+#include "scene/resources/3d/primitive_meshes.h"
+#include "scene/resources/material.h"
+#include "scene/resources/mesh.h"
+#include <cstdint>
 
-#include <godot_cpp/classes/animation_player.hpp>
-#include <godot_cpp/classes/editor_node3d_gizmo_plugin.hpp>
-#include <godot_cpp/classes/point_mesh.hpp>
-#include <godot_cpp/classes/sphere_mesh.hpp>
-#include <godot_cpp/classes/standard_material3d.hpp>
+#ifdef TOOLS_ENABLED
+#include "editor/plugins/node_3d_editor_gizmos.h"
+#endif
 
 MMTrajectoryFeature::MMTrajectoryFeature() {
 }
@@ -14,7 +47,7 @@ MMTrajectoryFeature::MMTrajectoryFeature() {
 MMTrajectoryFeature::~MMTrajectoryFeature() {
 }
 
-uint32_t MMTrajectoryFeature::get_dimension_count() const {
+int64_t MMTrajectoryFeature::get_dimension_count() const {
     return _get_point_dimension_count() * (past_frames + future_frames);
 }
 
@@ -23,7 +56,7 @@ void MMTrajectoryFeature::setup_skeleton(const AnimationMixer* p_player, const S
     const StringName root_bone_name = p_player->get_root_motion_track().get_concatenated_subnames();
     _root_bone = p_skeleton->find_bone(root_bone_name);
 
-    _root_bone_path = UtilityFunctions::str(skel_path) + ":" + UtilityFunctions::str(root_bone_name);
+    _root_bone_path = String(skel_path) + ":" + String(root_bone_name);
 }
 
 void MMTrajectoryFeature::setup_for_animation(Ref<Animation> animation) {
@@ -31,7 +64,7 @@ void MMTrajectoryFeature::setup_for_animation(Ref<Animation> animation) {
     _root_rotation_track = animation->find_track(_root_bone_path, Animation::TrackType::TYPE_ROTATION_3D);
 }
 
-PackedFloat32Array MMTrajectoryFeature::bake_animation_pose(Ref<Animation> p_animation, float time) const {
+PackedFloat32Array MMTrajectoryFeature::bake_animation_pose(Ref<Animation> p_animation, double time) const {
     PackedFloat32Array result;
 
     const Vector3 current_pos =
@@ -40,16 +73,16 @@ PackedFloat32Array MMTrajectoryFeature::bake_animation_pose(Ref<Animation> p_ani
     const Quaternion current_rotation =
         _root_rotation_track == -1 ? Quaternion() : p_animation->rotation_track_interpolate(_root_rotation_track, time);
 
-    auto add_frame = [this, &result, &p_animation, &current_pos, &current_rotation](float time) {
+    auto add_frame = [this, &result, &p_animation, &current_pos, &current_rotation](double p_time) {
         Vector3 position;
         Quaternion rotation;
         if (_root_position_track != -1) {
-            position = p_animation->position_track_interpolate(_root_position_track, time) - current_pos;
+            position = p_animation->position_track_interpolate(_root_position_track, p_time) - current_pos;
             position = current_rotation.xform_inv(position);
         }
 
         if (_root_rotation_track != -1) {
-            rotation = p_animation->rotation_track_interpolate(_root_rotation_track, time) * current_rotation.inverse();
+            rotation = p_animation->rotation_track_interpolate(_root_rotation_track, p_time) * current_rotation.inverse();
         }
 
         result.append(position.x);
@@ -67,14 +100,14 @@ PackedFloat32Array MMTrajectoryFeature::bake_animation_pose(Ref<Animation> p_ani
     };
 
     // We do not include the first frame
-    for (size_t i = 1; i < future_frames + 1; i++) {
-        const float future_time = UtilityFunctions::clampf(time + future_delta_time * i, 0.0f, p_animation->get_length());
+    for (int64_t i = 1; i < future_frames + 1; i++) {
+        const double future_time = CLAMP(time + future_delta_time * i, 0.0f, p_animation->get_length());
 
         add_frame(future_time);
     }
 
-    for (size_t i = 1; i < past_frames + 1; i++) {
-        const float past_time = UtilityFunctions::clampf(time - past_delta_time * i, 0.0f, p_animation->get_length());
+    for (int64_t i = 1; i < past_frames + 1; i++) {
+        const double past_time = CLAMP(time - past_delta_time * i, 0.0f, p_animation->get_length());
 
         add_frame(past_time);
     }
@@ -96,24 +129,24 @@ PackedFloat32Array MMTrajectoryFeature::evaluate_runtime_data(const MMQueryInput
         }
         result.append(local_position.z);
         if (include_facing) {
-            const float facing = trajectory_point.facing_angle;
             result.append(global_to_local_facing_angle(trajectory_point.facing_angle, character_transform));
         }
     };
 
     // The first point of the trajectory represents the player's current state
     // We do not match the first point of the trajectory (character position)
-    for (int i = 1; i < future_frames + 1; i++) {
+    for (int64_t i = 1; i < future_frames + 1; i++) {
         add_point(i, p_query_input.trajectory[i]);
     }
 
-    for (size_t i = 0; i < past_frames; i++) {
+    for (int64_t i = 0; i < past_frames; i++) {
         add_point(i, p_query_input.trajectory_history[i]);
     }
 
     return result;
 }
 
+#ifdef TOOLS_ENABLED
 void MMTrajectoryFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, const Transform3D p_transform, const float* p_data) const {
 
     Ref<StandardMaterial3D> material = p_gizmo->get_plugin()->get_material("main", p_gizmo);
@@ -126,7 +159,7 @@ void MMTrajectoryFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, co
     memcpy(dernomalized_data, p_data, sizeof(float) * get_dimension_count());
     denormalize(dernomalized_data);
 
-    size_t i = 0;
+    int64_t i = 0;
     for (; i < future_frames * _get_point_dimension_count(); i += _get_point_dimension_count()) {
         Ref<SphereMesh> sphere_mesh;
         sphere_mesh.instantiate();
@@ -161,6 +194,7 @@ void MMTrajectoryFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, co
 
     delete[] dernomalized_data;
 }
+#endif
 
 TypedArray<Dictionary> MMTrajectoryFeature::get_trajectory_points(const Transform3D& p_character_transform, const PackedFloat32Array& p_trajectory_data) const {
     PackedFloat32Array denormalized_data = PackedFloat32Array(p_trajectory_data);
@@ -174,7 +208,7 @@ TypedArray<Dictionary> MMTrajectoryFeature::get_trajectory_points(const Transfor
         point.position = p_character_transform.xform(point.position);
 
         if (include_facing) {
-            const float local_facing_angle = denormalized_data[i + (include_height ? 3 : 2)];
+            // const float local_facing_angle = denormalized_data[i + (include_height ? 3 : 2)];
             point.facing_angle = 0.0; // TODO
         }
 

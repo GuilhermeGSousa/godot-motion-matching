@@ -5,7 +5,7 @@ on: [pull_request]
 env:
   LIBNAME: godot-motion-matching
 
-concurrency: 
+concurrency:
   group: ci-${{github.actor}}-${{github.head_ref || github.run_number}}-${{github.ref}}-macos
   cancel-in-progress: true
 
