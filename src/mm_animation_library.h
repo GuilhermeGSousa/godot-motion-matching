@@ -43,7 +43,6 @@
 #include "mm_query.h"
 
 class MMFeature;
-class MMAnimationPlayer;
 
 class MMAnimationLibrary : public AnimationLibrary {
     GDCLASS(MMAnimationLibrary, AnimationLibrary)

@@ -31,6 +31,7 @@
 #ifndef MM_EDITOR_PLUGIN_H
 #define MM_EDITOR_PLUGIN_H
 
+#include "core/os/memory.h"
 #include "mm_character.h"
 #include "mm_editor.h"
 #include "mm_editor_gizmo_plugin.h"
@@ -38,6 +39,7 @@
 #include "core/input/input_event.h"
 #include "core/object/ref_counted.h"
 #include "editor/plugins/editor_plugin.h"
+#include "modules/motion_matching/src/mm_character.h"
 #include "scene/gui/button.h"
 
 class MMEditorPlugin : public EditorPlugin {
@@ -45,11 +47,13 @@ class MMEditorPlugin : public EditorPlugin {
 
 public:
     MMEditorPlugin();
+    ~MMEditorPlugin();
 
     virtual void input(const Ref<InputEvent>& p_event) override;
+    virtual void make_visible(bool p_visible) override;
+    virtual bool handles(Object* p_node) const override;
 
 private:
-    void _notification(int p_what);
     void _update_visibility();
 
     static void _bind_methods();
@@ -57,7 +61,7 @@ private:
     Ref<MMEditorGizmoPlugin> _gizmo_plugin;
 
     MMEditor* _editor;
-    Button* _bottom_pannel_button;
+    Button* _bottom_panel_button;
     MMCharacter* _current_controller;
 };
 

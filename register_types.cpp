@@ -52,16 +52,6 @@
 #include "mm_trajectory_point.h"
 
 void initialize_motion_matching_module(ModuleInitializationLevel p_level) {
-#ifdef TOOLS_ENABLED
-    if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
-        ClassDB::register_internal_class<MMEditorGizmoPlugin>();
-        ClassDB::register_internal_class<MMEditor>();
-        ClassDB::register_internal_class<MMEditorPlugin>();
-
-        EditorPlugins::add_by_type<MMEditorPlugin>();
-    }
-#endif
-
     if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
         ClassDB::register_abstract_class<MMFeature>();
         ClassDB::register_class<MMTrajectoryFeature>();
@@ -72,11 +62,16 @@ void initialize_motion_matching_module(ModuleInitializationLevel p_level) {
         ClassDB::register_class<MMCharacter>();
 
         ClassDB::register_class<DampedSkeletonModifier>();
-
         ClassDB::register_abstract_class<MMSynchronizer>();
         ClassDB::register_class<MMClampSynchronizer>();
         ClassDB::register_class<MMRootMotionSynchronizer>();
     }
+#ifdef TOOLS_ENABLED
+    if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
+        GDREGISTER_CLASS(MMEditor);
+        EditorPlugins::add_by_type<MMEditorPlugin>();
+    }
+#endif
 }
 
 void uninitialize_motion_matching_module(ModuleInitializationLevel p_level) {

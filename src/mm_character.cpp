@@ -420,11 +420,13 @@ Dictionary MMCharacter::_output_to_dict(const MMQueryOutput& output) {
 }
 
 AnimationMixer* MMCharacter::get_animation_mixer() const {
-    return cast_to<AnimationMixer>(get_node_or_null(animation_player_path));
+    Node* current_node = get_node(animation_player_path);
+    return cast_to<AnimationMixer>(current_node);
 }
 
 Skeleton3D* MMCharacter::get_skeleton() const {
-    return cast_to<Skeleton3D>(get_node_or_null(skeleton_path));
+    Node* current_skeleton = get_node(skeleton_path);
+    return cast_to<Skeleton3D>(current_skeleton);
 }
 
 void MMCharacter::_bind_methods() {

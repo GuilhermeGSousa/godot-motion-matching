@@ -81,6 +81,7 @@ void MMEditorGizmoPlugin::on_anim_viz_requested(String p_animation_lib, String p
     _animation_name = p_animation_name;
     _pose_index = p_pose_index;
 }
+
 void MMEditorGizmoPlugin::_bind_methods() {
     ClassDB::bind_method(D_METHOD("on_anim_viz_requested", "animation_lib", "animation_name", "pose_index"), &MMEditorGizmoPlugin::on_anim_viz_requested);
 }
