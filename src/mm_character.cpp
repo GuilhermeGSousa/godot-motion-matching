@@ -32,6 +32,7 @@
 
 #include "math/spring.hpp"
 #include "mm_animation_library.h"
+#include <cstdint>
 
 constexpr float QUERY_TIME_ERROR = 0.05;
 
@@ -178,7 +179,7 @@ void MMCharacter::_generate_trajectory(float delta_time) {
 void MMCharacter::_update_history(double delta_t) {
     if (!_history_buffer.is_empty()) {
         float time_in_past = 0.f;
-        int current_index = 0;
+        uint32_t current_index = 0;
         for (int i = _history_buffer.size() - 1; i >= 0; --i) {
             if (time_in_past >= history_delta_time) {
                 _trajectory_history[current_index] = _history_buffer[i];

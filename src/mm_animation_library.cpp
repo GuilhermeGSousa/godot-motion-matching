@@ -46,7 +46,7 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
     db_anim_index.clear();
     db_time_index.clear();
 
-    size_t dim_count = 0;
+    int64_t dim_count = 0;
     for (auto i = 0; i < features.size(); ++i) {
         MMFeature* f = Object::cast_to<MMFeature>(features[i]);
         dim_count += f->get_dimension_count();
@@ -61,12 +61,12 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
 
     PackedFloat32Array data;
     // For every animation
-    for (size_t anim_index = 0; anim_index < animation_list.size(); anim_index++) {
-        const StringName& anim_name = animation_list.get(anim_index);
+    for (int64_t animation_index = 0; animation_index < animation_list.size(); animation_index++) {
+        const StringName& anim_name = animation_list.get(animation_index);
         Ref<Animation> animation = get_animation(anim_name);
 
         // Initialize features
-        for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
+        for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
             MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
             stats[feature_index].resize(feature->get_dimension_count());
             feature->setup_for_animation(animation);
@@ -78,14 +78,14 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
         for (float time = 0; time < animation_length; time += time_step) {
             PackedFloat32Array pose_data;
             // For every feature
-            for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
+            for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
                 const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
                 const PackedFloat32Array feature_data = feature->bake_animation_pose(animation, time);
 
                 ERR_FAIL_COND(feature_data.size() != feature->get_dimension_count());
 
                 // Update stats
-                for (int feature_element_index = 0; feature_element_index < feature_data.size(); feature_element_index++) {
+                for (int64_t feature_element_index = 0; feature_element_index < feature_data.size(); feature_element_index++) {
                     stats[feature_index][feature_element_index].add_sample(feature_data[feature_element_index]);
                 }
 
@@ -96,13 +96,13 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
 
             // Update dataset
             data.append_array(pose_data);
-            db_anim_index.push_back(anim_index);
+            db_anim_index.push_back(animation_index);
             db_time_index.push_back(time);
         }
     }
 
     // Compute mean and standard deviation
-    for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
+    for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
         MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
 
         PackedFloat32Array feature_means;
@@ -114,7 +114,7 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
         PackedFloat32Array feature_maxes;
         feature_maxes.resize(feature->get_dimension_count());
 
-        for (size_t feature_element_index = 0; feature_element_index < feature->get_dimension_count(); feature_element_index++) {
+        for (uint32_t feature_element_index = 0; feature_element_index < feature->get_dimension_count(); feature_element_index++) {
             feature_means.set(feature_element_index, stats[feature_index][feature_element_index].get_mean());
             feature_std_devs.set(feature_element_index, stats[feature_index][feature_element_index].get_standard_deviation());
             feature_mins.set(feature_element_index, stats[feature_index][feature_element_index].get_min());
