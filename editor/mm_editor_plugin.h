@@ -31,9 +31,9 @@
 #ifndef MM_EDITOR_PLUGIN_H
 #define MM_EDITOR_PLUGIN_H
 
+#include "mm_character.h"
 #include "mm_editor.h"
 #include "mm_editor_gizmo_plugin.h"
-#include "mm_character.h"
 
 #include "core/input/input_event.h"
 #include "core/object/ref_counted.h"
