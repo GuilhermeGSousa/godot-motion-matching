@@ -2,7 +2,7 @@
 
 ![](https://github.com/GuilhermeGSousa/godot-motion-matching/blob/master/motion_matching_demo.gif)
 
-A motion matching implementation in Godot 4.3, implemented following [Dan Holden's article](https://www.theorangeduck.com/page/code-vs-data-driven-displacement). 
+A motion matching implementation in Godot 4.3, implemented following [Dan Holden's article](https://www.theorangeduck.com/page/code-vs-data-driven-displacement).
 
 :warning: **This repo is a work in progress!** :warning:
 

@@ -37,6 +37,10 @@ MMFeature::~MMFeature() {
 }
 
 void MMFeature::normalize(float* p_data) const {
+    if (!p_data) {
+        ERR_PRINT_ONCE("Invalid data provided in normalize.");
+        return;
+    }
     switch (normalization_mode) {
     case Standard:
         _normalize_standard(p_data);
@@ -51,7 +55,10 @@ void MMFeature::normalize(float* p_data) const {
 }
 
 void MMFeature::denormalize(float* p_data) const {
-
+    if (!p_data) {
+        ERR_PRINT_ONCE("Invalid data provided in denormalize.");
+        return;
+    }
     switch (normalization_mode) {
     case Standard:
         _denormalize_standard(p_data);
@@ -75,18 +82,30 @@ float MMFeature::compute_cost(const float* p_motion_data, const float* p_query_d
 }
 
 void MMFeature::_normalize_minmax(float* p_data) const {
+    if (!p_data) {
+        ERR_PRINT_ONCE("Invalid data provided in _normalize_minmax.");
+        return;
+    }
     for (int64_t i = 0; i < get_dimension_count(); ++i) {
         p_data[i] = (p_data[i] - mins[i]) / (maxes[i] - mins[i]);
     }
 }
 
 void MMFeature::_denormalize_minmax(float* p_data) const {
+    if (!p_data) {
+        ERR_PRINT_ONCE("Invalid data provided in _denormalize_minmax.");
+        return;
+    }
     for (int64_t i = 0; i < get_dimension_count(); ++i) {
         p_data[i] = (p_data[i] * (maxes[i] - mins[i])) + mins[i];
     }
 }
 
 void MMFeature::_normalize_standard(float* p_data) const {
+    if (!p_data) {
+        ERR_PRINT_ONCE("Invalid data provided in _normalize_standard.");
+        return;
+    }
     for (int64_t i = 0; i < get_dimension_count(); ++i) {
         if (std_devs[i] < SMALL_NUMBER) {
             continue;
@@ -96,6 +115,10 @@ void MMFeature::_normalize_standard(float* p_data) const {
 }
 
 void MMFeature::_denormalize_standard(float* p_data) const {
+    if (!p_data) {
+        ERR_PRINT_ONCE("Invalid data provided in _denormalize_standard.");
+        return;
+    }
     for (int64_t i = 0; i < get_dimension_count(); ++i) {
         if (std_devs[i] < SMALL_NUMBER) {
             continue;
@@ -106,9 +129,7 @@ void MMFeature::_denormalize_standard(float* p_data) const {
 
 void MMFeature::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_dimension_count"), &MMFeature::get_dimension_count);
-
     ClassDB::bind_method(D_METHOD("set_normalization_mode", "value"), &MMFeature::set_normalization_mode, DEFVAL(MMFeature::NormalizationMode::Standard));
-
     ClassDB::bind_method(D_METHOD("get_normalization_mode"), &MMFeature::get_normalization_mode);
     ADD_PROPERTY(PropertyInfo(Variant::INT, "normalization_mode", PROPERTY_HINT_ENUM, "Raw,Standard,MinMax", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_ALWAYS_DUPLICATE), "set_normalization_mode", "get_normalization_mode");
 
