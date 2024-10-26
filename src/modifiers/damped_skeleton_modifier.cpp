@@ -39,8 +39,10 @@ void DampedSkeletonModifier::_process_modification() {
     }
 
     Skeleton3D* skeleton = get_skeleton();
-    const float delta =
-        skeleton->get_modifier_callback_mode_process() == Skeleton3D::ModifierCallbackModeProcess::MODIFIER_CALLBACK_MODE_PROCESS_IDLE ? get_process_delta_time() : get_physics_process_delta_time();
+    if (!skeleton) {
+        return;
+    }
+    const float delta = skeleton->get_modifier_callback_mode_process() == Skeleton3D::ModifierCallbackModeProcess::MODIFIER_CALLBACK_MODE_PROCESS_IDLE ? get_process_delta_time() : get_physics_process_delta_time();
 
     for (auto bone_id = 0; bone_id < skeleton->get_bone_count(); ++bone_id) {
 
