@@ -141,7 +141,7 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
 
     int32_t dim_count = 0;
     PackedFloat32Array query_vector = PackedFloat32Array();
-    for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
+    for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
         const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
         PackedFloat32Array feature_data = feature->evaluate_runtime_data(p_query_input);
         feature->normalize(feature_data.ptrw());
@@ -156,7 +156,7 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
         int start_feature_index = start_frame_index;
         float frame_cost = 0.f;
         Dictionary feature_costs;
-        for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
+        for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
             const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
 
             const float feature_cost = feature->compute_cost(
@@ -223,7 +223,7 @@ void MMAnimationLibrary::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, con
     }
 
     int32_t frame_index = start_frame_index + p_pose_index * dim_count;
-    for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
+    for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
         const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
         const float* frame_motion_data = motion_data.ptr() + frame_index;
         feature->display_data(p_gizmo, p_transform, frame_motion_data);
@@ -235,10 +235,10 @@ void MMAnimationLibrary::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, con
 void MMAnimationLibrary::_normalize_data(PackedFloat32Array& p_data, size_t p_dim_count) const {
     ERR_FAIL_COND(p_data.size() % p_dim_count != 0);
 
-    for (size_t frame_index = 0; frame_index < p_data.size(); frame_index += p_dim_count) {
+    for (int64_t frame_index = 0; frame_index < p_data.size(); frame_index += p_dim_count) {
 
         int dim_index = 0;
-        for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
+        for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
             const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
             feature->normalize(p_data.ptrw() + frame_index + dim_index);
             dim_index += feature->get_dimension_count();
