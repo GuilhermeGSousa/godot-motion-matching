@@ -197,6 +197,8 @@ void MMTrajectoryFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, co
 #endif
 
 TypedArray<Dictionary> MMTrajectoryFeature::get_trajectory_points(const Transform3D& p_character_transform, const PackedFloat32Array& p_trajectory_data) const {
+    ERR_FAIL_COND_V(p_trajectory_data.is_empty(), TypedArray<Dictionary>());
+
     PackedFloat32Array denormalized_data = PackedFloat32Array(p_trajectory_data);
     denormalize(denormalized_data.ptrw());
 
