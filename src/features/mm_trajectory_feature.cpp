@@ -135,11 +135,11 @@ PackedFloat32Array MMTrajectoryFeature::evaluate_runtime_data(const MMQueryInput
 
     // The first point of the trajectory represents the player's current state
     // We do not match the first point of the trajectory (character position)
-    for (int i = 1; i < future_frames + 1; i++) {
+    for (int64_t i = 1; i < future_frames + 1; i++) {
         add_point(i, p_query_input.trajectory[i]);
     }
 
-    for (size_t i = 0; i < past_frames; i++) {
+    for (int64_t i = 0; i < past_frames; i++) {
         add_point(i, p_query_input.trajectory_history[i]);
     }
 
@@ -159,7 +159,7 @@ void MMTrajectoryFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, co
     memcpy(dernomalized_data, p_data, sizeof(float) * get_dimension_count());
     denormalize(dernomalized_data);
 
-    size_t i = 0;
+    int64_t i = 0;
     for (; i < future_frames * _get_point_dimension_count(); i += _get_point_dimension_count()) {
         Ref<SphereMesh> sphere_mesh;
         sphere_mesh.instantiate();

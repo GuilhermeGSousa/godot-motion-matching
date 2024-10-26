@@ -114,7 +114,7 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
         PackedFloat32Array feature_maxes;
         feature_maxes.resize(feature->get_dimension_count());
 
-        for (uint32_t feature_element_index = 0; feature_element_index < feature->get_dimension_count(); feature_element_index++) {
+        for (int64_t feature_element_index = 0; feature_element_index < feature->get_dimension_count(); feature_element_index++) {
             feature_means.set(feature_element_index, stats[feature_index][feature_element_index].get_mean());
             feature_std_devs.set(feature_element_index, stats[feature_index][feature_element_index].get_standard_deviation());
             feature_mins.set(feature_element_index, stats[feature_index][feature_element_index].get_min());
@@ -182,8 +182,8 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
     return result;
 }
 
-size_t MMAnimationLibrary::get_dim_count() const {
-    size_t dim_count = 0;
+int64_t MMAnimationLibrary::get_dim_count() const {
+    int64_t dim_count = 0;
     for (auto i = 0; i < features.size(); ++i) {
         MMFeature* f = Object::cast_to<MMFeature>(features[i]);
         dim_count += f->get_dimension_count();
@@ -192,7 +192,7 @@ size_t MMAnimationLibrary::get_dim_count() const {
     return dim_count;
 }
 
-int32_t MMAnimationLibrary::get_animation_pose_count(String p_animation_name) const {
+int64_t MMAnimationLibrary::get_animation_pose_count(String p_animation_name) const {
     List<StringName> animation_list;
     get_animation_list(&animation_list);
     Ref<Animation> animation = get_animation(p_animation_name);
