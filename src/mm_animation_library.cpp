@@ -72,10 +72,10 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
             feature->setup_for_animation(animation);
         }
 
-        const float animation_length = animation->get_length();
-        const float time_step = 1.0f / get_sampling_rate();
+        const double animation_length = animation->get_length();
+        const double time_step = 1.0f / get_sampling_rate();
         // Every time step
-        for (float time = 0; time < animation_length; time += time_step) {
+        for (double time = 0; time < animation_length; time += time_step) {
             PackedFloat32Array pose_data;
             // For every feature
             for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {

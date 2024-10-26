@@ -60,7 +60,7 @@ public:
 
     virtual int64_t get_dimension_count() const = 0;
 
-    virtual PackedFloat32Array bake_animation_pose(Ref<Animation> p_animation, float time) const = 0;
+    virtual PackedFloat32Array bake_animation_pose(Ref<Animation> p_animation, double time) const = 0;
 
     virtual PackedFloat32Array evaluate_runtime_data(const MMQueryInput& p_query_input) const = 0;
 

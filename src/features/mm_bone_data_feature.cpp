@@ -44,7 +44,7 @@ int64_t MMBoneDataFeature::get_dimension_count() const {
     return bone_names.size() * 7;
 }
 
-PackedFloat32Array MMBoneDataFeature::bake_animation_pose(Ref<Animation> p_animation, float time) const {
+PackedFloat32Array MMBoneDataFeature::bake_animation_pose(Ref<Animation> p_animation, double time) const {
     PackedFloat32Array result;
     for (int64_t i = 0; i < bone_names.size(); ++i) {
         const String bone_path = String(_skeleton_path) + String(":") + bone_names[i];

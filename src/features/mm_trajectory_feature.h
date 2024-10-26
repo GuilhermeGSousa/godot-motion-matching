@@ -48,7 +48,7 @@ public:
 
     virtual void setup_for_animation(Ref<Animation> animation) override;
 
-    virtual PackedFloat32Array bake_animation_pose(Ref<Animation> p_animation, float time) const override;
+    virtual PackedFloat32Array bake_animation_pose(Ref<Animation> p_animation, double time) const override;
 
     virtual PackedFloat32Array evaluate_runtime_data(const MMQueryInput& p_query_input) const override;
 

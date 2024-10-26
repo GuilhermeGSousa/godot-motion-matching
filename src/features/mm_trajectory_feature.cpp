@@ -64,7 +64,7 @@ void MMTrajectoryFeature::setup_for_animation(Ref<Animation> animation) {
     _root_rotation_track = animation->find_track(_root_bone_path, Animation::TrackType::TYPE_ROTATION_3D);
 }
 
-PackedFloat32Array MMTrajectoryFeature::bake_animation_pose(Ref<Animation> p_animation, float time) const {
+PackedFloat32Array MMTrajectoryFeature::bake_animation_pose(Ref<Animation> p_animation, double time) const {
     PackedFloat32Array result;
 
     const Vector3 current_pos =
@@ -73,7 +73,7 @@ PackedFloat32Array MMTrajectoryFeature::bake_animation_pose(Ref<Animation> p_ani
     const Quaternion current_rotation =
         _root_rotation_track == -1 ? Quaternion() : p_animation->rotation_track_interpolate(_root_rotation_track, time);
 
-    auto add_frame = [this, &result, &p_animation, &current_pos, &current_rotation](float time) {
+    auto add_frame = [this, &result, &p_animation, &current_pos, &current_rotation](double time) {
         Vector3 position;
         Quaternion rotation;
         if (_root_position_track != -1) {
