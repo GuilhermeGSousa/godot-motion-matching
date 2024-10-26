@@ -97,10 +97,10 @@ void MMCharacter::_update_character(float delta_t) {
 
 Vector3 MMCharacter::_update_trajectory(float delta_t) {
     Vector3 current_velocity = get_velocity();
-    Vector3 up_direction = get("up_direction");
+    Vector3 current_up_direction = get("up_direction");
 
     // Update the velocity.
-    const Vector3 up_velocity = current_velocity.dot(up_direction) * up_direction;
+    const Vector3 up_velocity = current_velocity.dot(current_up_direction) * current_up_direction;
     Vector3 ground_velocity = current_velocity - up_velocity;
     Array result = Spring::simple_spring_damper_exact(
         ground_velocity,
@@ -152,10 +152,10 @@ void MMCharacter::_generate_trajectory(float delta_time) {
     for (size_t i = 0; i < trajectory_point_count + 1; i++) {
         _trajectory[i] = point;
 
-        Vector3 up_direction = get("up_direction");
+        Vector3 current_up_direction = get("up_direction");
 
         // Update velocity
-        const Vector3 up_velocity = point.velocity.dot(up_direction) * up_direction;
+        const Vector3 up_velocity = point.velocity.dot(current_up_direction) * current_up_direction;
         Vector3 ground_velocity = point.velocity - up_velocity;
         Array result = Spring::simple_spring_damper_exact(ground_velocity, spring_acceleration, target_velocity, halflife, delta_t);
         point.velocity = (Vector3)result[0] + up_velocity;
@@ -206,8 +206,8 @@ void MMCharacter::_move_with_collisions(MMTrajectoryPoint& point, float delta_t)
 
     Ref<PhysicsTestMotionParameters3D> params;
     params.instantiate();
-    Vector3 up_direction = get("up_direction");
-    params->set_from(point.get_transform(up_direction));
+    Vector3 current_up_direction = get("up_direction");
+    params->set_from(point.get_transform(current_up_direction));
     params->set_motion(motion);
     params->set_max_collisions(6);
     params->set_recovery_as_collision_enabled(false);
@@ -258,8 +258,8 @@ void MMCharacter::_fill_collision_state(const Ref<PhysicsTestMotionResult3D> col
 
     state.on_floor = false;
     for (int i = collision_result->get_collision_count() - 1; i >= 0; i--) {
-        Vector3 up_direction = get("up_direction");
-        real_t floor_angle = Math::acos(collision_result->get_collision_normal(i).dot(up_direction));
+        Vector3 current_up_direction = get("up_direction");
+        real_t floor_angle = Math::acos(collision_result->get_collision_normal(i).dot(current_up_direction));
         if (floor_angle <= get_floor_max_angle() && collision_result->get_collision_depth(i) > floor_depth) {
             state.on_floor = true;
             state.floor_normal = collision_result->get_collision_normal(i);
@@ -281,8 +281,8 @@ void MMCharacter::_fall_to_floor(MMTrajectoryPoint& point, float delta_t) {
     const Vector3 motion = get_gravity() * delta_t * delta_t;
     Ref<PhysicsTestMotionParameters3D> params;
     params.instantiate();
-    Vector3 up_direction = get("up_direction");
-    params->set_from(point.get_transform(up_direction));
+    Vector3 current_up_direction = get("up_direction");
+    params->set_from(point.get_transform(current_up_direction));
     params->set_motion(motion);
 
     Ref<PhysicsTestMotionResult3D> collision_result;
