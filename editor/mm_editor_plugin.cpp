@@ -46,7 +46,7 @@ MMEditorPlugin::MMEditorPlugin() {
     Node3DEditor::get_singleton()->add_gizmo_plugin(_gizmo_plugin);
     add_node_3d_gizmo_plugin(_gizmo_plugin);
     _bottom_panel_button = add_control_to_bottom_panel(_editor, "MMEditor");
-    _editor->connect("animation_visualization_requested", Callable(_gizmo_plugin.ptr(), "on_anim_viz_requested"));
+    _editor->connect("animation_visualization_requested", callable_mp(_gizmo_plugin.ptr(), &MMEditorGizmoPlugin::on_anim_viz_requested));
 }
 
 MMEditorPlugin::~MMEditorPlugin() {

@@ -42,10 +42,11 @@ void DampedSkeletonModifier::_process_modification() {
     if (!skeleton) {
         return;
     }
-    const float delta = skeleton->get_modifier_callback_mode_process() == Skeleton3D::ModifierCallbackModeProcess::MODIFIER_CALLBACK_MODE_PROCESS_IDLE ? get_process_delta_time() : get_physics_process_delta_time();
-
-    for (auto bone_id = 0; bone_id < skeleton->get_bone_count(); ++bone_id) {
-
+    const double delta = skeleton->get_modifier_callback_mode_process() == Skeleton3D::ModifierCallbackModeProcess::MODIFIER_CALLBACK_MODE_PROCESS_IDLE ? get_process_delta_time() : get_physics_process_delta_time();
+    if (!skeleton->get_bone_count()) {
+        return;
+    }
+    for (int32_t bone_id = 0; bone_id < skeleton->get_bone_count(); ++bone_id) {
         if (skeleton->get_bone_parent(bone_id) == -1) {
             // Skip root bone
             continue;
