@@ -202,6 +202,7 @@ int32_t MMAnimationLibrary::get_animation_pose_count(String p_animation_name) co
     return static_cast<int32_t>(animation->get_length() * get_sampling_rate());
 }
 
+#ifdef TOOLS_ENABLED
 void MMAnimationLibrary::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, const Transform3D& p_transform, String p_animation_name, int32_t p_pose_index) const {
     List<StringName> animation_list;
     get_animation_list(&animation_list);
@@ -229,6 +230,7 @@ void MMAnimationLibrary::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, con
         frame_index += feature->get_dimension_count();
     }
 }
+#endif
 
 void MMAnimationLibrary::_normalize_data(PackedFloat32Array& p_data, size_t p_dim_count) const {
     ERR_FAIL_COND(p_data.size() % p_dim_count != 0);

@@ -143,6 +143,7 @@ PackedFloat32Array MMTrajectoryFeature::evaluate_runtime_data(const MMQueryInput
     return result;
 }
 
+#ifdef TOOLS_ENABLED
 void MMTrajectoryFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, const Transform3D p_transform, const float* p_data) const {
 
     Ref<StandardMaterial3D> material = p_gizmo->get_plugin()->get_material("main", p_gizmo);
@@ -190,6 +191,7 @@ void MMTrajectoryFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, co
 
     delete[] dernomalized_data;
 }
+#endif
 
 TypedArray<Dictionary> MMTrajectoryFeature::get_trajectory_points(const Transform3D& p_character_transform, const PackedFloat32Array& p_trajectory_data) const {
     PackedFloat32Array denormalized_data = PackedFloat32Array(p_trajectory_data);

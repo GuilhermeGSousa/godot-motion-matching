@@ -53,7 +53,9 @@ public:
     size_t get_dim_count() const;
     int32_t get_animation_pose_count(String p_animation_name) const;
 
+#ifdef TOOLS_ENABLED
     void display_data(const Ref<EditorNode3DGizmo>& p_gizmo, const Transform3D& p_transform, String p_animation_name, int32_t p_pose_index) const;
+#endif
 
     GETSET(TypedArray<MMFeature>, features)
     GETSET(float, sampling_rate, 1.f)

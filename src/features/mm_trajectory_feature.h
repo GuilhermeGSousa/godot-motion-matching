@@ -51,7 +51,9 @@ public:
 
     virtual PackedFloat32Array evaluate_runtime_data(const MMQueryInput& p_query_input) const override;
 
+#ifdef TOOLS_ENABLED
     virtual void display_data(const Ref<EditorNode3DGizmo>& p_gizmo, const Transform3D p_transform, const float* p_data) const override;
+#endif
 
     TypedArray<Dictionary> get_trajectory_points(const Transform3D& p_character_transform, const PackedFloat32Array& p_trajectory_data) const;
 
