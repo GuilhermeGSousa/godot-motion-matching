@@ -49,14 +49,12 @@ public:
     MMEditorPlugin();
     ~MMEditorPlugin();
 
-    virtual void input(const Ref<InputEvent>& p_event) override;
     virtual void make_visible(bool p_visible) override;
     virtual bool handles(Object* p_node) const override;
+    virtual void edit(Object* p_object);
 
 private:
-    void _update_visibility();
-
-    static void _bind_methods();
+    static void _bind_methods() {};
 
     Ref<MMEditorGizmoPlugin> _gizmo_plugin;
 

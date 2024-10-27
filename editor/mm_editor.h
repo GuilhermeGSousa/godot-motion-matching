@@ -46,7 +46,7 @@ class MMEditor : public Control {
 public:
     MMEditor();
 
-    void set_animation_player(MMCharacter* p_controller) {
+    void set_character(MMCharacter* p_controller) {
         const bool changed = p_controller != _current_controller;
 
         _current_controller = p_controller;

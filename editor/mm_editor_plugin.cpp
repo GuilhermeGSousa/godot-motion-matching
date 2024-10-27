@@ -30,6 +30,8 @@
 
 #include "mm_editor_plugin.h"
 
+#include "core/variant/variant_utility.h"
+
 #include "core/input/input_event.h"
 #include "editor/editor_data.h"
 #include "editor/editor_interface.h"
@@ -62,37 +64,26 @@ MMEditorPlugin::~MMEditorPlugin() {
     }
 }
 
-void MMEditorPlugin::input(const Ref<InputEvent>& p_event) {
-    if (p_event->is_class("InputEventMouseButton") && p_event->is_released()) {
-        TypedArray<Node> selected_nodes = get_editor_interface()->get_selection()->get_selected_nodes();
-
-        _current_controller = nullptr;
-        for (int i = 0; i < selected_nodes.size(); i++) {
-            MMCharacter* animation_player = Object::cast_to<MMCharacter>(selected_nodes[i]);
-
-            if (animation_player) {
-                _current_controller = animation_player;
-                _editor->set_animation_player(_current_controller);
-                break;
-            }
-        }
-
-        _bottom_panel_button->show();
-        make_visible(true);
-    }
-}
-
-void MMEditorPlugin::_bind_methods() {
-}
-
 void MMEditorPlugin::make_visible(bool p_visible) {
     if (p_visible) {
         _bottom_panel_button->show();
     } else {
         _bottom_panel_button->hide();
+        hide_bottom_panel();
     }
 }
 
 bool MMEditorPlugin::handles(Object* p_node) const {
     return (Object::cast_to<MMCharacter>(p_node) != nullptr);
+}
+
+void MMEditorPlugin::edit(Object* p_object) {
+    MMCharacter* character = Object::cast_to<MMCharacter>(p_object);
+    make_visible(character != nullptr);
+
+    if (!character) {
+        return;
+    }
+
+    _editor->set_character(character);
 }
