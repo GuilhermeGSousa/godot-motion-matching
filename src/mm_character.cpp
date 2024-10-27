@@ -55,7 +55,13 @@ MMQueryOutput MMCharacter::query(const MMQueryInput& query_input) {
     // but for now we just use the first motion matching library we find
     for (int64_t i = 0; i < animation_libraries.size(); i++) {
         const StringName& library_name = animation_libraries.get(i);
+        if (!library_name) {
+            continue;
+        }
         Ref<MMAnimationLibrary> library = _animation_player->get_animation_library(library_name);
+        if (library.is_null()) {
+            continue;
+        }
         List<StringName> animation_list;
         library->get_animation_list(&animation_list);
         if (library.is_null() || animation_list.is_empty()) {
