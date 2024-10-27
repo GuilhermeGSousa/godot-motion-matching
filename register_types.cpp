@@ -68,7 +68,6 @@ void initialize_motion_matching_module(ModuleInitializationLevel p_level) {
     }
 #ifdef TOOLS_ENABLED
     if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
-        GDREGISTER_CLASS(MMEditor);
         EditorPlugins::add_by_type<MMEditorPlugin>();
     }
 #endif
