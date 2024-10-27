@@ -42,37 +42,16 @@
 #include "scene/3d/physics/character_body_3d.h"
 #include "scene/3d/skeleton_3d.h"
 #include "scene/animation/animation_player.h"
+#include "scene/animation/animation_tree.h"
 
 class MMCharacter : public CharacterBody3D {
     GDCLASS(MMCharacter, CharacterBody3D)
-
-private:
-    // Controller
-    Vector3 _spring_acceleration;
-
-    // Trajectory
-    std::vector<MMTrajectoryPoint> _trajectory;
-    std::vector<MMTrajectoryPoint> _trajectory_history;
-    CircularBuffer<MMTrajectoryPoint> _history_buffer{HISTORY_BUFFER_SIZE};
-
-    // Motion Matching
-    Skeleton3D* _skeleton{nullptr};
-    AnimationPlayer* _animation_player{nullptr};
-    float _time_since_last_query{0.f};
-    bool _force_transition{false};
-    MMQueryOutput _last_query_output;
-
-    // Skeleton State
-    SkeletonState _skeleton_state;
-    int32_t _root_bone_idx{-1};
 
 public:
     MMCharacter();
     virtual ~MMCharacter();
 
 public:
-    MMQueryOutput query(const MMQueryInput& p_query_input);
-
     const std::vector<MMTrajectoryPoint>& get_trajectory() const {
         return _trajectory;
     }
@@ -114,7 +93,6 @@ public:
     }
 
     AnimationMixer* get_animation_mixer() const;
-    Skeleton3D* get_skeleton() const;
 
     // Trajectory
     GETSET(float, trajectory_delta_time, 0.5f);
@@ -130,9 +108,8 @@ public:
     GETSET(Vector3, target_velocity);
 
     // Motion Matching
-    GETSET(NodePath, skeleton_path)
-    GETSET(NodePath, animation_player_path)
-    GETSET(float, query_frequency, 2.0f)
+    GETSET(Skeleton3D*, skeleton)
+    GETSET(AnimationTree*, animation_tree)
     GETSET(Ref<MMSynchronizer>, synchronizer)
 
 protected:
@@ -154,12 +131,9 @@ private:
     void _fill_collision_state(const Ref<PhysicsTestMotionResult3D> collision_result, MMCollisionState& state);
     void _fall_to_floor(MMTrajectoryPoint& point, float delta_t);
 
-    // Callbacks
-    void _on_animation_finished(StringName p_animation_name);
-
     // Motion Matching
     void _fill_query_input(MMQueryInput& input);
-    void _update_query(double delta_t);
+    void _update_query();
     void _apply_root_motion();
     void _update_synchronizer(double delta_t);
 
@@ -169,6 +143,19 @@ private:
     void _update_skeleton_state(double delta_t);
 
     static Dictionary _output_to_dict(const MMQueryOutput& output);
+
+private:
+    // Controller
+    Vector3 _spring_acceleration;
+
+    // Trajectory
+    std::vector<MMTrajectoryPoint> _trajectory;
+    std::vector<MMTrajectoryPoint> _trajectory_history;
+    CircularBuffer<MMTrajectoryPoint> _history_buffer{HISTORY_BUFFER_SIZE};
+
+    // Skeleton State
+    SkeletonState _skeleton_state;
+    int32_t _root_bone_idx{-1};
 };
 
 #endif // MM_CHARACTER_H

@@ -32,59 +32,15 @@
 
 #include "math/spring.hpp"
 #include "mm_animation_library.h"
-#include <cstdint>
+#include "mm_animation_node.h"
 
-constexpr float QUERY_TIME_ERROR = 0.05;
+#include <cstdint>
 
 MMCharacter::MMCharacter()
     : CharacterBody3D() {
 }
 
 MMCharacter::~MMCharacter() {
-}
-
-MMQueryOutput MMCharacter::query(const MMQueryInput& query_input) {
-
-    List<StringName> animation_libraries;
-    _animation_player->get_animation_library_list(&animation_libraries);
-    MMQueryOutput result;
-
-    bool found_anim_library = false;
-
-    // We should do something more sophisticated here,
-    // but for now we just use the first motion matching library we find
-    for (int64_t i = 0; i < animation_libraries.size(); i++) {
-        const StringName& library_name = animation_libraries.get(i);
-        if (!library_name) {
-            continue;
-        }
-        Ref<MMAnimationLibrary> library = _animation_player->get_animation_library(library_name);
-        if (library.is_null()) {
-            continue;
-        }
-        List<StringName> animation_list;
-        library->get_animation_list(&animation_list);
-        if (library.is_null() || animation_list.is_empty()) {
-            continue;
-        }
-
-        result = library->query(query_input);
-        result.animation_match = String(library_name) + "/" + result.animation_match;
-        found_anim_library = true;
-        break;
-    }
-
-    ERR_FAIL_COND_V_MSG(
-        !found_anim_library,
-        result,
-        "No Motion Matching animation library found in the MMAnimationPlayer");
-
-    ERR_FAIL_COND_V_MSG(
-        result.animation_match.is_empty(),
-        result,
-        "No animation match found, check that your animation libraries aren't empty");
-
-    return result;
 }
 
 void MMCharacter::_update_character(float delta_t) {
@@ -309,57 +265,36 @@ void MMCharacter::_fall_to_floor(MMTrajectoryPoint& point, float delta_t) {
     }
 }
 
-void MMCharacter::_on_animation_finished(StringName p_animation_name) {
-    _force_transition = true;
-}
-
 void MMCharacter::_fill_query_input(MMQueryInput& input) {
     input.controller_velocity = get_velocity();
     input.trajectory = get_trajectory();
     input.trajectory_history = get_trajectory_history();
     input.controller_transform = get_global_transform();
-    input.character_transform = _skeleton->get_global_transform();
+    input.character_transform = skeleton->get_global_transform();
     input.skeleton_state = _skeleton_state;
 }
 
-void MMCharacter::_update_query(double delta_t) {
-    const bool should_query = (_time_since_last_query > (1.0 / query_frequency)) || _force_transition;
-    if (should_query) {
-        _time_since_last_query = 0.f;
-        _force_transition = false;
-
-        // Fill query_input with data from the controller
-        MMQueryInput query_input;
-        _fill_query_input(query_input);
-
-        // Run query
-        const MMQueryOutput result = query(query_input);
-
-        // Play selected animation
-        // TODO: It would be nice if we could use _animation_player->get_current_animation() here instead
-        // but that sometimes returns an empty string :/
-
-        const bool has_current_animation = !_animation_player->get_current_animation().is_empty();
-        const bool is_same_animation = has_current_animation && result.animation_match == _last_query_output.animation_match;
-        const bool is_same_time = has_current_animation && abs(result.time_match - _animation_player->get_current_animation_position()) < QUERY_TIME_ERROR;
-
-        if (!is_same_animation || !is_same_time) {
-            _animation_player->play(result.animation_match);
-            _animation_player->seek(result.time_match);
-            emit_signal("on_query_result", _output_to_dict(result));
-            _last_query_output = result;
-        }
+void MMCharacter::_update_query() {
+    // Fill query_input with data from the controller
+    if (animation_tree) {
+        Ref<MMQueryInput> query_input;
+        query_input.instantiate();
+        _fill_query_input(**query_input);
+        animation_tree->set(
+            "parameters/" + MMAnimationNode::MOTION_MATCHING_INPUT_PARAM,
+            query_input);
     }
-    _time_since_last_query += delta_t;
 }
 
 void MMCharacter::_apply_root_motion() {
-    _skeleton->set_quaternion(
-        _skeleton->get_quaternion() * _animation_player->get_root_motion_rotation());
+    skeleton->set_quaternion(
+        skeleton->get_quaternion() * animation_tree->get_root_motion_rotation());
 
-    const Vector3 movement_delta = (_animation_player->get_root_motion_rotation_accumulator().inverse() * _skeleton->get_quaternion()).xform(_animation_player->get_root_motion_position());
+    const Vector3 movement_delta = (animation_tree->get_root_motion_rotation_accumulator().inverse() *
+                                    skeleton->get_quaternion())
+                                       .xform(animation_tree->get_root_motion_position());
 
-    _skeleton->set_global_position(_skeleton->get_global_position() + movement_delta);
+    skeleton->set_global_position(skeleton->get_global_position() + movement_delta);
 }
 
 void MMCharacter::_update_synchronizer(double delta_t) {
@@ -369,18 +304,18 @@ void MMCharacter::_update_synchronizer(double delta_t) {
 
     // TODO: This is wrong, we should not be changing the character position directly!
     // See #33 for more information
-    MMSyncResult sync_result = synchronizer->sync(this, _skeleton, delta_t);
+    MMSyncResult sync_result = synchronizer->sync(this, skeleton, delta_t);
     set_global_position(sync_result.controller_position);
     set_quaternion(sync_result.controller_rotation);
-    _skeleton->set_global_position(sync_result.character_position);
-    _skeleton->set_quaternion(sync_result.character_rotation);
+    skeleton->set_global_position(sync_result.character_position);
+    skeleton->set_quaternion(sync_result.character_rotation);
 }
 
 void MMCharacter::_fill_current_skeleton_state(SkeletonState& p_state) const {
-    Transform3D root_bone_pose = _skeleton->get_bone_global_pose(_root_bone_idx);
+    Transform3D root_bone_pose = skeleton->get_bone_global_pose(_root_bone_idx);
 
-    for (int b = 0; b < _skeleton->get_bone_count(); ++b) {
-        Transform3D bone_pose = _skeleton->get_bone_global_pose(b);
+    for (int b = 0; b < skeleton->get_bone_count(); ++b) {
+        Transform3D bone_pose = skeleton->get_bone_global_pose(b);
         p_state[b].pos = root_bone_pose.xform(bone_pose.origin);
         p_state[b].vel = Vector3();
         p_state[b].rot = bone_pose.basis.get_rotation_quaternion();
@@ -396,10 +331,10 @@ void MMCharacter::_reset_skeleton_state() {
 }
 
 void MMCharacter::_update_skeleton_state(double delta_t) {
-    SkeletonState current_state(_skeleton);
+    SkeletonState current_state(skeleton);
     _fill_current_skeleton_state(current_state);
 
-    for (int b = 0; b < _skeleton->get_bone_count(); ++b) {
+    for (int b = 0; b < skeleton->get_bone_count(); ++b) {
         BoneState& state = _skeleton_state[b];
         const BoneState& current = current_state[b];
 
@@ -426,27 +361,19 @@ Dictionary MMCharacter::_output_to_dict(const MMQueryOutput& output) {
 }
 
 AnimationMixer* MMCharacter::get_animation_mixer() const {
-    Node* current_node = get_node(animation_player_path);
-    return cast_to<AnimationMixer>(current_node);
-}
-
-Skeleton3D* MMCharacter::get_skeleton() const {
-    Node* current_skeleton = get_node(skeleton_path);
-    return cast_to<Skeleton3D>(current_skeleton);
+    return animation_tree;
 }
 
 void MMCharacter::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_trajectory"), &MMCharacter::get_trajectory_typed_array);
-    ClassDB::bind_method(D_METHOD("get_trajectory_history"), &MMCharacter::get_trajectory_history_typed_array);
-    ClassDB::bind_method(D_METHOD("_on_animation_finished", "anim"), &MMCharacter::_on_animation_finished);
+    ClassDB::bind_method(D_METHOD("get_previous_trajectory"), &MMCharacter::get_previous_trajectory_typed_array);
     ClassDB::bind_method(D_METHOD("get_skeleton_state"), &MMCharacter::get_skeleton_state);
 
     ADD_SIGNAL(MethodInfo("on_query_result", PropertyInfo(Variant::DICTIONARY, "data")));
 
     ADD_GROUP("Motion Matching", "");
-    BINDER_PROPERTY_PARAMS(MMCharacter, Variant::NODE_PATH, skeleton_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES, "Skeleton3D");
-    BINDER_PROPERTY_PARAMS(MMCharacter, Variant::NODE_PATH, animation_player_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES, "AnimationPlayer");
-    BINDER_PROPERTY_PARAMS(MMCharacter, Variant::FLOAT, query_frequency);
+    BINDER_PROPERTY_PARAMS(MMCharacter, Variant::OBJECT, skeleton, PROPERTY_HINT_NODE_TYPE, "Skeleton3D");
+    BINDER_PROPERTY_PARAMS(MMCharacter, Variant::OBJECT, animation_tree, PROPERTY_HINT_NODE_TYPE, "AnimationTree");
     BINDER_PROPERTY_PARAMS(MMCharacter, Variant::OBJECT, synchronizer, PROPERTY_HINT_RESOURCE_TYPE, "MMSynchronizer");
 
     ADD_GROUP("Movement", "");
@@ -466,7 +393,6 @@ void MMCharacter::_bind_methods() {
 void MMCharacter::_notification(int p_what) {
     switch (p_what) {
     case NOTIFICATION_PHYSICS_PROCESS: {
-
         if (Engine::get_singleton()->is_editor_hint()) {
             return;
         }
@@ -474,13 +400,13 @@ void MMCharacter::_notification(int p_what) {
 
         _update_character(delta);
 
-        if (!_skeleton) {
+        if (!skeleton) {
             return;
         }
 
         _update_skeleton_state(delta);
 
-        _update_query(delta);
+        _update_query();
 
         _apply_root_motion();
 
@@ -500,21 +426,14 @@ void MMCharacter::_notification(int p_what) {
         _trajectory.resize(trajectory_point_count + 1);
         _trajectory_history.resize(history_point_count);
 
-        _animation_player = cast_to<AnimationPlayer>(get_node(animation_player_path));
-        if (_animation_player) {
-            _animation_player->connect("animation_finished", Callable(this, "_on_animation_finished"));
-            _animation_player->set_callback_mode_process(AnimationMixer::AnimationCallbackModeProcess::ANIMATION_CALLBACK_MODE_PROCESS_PHYSICS);
-        }
+        if (skeleton && animation_tree) {
+            StringName root_node_path = animation_tree->get_root_motion_track().get_concatenated_subnames();
+            _root_bone_idx = skeleton->find_bone(root_node_path);
 
-        _skeleton = cast_to<Skeleton3D>(get_node(skeleton_path));
-        if (_skeleton && _animation_player) {
-            StringName root_node_path = _animation_player->get_root_motion_track().get_concatenated_subnames();
-            _root_bone_idx = _skeleton->find_bone(root_node_path);
+            skeleton->set_as_top_level(true);
+            skeleton->reset_bone_poses();
 
-            _skeleton->set_as_top_level(true);
-            _skeleton->reset_bone_poses();
-
-            _skeleton_state = SkeletonState(_skeleton);
+            _skeleton_state = SkeletonState(skeleton);
             _reset_skeleton_state();
         }
     } break;

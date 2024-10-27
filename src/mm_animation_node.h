@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  register_types.cpp                                                    */
+/*  mm_animation_node.h                                                   */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,54 +28,49 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "register_types.h"
+#ifndef MM_ANIMATION_NODE_H
+#define MM_ANIMATION_NODE_H
 
-#include "mm_character.h"
+#include "scene/animation/animation_blend_tree.h"
+#include "scene/animation/animation_tree.h"
 
-#ifdef TOOLS_ENABLED
-#include "editor/mm_editor.h"
-#include "editor/mm_editor_gizmo_plugin.h"
-#include "editor/mm_editor_plugin.h"
-#endif
-
-#include "features/mm_bone_data_feature.h"
-#include "features/mm_feature.h"
-#include "features/mm_trajectory_feature.h"
-
-#include "modifiers/damped_skeleton_modifier.h"
-
-#include "synchronizers/mm_clamp_synchronizer.h"
-#include "synchronizers/mm_rootmotion_synchronizer.h"
-#include "synchronizers/mm_synchronizer.h"
-
+#include "common.h"
 #include "mm_animation_library.h"
-#include "mm_animation_node.h"
-#include "mm_query.h"
-#include "mm_trajectory_point.h"
 
-void initialize_motion_matching_module(ModuleInitializationLevel p_level) {
-    if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
-        ClassDB::register_abstract_class<MMFeature>();
-        ClassDB::register_class<MMTrajectoryFeature>();
-        ClassDB::register_class<MMBoneDataFeature>();
+class MMAnimationNode : public AnimationRootNode {
+    GDCLASS(MMAnimationNode, AnimationRootNode);
 
-        ClassDB::register_class<MMAnimationLibrary>();
-        ClassDB::register_class<MMAnimationNode>();
-        ClassDB::register_class<MMQueryInput>();
+public:
+    MMAnimationNode();
+    virtual ~MMAnimationNode() = default;
 
-        ClassDB::register_class<MMCharacter>();
+    GETSET(Ref<MMAnimationLibrary>, animation_library)
+    GETSET(float, query_frequency, 2.0f)
 
-        ClassDB::register_class<DampedSkeletonModifier>();
-        ClassDB::register_abstract_class<MMSynchronizer>();
-        ClassDB::register_class<MMClampSynchronizer>();
-        ClassDB::register_class<MMRootMotionSynchronizer>();
-    }
-#ifdef TOOLS_ENABLED
-    if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
-        EditorPlugins::add_by_type<MMEditorPlugin>();
-    }
-#endif
-}
+    virtual AnimationNode::NodeTimeInfo _process(const AnimationMixer::PlaybackInfo p_playback_info, bool p_test_only = false) override;
+    virtual void get_parameter_list(List<PropertyInfo>* r_list) const override;
+    virtual Variant get_parameter_default_value(const StringName& p_parameter) const override;
+    virtual bool is_parameter_read_only(const StringName& p_parameter) const override;
+    virtual String get_caption() const override;
+    virtual void get_child_nodes(List<ChildNode>* r_child_nodes) override;
+    virtual Ref<AnimationNode> get_child_by_name(const StringName& p_name) const;
 
-void uninitialize_motion_matching_module(ModuleInitializationLevel p_level) {
-}
+    static StringName MOTION_MATCHING_INPUT_PARAM;
+
+protected:
+    static void _bind_methods();
+
+    virtual void _tree_changed() override;
+    virtual void _animation_node_renamed(const ObjectID& p_oid, const String& p_old_name, const String& p_new_name) override;
+    virtual void _animation_node_removed(const ObjectID& p_oid, const StringName& p_node) override;
+
+private:
+    Ref<AnimationNodeAnimation> _anim_node;
+    AnimationNode::NodeTimeInfo play_current_animation(const AnimationMixer::PlaybackInfo& p_playback_info, const AnimationNode::NodeTimeInfo& p_current_nti, bool p_test_only);
+
+    String get_animation_library_name() const;
+    MMQueryOutput _last_query_output;
+    float _time_since_last_query{0.f};
+};
+
+#endif // MM_ANIMATION_NODE_H
