@@ -51,7 +51,7 @@ public:
 
     virtual void make_visible(bool p_visible) override;
     virtual bool handles(Object* p_node) const override;
-    virtual void edit(Object* p_object);
+    virtual void edit(Object* p_object) override;
 
 private:
     static void _bind_methods() {};
