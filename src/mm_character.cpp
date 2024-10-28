@@ -437,7 +437,7 @@ Skeleton3D* MMCharacter::get_skeleton() const {
 
 void MMCharacter::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_trajectory"), &MMCharacter::get_trajectory_typed_array);
-    ClassDB::bind_method(D_METHOD("get_previous_trajectory"), &MMCharacter::get_previous_trajectory_typed_array);
+    ClassDB::bind_method(D_METHOD("get_trajectory_history"), &MMCharacter::get_trajectory_history_typed_array);
     ClassDB::bind_method(D_METHOD("_on_animation_finished", "anim"), &MMCharacter::_on_animation_finished);
     ClassDB::bind_method(D_METHOD("get_skeleton_state"), &MMCharacter::get_skeleton_state);
 

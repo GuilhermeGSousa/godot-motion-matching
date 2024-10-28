@@ -96,7 +96,7 @@ public:
         return trajectory_to_dict(_trajectory);
     }
 
-    TypedArray<Dictionary> get_previous_trajectory_typed_array() const {
+    TypedArray<Dictionary> get_trajectory_history_typed_array() const {
         return trajectory_to_dict(_trajectory_history);
     }
 
