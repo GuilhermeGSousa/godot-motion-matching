@@ -30,6 +30,7 @@
 
 #include "modifiers/damped_skeleton_modifier.h"
 
+#include "core/math/transform_3d.h"
 #include "damped_skeleton_modifier.h"
 #include "math/spring.hpp"
 
@@ -51,9 +52,9 @@ void DampedSkeletonModifier::_process_modification() {
             // Skip root bone
             continue;
         }
-
-        const Vector3 desired_pos = skeleton->get_bone_pose_position(bone_id);
-        const Quaternion desired_rot = skeleton->get_bone_pose_rotation(bone_id);
+        Transform3D bone_global_pose = skeleton->get_bone_global_pose(bone_id);
+        const Vector3 desired_pos = bone_global_pose.origin;
+        const Basis desired_rot = bone_global_pose.basis;
 
         Spring::_simple_spring_damper_exact(
             _skeleton_state[bone_id].pos,
@@ -69,8 +70,11 @@ void DampedSkeletonModifier::_process_modification() {
             halflife,
             delta);
 
-        skeleton->set_bone_pose_position(bone_id, _skeleton_state[bone_id].pos);
-        skeleton->set_bone_pose_rotation(bone_id, _skeleton_state[bone_id].rot);
+        Transform3D desired_bone_global_pose;        
+        desired_bone_global_pose.basis = _skeleton_state[bone_id].rot.scaled(_skeleton_state[bone_id].scl);
+        desired_bone_global_pose.origin = _skeleton_state[bone_id].pos;
+
+        skeleton->set_bone_global_pose(bone_id, desired_bone_global_pose);
     }
 }
 

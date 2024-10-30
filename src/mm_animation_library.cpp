@@ -46,10 +46,8 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
     db_anim_index.clear();
     db_time_index.clear();
 
-    int64_t dim_count = 0;
     for (auto i = 0; i < features.size(); ++i) {
         MMFeature* f = Object::cast_to<MMFeature>(features[i]);
-        dim_count += f->get_dimension_count();
         f->setup_skeleton(p_player, p_skeleton);
     }
 
@@ -64,12 +62,18 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
     for (int64_t animation_index = 0; animation_index < animation_list.size(); animation_index++) {
         const StringName& anim_name = animation_list.get(animation_index);
         Ref<Animation> animation = get_animation(anim_name);
+        int64_t dim_count = 0;
+        // Initialize features
+        for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
+            MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
+            feature->setup_for_animation(animation);
+            dim_count += feature->get_dimension_count();
+        }
 
         // Initialize features
         for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
             MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
             stats[feature_index].resize(feature->get_dimension_count());
-            feature->setup_for_animation(animation);
         }
 
         const double animation_length = animation->get_length();
@@ -99,36 +103,33 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
             db_anim_index.push_back(animation_index);
             db_time_index.push_back(time);
         }
-    }
+        // Compute mean and standard deviation
+        for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
+            MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
 
-    // Compute mean and standard deviation
-    for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
-        MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
+            PackedFloat32Array feature_means;
+            feature_means.resize(feature->get_dimension_count());
+            PackedFloat32Array feature_std_devs;
+            feature_std_devs.resize(feature->get_dimension_count());
+            PackedFloat32Array feature_mins;
+            feature_mins.resize(feature->get_dimension_count());
+            PackedFloat32Array feature_maxes;
+            feature_maxes.resize(feature->get_dimension_count());
 
-        PackedFloat32Array feature_means;
-        feature_means.resize(feature->get_dimension_count());
-        PackedFloat32Array feature_std_devs;
-        feature_std_devs.resize(feature->get_dimension_count());
-        PackedFloat32Array feature_mins;
-        feature_mins.resize(feature->get_dimension_count());
-        PackedFloat32Array feature_maxes;
-        feature_maxes.resize(feature->get_dimension_count());
+            for (int64_t feature_element_index = 0; feature_element_index < feature->get_dimension_count(); feature_element_index++) {
+                feature_means.set(feature_element_index, stats[feature_index][feature_element_index].get_mean());
+                feature_std_devs.set(feature_element_index, stats[feature_index][feature_element_index].get_standard_deviation());
+                feature_mins.set(feature_element_index, stats[feature_index][feature_element_index].get_min());
+                feature_maxes.set(feature_element_index, stats[feature_index][feature_element_index].get_max());
+            }
 
-        for (int64_t feature_element_index = 0; feature_element_index < feature->get_dimension_count(); feature_element_index++) {
-            feature_means.set(feature_element_index, stats[feature_index][feature_element_index].get_mean());
-            feature_std_devs.set(feature_element_index, stats[feature_index][feature_element_index].get_standard_deviation());
-            feature_mins.set(feature_element_index, stats[feature_index][feature_element_index].get_min());
-            feature_maxes.set(feature_element_index, stats[feature_index][feature_element_index].get_max());
+            feature->set_means(feature_means);
+            feature->set_std_devs(feature_std_devs);
+            feature->set_mins(feature_mins);
+            feature->set_maxes(feature_maxes);
         }
-
-        feature->set_means(feature_means);
-        feature->set_std_devs(feature_std_devs);
-        feature->set_mins(feature_mins);
-        feature->set_maxes(feature_maxes);
+        _normalize_data(data, dim_count);
     }
-
-    _normalize_data(data, dim_count);
-
     motion_data = data.duplicate();
 }
 
