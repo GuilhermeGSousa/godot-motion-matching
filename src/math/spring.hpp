@@ -256,18 +256,6 @@ static void _simple_spring_damper_exact(Quaternion& x, Vector3& v, const Quatern
     v = eydt * (v - j1 * y * dt);
 }
 
-static void _simple_spring_damper_exact(Basis& x, Vector3& v, const Basis x_goal, const real_t halflife, const real_t dt) {
-    real_t y = halflife_to_damping(halflife) / 2.0;
-
-    Vector3 j0 = quat_to_scaled_angle_axis(quat_abs((x * x_goal.inverse()).get_rotation_quaternion()));
-    Vector3 j1 = v + j0 * y;
-
-    real_t eydt = fast_negexp(y * dt);
-
-    x = quat_from_scaled_angle_axis(eydt * (j0 + j1 * dt)) * x_goal.get_rotation_quaternion();
-    v = eydt * (v - j1 * y * dt);
-}
-
 static inline Array simple_spring_damper_exact(Variant x, Variant v, Variant x_goal, real_t halflife, real_t dt) {
     Array result;
     if (x.get_type() == Variant::Type::VECTOR3 && v.get_type() == Variant::Type::VECTOR3 && x_goal.get_type() == Variant::Type::VECTOR3) {

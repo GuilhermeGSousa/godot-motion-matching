@@ -163,7 +163,7 @@ PackedFloat32Array MMBoneDataFeature::evaluate_runtime_data(const MMQueryInput& 
         result.append(scale.z);
 
         // Only 6 dimensions is needed to recover a rotation for a 3x3 basis matrix.
-        const Basis& rotation = p_query_input.skeleton_state.find_bone_state(bone_names[i]).rot.orthonormalized();
+        const Basis& rotation = p_query_input.skeleton_state.find_bone_state(bone_names[i]).rot;
         const Vector3 axis_x = rotation.get_column(Vector3::AXIS_X);
         result.append(axis_x.x);
         result.append(axis_x.y);

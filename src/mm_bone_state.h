@@ -39,7 +39,7 @@ struct BoneState {
 
     void reset() {
         pos = Vector3();
-        rot = Basis();
+        rot = Quaternion();
         scl = Vector3(1.0, 1.0, 1.0);
         vel = Vector3();
         ang_vel = Vector3();
@@ -47,7 +47,7 @@ struct BoneState {
     }
 
     Vector3 pos;
-    Basis rot;
+    Quaternion rot;
     Vector3 scl;
     Vector3 vel;
     Vector3 ang_vel;

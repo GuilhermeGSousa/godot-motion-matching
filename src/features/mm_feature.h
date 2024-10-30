@@ -32,7 +32,6 @@
 #define MM_FEATURE_H
 
 #include "core/io/resource.h"
-#include "modules/motion_matching/src/mm_query.h"
 #include "scene/3d/skeleton_3d.h"
 #include "scene/animation/animation_player.h"
 #include "scene/resources/animation.h"
