@@ -46,8 +46,10 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
     db_anim_index.clear();
     db_time_index.clear();
 
+    int64_t dim_count = 0;
     for (auto i = 0; i < features.size(); ++i) {
         MMFeature* f = Object::cast_to<MMFeature>(features[i]);
+        dim_count += f->get_dimension_count();
         f->setup_skeleton(p_player, p_skeleton);
     }
 
@@ -57,24 +59,17 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
     // Normalization data
     std::vector<std::vector<StatsAccumulator>> stats(features.size());
 
-    int64_t total_dim_count = 0;
     PackedFloat32Array data;
     // For every animation
     for (int64_t animation_index = 0; animation_index < animation_list.size(); animation_index++) {
         const StringName& anim_name = animation_list.get(animation_index);
         Ref<Animation> animation = get_animation(anim_name);
-        int64_t dim_count = 0;
-        // Initialize features
-        for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
-            MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
-            feature->setup_for_animation(animation);
-            dim_count += feature->get_dimension_count();
-        }
 
         // Initialize features
         for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
             MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
             stats[feature_index].resize(feature->get_dimension_count());
+            feature->setup_for_animation(animation);
         }
 
         const double animation_length = animation->get_length();
@@ -104,8 +99,8 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
             db_anim_index.push_back(animation_index);
             db_time_index.push_back(time);
         }
-        total_dim_count += dim_count;
     }
+
     // Compute mean and standard deviation
     for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
         MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
@@ -131,7 +126,9 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
         feature->set_mins(feature_mins);
         feature->set_maxes(feature_maxes);
     }
-    _normalize_data(data, total_dim_count);
+
+    _normalize_data(data, dim_count);
+
     motion_data = data.duplicate();
 }
 
