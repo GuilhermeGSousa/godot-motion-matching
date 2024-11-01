@@ -52,6 +52,7 @@ public:
     virtual Variant get_parameter_default_value(const StringName& p_parameter) const override;
     virtual bool is_parameter_read_only(const StringName& p_parameter) const override;
     virtual String get_caption() const override;
+    virtual bool has_filter() const;
 
     static StringName MOTION_MATCHING_INPUT_PARAM;
 
@@ -63,7 +64,7 @@ protected:
 private:
     struct AnimationInfo {
         StringName name;
-        float length;
+        double length;
         AnimationMixer::PlaybackInfo playback_info;
     };
 

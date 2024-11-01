@@ -280,9 +280,9 @@ void MMCharacter::_update_query() {
         Ref<MMQueryInput> query_input;
         query_input.instantiate();
         _fill_query_input(**query_input);
-        animation_tree->set(
-            "parameters/" + MMAnimationNode::MOTION_MATCHING_INPUT_PARAM,
-            query_input);
+        for (const StringName& param : _mm_input_params) {
+            animation_tree->set(param, query_input);
+        }
     }
 }
 
@@ -426,6 +426,20 @@ void MMCharacter::_notification(int p_what) {
         _trajectory.resize(trajectory_point_count + 1);
         _trajectory_history.resize(history_point_count);
 
+        if (animation_tree) {
+            animation_tree->set_callback_mode_process(AnimationMixer::ANIMATION_CALLBACK_MODE_PROCESS_PHYSICS);
+
+            List<PropertyInfo> properties;
+            animation_tree->get_property_list(&properties);
+            for (const PropertyInfo& prop : properties) {
+                const bool is_object = prop.type == Variant::OBJECT;
+                const bool is_mm_input = prop.class_name == "MMQueryInput";
+                if (is_object && is_mm_input) {
+                    _mm_input_params.push_back(prop.name);
+                }
+            }
+        }
+
         if (skeleton && animation_tree) {
             StringName root_node_path = animation_tree->get_root_motion_track().get_concatenated_subnames();
             _root_bone_idx = skeleton->find_bone(root_node_path);
@@ -436,6 +450,7 @@ void MMCharacter::_notification(int p_what) {
             _skeleton_state = SkeletonState(skeleton);
             _reset_skeleton_state();
         }
+
     } break;
     }
 }

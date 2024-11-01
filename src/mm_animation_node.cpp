@@ -126,7 +126,7 @@ AnimationNode::NodeTimeInfo MMAnimationNode::_update_current_animation(bool p_te
 
 void MMAnimationNode::get_parameter_list(List<PropertyInfo>* r_list) const {
     AnimationNode::get_parameter_list(r_list);
-    r_list->push_back(PropertyInfo(Variant::Type::OBJECT, MOTION_MATCHING_INPUT_PARAM));
+    r_list->push_back(PropertyInfo(Variant::Type::OBJECT, MOTION_MATCHING_INPUT_PARAM, PROPERTY_HINT_RESOURCE_TYPE, "MMQueryInput", PROPERTY_USAGE_STORAGE));
 }
 
 Variant MMAnimationNode::get_parameter_default_value(const StringName& p_parameter) const {
@@ -187,4 +187,8 @@ void MMAnimationNode::_validate_property(PropertyInfo& p_property) const {
 void MMAnimationNode::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::STRING_NAME, library);
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, query_frequency);
+}
+
+bool MMAnimationNode::has_filter() const {
+    return true;
 }

@@ -156,6 +156,9 @@ private:
     // Skeleton State
     SkeletonState _skeleton_state;
     int32_t _root_bone_idx{-1};
+
+    // Motion Matching parameters
+    List<StringName> _mm_input_params;
 };
 
 #endif // MM_CHARACTER_H
