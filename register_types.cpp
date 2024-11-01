@@ -49,7 +49,7 @@
 #include "synchronizers/mm_synchronizer.h"
 
 #include "mm_animation_library.h"
-#include "mm_animation_node.cpp"
+#include "mm_animation_node.h"
 #include "mm_query.h"
 #include "mm_trajectory_point.h"
 

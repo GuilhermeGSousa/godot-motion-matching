@@ -32,10 +32,19 @@
 
 #include "mm_query.h"
 
-StringName MMAnimationNode::MOTION_MATCHING_INPUT_PARAM = "motion_matching_input";
+// Only play the matched animation if the matched time position
+// is QUERY_TIME_ERROR away from the current time
+constexpr float QUERY_TIME_ERROR = 0.05;
+
+StringName MMAnimationNode::MOTION_MATCHING_INPUT_PARAM;
+
+MMAnimationNode::MMAnimationNode() {
+    MOTION_MATCHING_INPUT_PARAM = "motion_matching_input";
+}
 
 AnimationNode::NodeTimeInfo MMAnimationNode::_process(const AnimationMixer::PlaybackInfo p_playback_info, bool p_test_only) {
-    NodeTimeInfo result;
+    NodeTimeInfo result = get_node_time_info();
+    result.loop_mode = Animation::LoopMode::LOOP_NONE;
 
     if (Engine::get_singleton()->is_editor_hint()) {
         return result;
@@ -45,6 +54,18 @@ AnimationNode::NodeTimeInfo MMAnimationNode::_process(const AnimationMixer::Play
         return result;
     }
 
+    const bool is_about_to_end = false; // TODO: Implement this
+
+    // We run queries periodically, or when the animation is about to end
+    const bool should_query = (_time_since_last_query > (1.0 / query_frequency)) || is_about_to_end;
+
+    if (!should_query) {
+        _time_since_last_query += p_playback_info.delta;
+        return result;
+    }
+
+    _time_since_last_query = 0.f;
+
     MMQueryInput* query_input = Object::cast_to<MMQueryInput>(get_parameter(MOTION_MATCHING_INPUT_PARAM));
 
     if (!query_input || !query_input->is_valid()) {
@@ -52,11 +73,22 @@ AnimationNode::NodeTimeInfo MMAnimationNode::_process(const AnimationMixer::Play
     }
 
     // Run query
-    animation_library->query(*query_input);
+    const MMQueryOutput query_output = animation_library->query(*query_input);
 
     // const bool has_current_animation = get_animation_tree()->get_animation_player()->get_current_animation().is_empty();
-    // const bool is_same_animation = has_current_animation && result.animation_match == _last_query_output.animation_match;
+    const bool is_same_animation = query_output.animation_match == _last_query_output.animation_match;
+    const bool is_same_time = abs(query_output.time_match - p_playback_info.time) < QUERY_TIME_ERROR;
+
     // Play selected animation
+    if (!is_same_animation || !is_same_time) {
+        const String lib_name = animation_library->get_path().get_file().rstrip(".tres");
+        const String animation_match = lib_name + "/" + query_output.animation_match;
+        const float time_match = query_output.time_match;
+
+        // TODO: Blend into the matched animation, at the matched time
+
+        _last_query_output = query_output;
+    }
 
     return result;
 }
@@ -99,4 +131,5 @@ String MMAnimationNode::get_caption() const {
 
 void MMAnimationNode::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::OBJECT, animation_library, PROPERTY_HINT_RESOURCE_TYPE, "MMAnimationLibrary");
+    BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, query_frequency);
 }

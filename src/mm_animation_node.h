@@ -40,7 +40,11 @@ class MMAnimationNode : public AnimationRootNode {
     GDCLASS(MMAnimationNode, AnimationRootNode);
 
 public:
+    MMAnimationNode();
+    virtual ~MMAnimationNode() = default;
+
     GETSET(Ref<MMAnimationLibrary>, animation_library)
+    GETSET(float, query_frequency, 2.0f)
 
     virtual AnimationNode::NodeTimeInfo _process(const AnimationMixer::PlaybackInfo p_playback_info, bool p_test_only = false) override;
     virtual void get_parameter_list(List<PropertyInfo>* r_list) const override;
@@ -54,7 +58,8 @@ protected:
     static void _bind_methods();
 
 private:
-    // MMQueryOutput _last_query_output;
+    MMQueryOutput _last_query_output;
+    float _time_since_last_query{0.f};
 };
 
 #endif // MM_ANIMATION_NODE_H
