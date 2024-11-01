@@ -32,6 +32,8 @@
 
 #include "math/spring.hpp"
 #include "mm_animation_library.h"
+#include "mm_animation_node.h"
+
 #include <cstdint>
 
 constexpr float QUERY_TIME_ERROR = 0.05;
@@ -329,26 +331,33 @@ void MMCharacter::_update_query(double delta_t) {
         _force_transition = false;
 
         // Fill query_input with data from the controller
-        MMQueryInput query_input;
-        _fill_query_input(query_input);
+        Ref<MMQueryInput> query_input;
+        query_input.instantiate();
+        _fill_query_input(**query_input);
 
-        // Run query
-        const MMQueryOutput result = query(query_input);
-
-        // Play selected animation
-        // TODO: It would be nice if we could use _animation_player->get_current_animation() here instead
-        // but that sometimes returns an empty string :/
-
-        const bool has_current_animation = !_animation_player->get_current_animation().is_empty();
-        const bool is_same_animation = has_current_animation && result.animation_match == _last_query_output.animation_match;
-        const bool is_same_time = has_current_animation && abs(result.time_match - _animation_player->get_current_animation_position()) < QUERY_TIME_ERROR;
-
-        if (!is_same_animation || !is_same_time) {
-            _animation_player->play(result.animation_match);
-            _animation_player->seek(result.time_match);
-            emit_signal("on_query_result", _output_to_dict(result));
-            _last_query_output = result;
+        if (_animation_tree) {
+            _animation_tree->set(
+                "parameters/" + MMAnimationNode::MOTION_MATCHING_INPUT_PARAM,
+                query_input);
         }
+
+        // // Run query
+        // const MMQueryOutput result = query(**query_input);
+
+        // // Play selected animation
+        // // TODO: It would be nice if we could use _animation_player->get_current_animation() here instead
+        // // but that sometimes returns an empty string :/
+
+        // const bool has_current_animation = !_animation_player->get_current_animation().is_empty();
+        // const bool is_same_animation = has_current_animation && result.animation_match == _last_query_output.animation_match;
+        // const bool is_same_time = has_current_animation && abs(result.time_match - _animation_player->get_current_animation_position()) < QUERY_TIME_ERROR;
+
+        // if (!is_same_animation || !is_same_time) {
+        //     _animation_player->play(result.animation_match);
+        //     _animation_player->seek(result.time_match);
+        //     emit_signal("on_query_result", _output_to_dict(result));
+        //     _last_query_output = result;
+        // }
     }
     _time_since_last_query += delta_t;
 }
@@ -446,6 +455,7 @@ void MMCharacter::_bind_methods() {
     ADD_GROUP("Motion Matching", "");
     BINDER_PROPERTY_PARAMS(MMCharacter, Variant::NODE_PATH, skeleton_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES, "Skeleton3D");
     BINDER_PROPERTY_PARAMS(MMCharacter, Variant::NODE_PATH, animation_player_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES, "AnimationPlayer");
+    BINDER_PROPERTY_PARAMS(MMCharacter, Variant::NODE_PATH, animation_tree_path, PROPERTY_HINT_NODE_PATH_VALID_TYPES, "AnimationTree");
     BINDER_PROPERTY_PARAMS(MMCharacter, Variant::FLOAT, query_frequency);
     BINDER_PROPERTY_PARAMS(MMCharacter, Variant::OBJECT, synchronizer, PROPERTY_HINT_RESOURCE_TYPE, "MMSynchronizer");
 
@@ -500,6 +510,7 @@ void MMCharacter::_notification(int p_what) {
         _trajectory.resize(trajectory_point_count + 1);
         _trajectory_history.resize(history_point_count);
 
+        _animation_tree = cast_to<AnimationTree>(get_node(animation_tree_path));
         _animation_player = cast_to<AnimationPlayer>(get_node(animation_player_path));
         if (_animation_player) {
             _animation_player->connect("animation_finished", Callable(this, "_on_animation_finished"));

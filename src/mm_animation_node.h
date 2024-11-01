@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  register_types.cpp                                                    */
+/*  mm_animation_node.h                                                   */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,54 +28,33 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "register_types.h"
+#ifndef MM_ANIMATION_NODE_H
+#define MM_ANIMATION_NODE_H
 
-#include "mm_character.h"
+#include "scene/animation/animation_tree.h"
 
-#ifdef TOOLS_ENABLED
-#include "editor/mm_editor.h"
-#include "editor/mm_editor_gizmo_plugin.h"
-#include "editor/mm_editor_plugin.h"
-#endif
-
-#include "features/mm_bone_data_feature.h"
-#include "features/mm_feature.h"
-#include "features/mm_trajectory_feature.h"
-
-#include "modifiers/damped_skeleton_modifier.h"
-
-#include "synchronizers/mm_clamp_synchronizer.h"
-#include "synchronizers/mm_rootmotion_synchronizer.h"
-#include "synchronizers/mm_synchronizer.h"
-
+#include "common.h"
 #include "mm_animation_library.h"
-#include "mm_animation_node.cpp"
-#include "mm_query.h"
-#include "mm_trajectory_point.h"
 
-void initialize_motion_matching_module(ModuleInitializationLevel p_level) {
-    if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
-        ClassDB::register_abstract_class<MMFeature>();
-        ClassDB::register_class<MMTrajectoryFeature>();
-        ClassDB::register_class<MMBoneDataFeature>();
+class MMAnimationNode : public AnimationRootNode {
+    GDCLASS(MMAnimationNode, AnimationRootNode);
 
-        ClassDB::register_class<MMAnimationLibrary>();
-        ClassDB::register_class<MMAnimationNode>();
-        ClassDB::register_class<MMQueryInput>();
+public:
+    GETSET(Ref<MMAnimationLibrary>, animation_library)
 
-        ClassDB::register_class<MMCharacter>();
+    virtual AnimationNode::NodeTimeInfo _process(const AnimationMixer::PlaybackInfo p_playback_info, bool p_test_only = false) override;
+    virtual void get_parameter_list(List<PropertyInfo>* r_list) const;
+    virtual Variant get_parameter_default_value(const StringName& p_parameter) const;
+    virtual bool is_parameter_read_only(const StringName& p_parameter) const;
+    virtual String get_caption() const;
 
-        ClassDB::register_class<DampedSkeletonModifier>();
-        ClassDB::register_abstract_class<MMSynchronizer>();
-        ClassDB::register_class<MMClampSynchronizer>();
-        ClassDB::register_class<MMRootMotionSynchronizer>();
-    }
-#ifdef TOOLS_ENABLED
-    if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
-        EditorPlugins::add_by_type<MMEditorPlugin>();
-    }
-#endif
-}
+    static StringName MOTION_MATCHING_INPUT_PARAM;
 
-void uninitialize_motion_matching_module(ModuleInitializationLevel p_level) {
-}
+protected:
+    static void _bind_methods();
+
+private:
+    // MMQueryOutput _last_query_output;
+};
+
+#endif // MM_ANIMATION_NODE_H

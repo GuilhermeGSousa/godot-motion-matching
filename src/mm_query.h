@@ -31,12 +31,16 @@
 #ifndef MM_QUERY_H
 #define MM_QUERY_H
 
+#include "core/object/ref_counted.h"
 #include "scene/3d/skeleton_3d.h"
 
 #include "mm_bone_state.h"
 #include "mm_trajectory_point.h"
 
-struct MMQueryInput {
+class MMQueryInput : public RefCounted {
+    GDCLASS(MMQueryInput, RefCounted);
+
+public:
     // Add data required for the query here
     Vector3 controller_velocity;
     Transform3D controller_transform;
@@ -44,6 +48,15 @@ struct MMQueryInput {
     std::vector<MMTrajectoryPoint> trajectory;
     std::vector<MMTrajectoryPoint> trajectory_history;
     SkeletonState skeleton_state;
+
+    bool is_valid() const {
+        // Add validation logic here
+        return !trajectory.empty();
+    }
+
+protected:
+    static void _bind_methods() {
+    }
 };
 
 struct MMQueryOutput {
