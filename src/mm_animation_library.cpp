@@ -135,7 +135,7 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
 MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
     // TODO: Use fancier search algorithms
     // TODO: Do this using an offset array instead
-
+    const String lib_name = get_path().get_file().rstrip(".tres") + "/";
     List<StringName> animation_list;
     get_animation_list(&animation_list);
 
@@ -172,8 +172,7 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
             cost = frame_cost;
             result.cost = cost;
             result.matched_frame_data = motion_data.slice(start_frame_index, start_frame_index + dim_count);
-            get_animation_list(&animation_list);
-            result.animation_match = animation_list.get(db_anim_index[start_frame_index / dim_count]);
+            result.animation_match = lib_name + animation_list.get(db_anim_index[start_frame_index / dim_count]);
             result.time_match = db_time_index[start_frame_index / dim_count];
             result.feature_costs = feature_costs;
         }
