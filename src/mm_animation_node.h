@@ -43,10 +43,10 @@ public:
     GETSET(Ref<MMAnimationLibrary>, animation_library)
 
     virtual AnimationNode::NodeTimeInfo _process(const AnimationMixer::PlaybackInfo p_playback_info, bool p_test_only = false) override;
-    virtual void get_parameter_list(List<PropertyInfo>* r_list) const;
-    virtual Variant get_parameter_default_value(const StringName& p_parameter) const;
-    virtual bool is_parameter_read_only(const StringName& p_parameter) const;
-    virtual String get_caption() const;
+    virtual void get_parameter_list(List<PropertyInfo>* r_list) const override;
+    virtual Variant get_parameter_default_value(const StringName& p_parameter) const override;
+    virtual bool is_parameter_read_only(const StringName& p_parameter) const override;
+    virtual String get_caption() const override;
 
     static StringName MOTION_MATCHING_INPUT_PARAM;
 
