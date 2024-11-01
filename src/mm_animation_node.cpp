@@ -32,6 +32,8 @@
 
 #include "mm_query.h"
 
+#include "editor/plugins/animation_tree_editor_plugin.h"
+
 // Only play the matched animation if the matched time position
 // is QUERY_TIME_ERROR away from the current time
 constexpr float QUERY_TIME_ERROR = 0.05;
@@ -49,7 +51,7 @@ AnimationNode::NodeTimeInfo MMAnimationNode::_process(const AnimationMixer::Play
         return cur_nti;
     }
 
-    if (animation_library.is_null()) {
+    if (library.is_empty()) {
         return cur_nti;
     }
 
@@ -77,6 +79,7 @@ AnimationNode::NodeTimeInfo MMAnimationNode::_process(const AnimationMixer::Play
     _time_since_last_query = 0.f;
 
     // Run query
+    Ref<MMAnimationLibrary> animation_library = get_animation_tree()->get_animation_library(library);
     const MMQueryOutput query_output = animation_library->query(*query_input);
 
     const bool is_same_animation = query_output.animation_match == _last_query_output.animation_match;
@@ -84,7 +87,7 @@ AnimationNode::NodeTimeInfo MMAnimationNode::_process(const AnimationMixer::Play
 
     // Play selected animation
     if (!is_same_animation || !is_same_time) {
-        const String animation_match = get_animation_library_name() + "/" + query_output.animation_match;
+        const String animation_match = query_output.animation_match;
         const float time_match = query_output.time_match;
         if (!p_test_only) {
             _start_transition(animation_match, time_match);
@@ -157,12 +160,31 @@ String MMAnimationNode::get_caption() const {
     return "Motion Matching";
 }
 
-void MMAnimationNode::_bind_methods() {
-    BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::OBJECT, animation_library, PROPERTY_HINT_RESOURCE_TYPE, "MMAnimationLibrary");
-    BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, query_frequency);
+void MMAnimationNode::_validate_property(PropertyInfo& p_property) const {
+    if (p_property.name == "library") {
+        AnimationTree* tree = AnimationTreeEditor::get_singleton()->get_animation_tree();
+        String anims;
+        if (tree) {
+            List<StringName> lib_names;
+            tree->get_animation_library_list(&lib_names);
+            for (const StringName& lib_name : lib_names) {
+                Ref<MMAnimationLibrary> lib = tree->get_animation_library(lib_name);
+                if (lib.is_valid()) {
+                    if (!anims.is_empty()) {
+                        anims += ",";
+                    }
+                    anims += lib_name;
+                }
+            }
+        }
+        if (!anims.is_empty()) {
+            p_property.hint = PROPERTY_HINT_ENUM;
+            p_property.hint_string = anims;
+        }
+    }
 }
 
-String MMAnimationNode::get_animation_library_name() const {
-    // TODO: Let store the library name in the node
-    return animation_library->get_path().get_file().rstrip(".tres");
+void MMAnimationNode::_bind_methods() {
+    BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::STRING_NAME, library);
+    BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, query_frequency);
 }

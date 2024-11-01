@@ -44,7 +44,7 @@ public:
     MMAnimationNode();
     virtual ~MMAnimationNode() = default;
 
-    GETSET(Ref<MMAnimationLibrary>, animation_library)
+    GETSET(StringName, library);
     GETSET(float, query_frequency, 2.0f)
 
     virtual AnimationNode::NodeTimeInfo _process(const AnimationMixer::PlaybackInfo p_playback_info, bool p_test_only = false) override;
@@ -56,6 +56,8 @@ public:
     static StringName MOTION_MATCHING_INPUT_PARAM;
 
 protected:
+    void _validate_property(PropertyInfo& p_property) const;
+
     static void _bind_methods();
 
 private:
@@ -70,7 +72,6 @@ private:
     void _start_transition(const StringName p_animation, float p_time);
     AnimationNode::NodeTimeInfo _update_current_animation(bool p_test_only);
 
-    String get_animation_library_name() const;
     MMQueryOutput _last_query_output;
     float _time_since_last_query{0.f};
 };
