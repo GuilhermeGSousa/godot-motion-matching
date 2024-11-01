@@ -31,6 +31,7 @@
 #ifndef MM_ANIMATION_NODE_H
 #define MM_ANIMATION_NODE_H
 
+#include "scene/animation/animation_blend_tree.h"
 #include "scene/animation/animation_tree.h"
 
 #include "common.h"
@@ -51,13 +52,23 @@ public:
     virtual Variant get_parameter_default_value(const StringName& p_parameter) const override;
     virtual bool is_parameter_read_only(const StringName& p_parameter) const override;
     virtual String get_caption() const override;
+    virtual void get_child_nodes(List<ChildNode>* r_child_nodes) override;
+    virtual Ref<AnimationNode> get_child_by_name(const StringName& p_name) const;
 
     static StringName MOTION_MATCHING_INPUT_PARAM;
 
 protected:
     static void _bind_methods();
 
+    virtual void _tree_changed() override;
+    virtual void _animation_node_renamed(const ObjectID& p_oid, const String& p_old_name, const String& p_new_name) override;
+    virtual void _animation_node_removed(const ObjectID& p_oid, const StringName& p_node) override;
+
 private:
+    Ref<AnimationNodeAnimation> _anim_node;
+    AnimationNode::NodeTimeInfo play_current_animation(const AnimationMixer::PlaybackInfo& p_playback_info, const AnimationNode::NodeTimeInfo& p_current_nti, bool p_test_only);
+
+    String get_animation_library_name() const;
     MMQueryOutput _last_query_output;
     float _time_since_last_query{0.f};
 };
