@@ -33,6 +33,7 @@
 #include "mm_query.h"
 
 #include "editor/plugins/animation_tree_editor_plugin.h"
+#include "scene/resources/animation_library.h"
 
 // Only play the matched animation if the matched time position
 // is QUERY_TIME_ERROR away from the current time
@@ -79,31 +80,35 @@ AnimationNode::NodeTimeInfo MMAnimationNode::_process(const AnimationMixer::Play
     _time_since_last_query = 0.f;
 
     // Run query
-    Ref<MMAnimationLibrary> animation_library = get_animation_tree()->get_animation_library(library);
-    const MMQueryOutput query_output = animation_library->query(*query_input);
+    List<StringName> p_animations;
+    get_animation_tree()->get_animation_library_list(&p_animations);
+    for (const StringName& library : p_animations) {
+        Ref<MMAnimationLibrary> animation_library = get_animation_tree()->get_animation_library(library);
+        ERR_FAIL_COND_V_MSG(animation_library.is_null(), cur_nti, "Library not found: " + library);
+        const MMQueryOutput query_output = animation_library->query(*query_input);
 
-    const bool is_same_animation = query_output.animation_match == _last_query_output.animation_match;
-    const bool is_same_time = abs(query_output.time_match - p_playback_info.time) < QUERY_TIME_ERROR;
+        const bool is_same_animation = query_output.animation_match == _last_query_output.animation_match;
+        const bool is_same_time = abs(query_output.time_match - p_playback_info.time) < QUERY_TIME_ERROR;
 
-    // Play selected animation
-    if (!is_same_animation || !is_same_time) {
-        const String animation_match = query_output.animation_match;
-        const float time_match = query_output.time_match;
-        if (!p_test_only) {
-            _start_transition(animation_match, time_match);
+        // Play selected animation
+        if (!is_same_animation || !is_same_time) {
+            const String animation_match = query_output.animation_match;
+            const float time_match = query_output.time_match;
+            if (p_test_only) {
+                _last_query_output = query_output;
+            } else {
+                _start_transition(animation_match, time_match);
+                return _update_current_animation(p_test_only);
+            }
         }
-        _last_query_output = query_output;
     }
-
-    return _update_current_animation(p_test_only);
 }
 
 void MMAnimationNode::_start_transition(const StringName p_animation, float p_time) {
     _current_animation_info.name = p_animation;
-
     _current_animation_info.playback_info.time = p_time;
-
     Ref<Animation> anim = process_state->tree->get_animation(p_animation);
+    ERR_FAIL_COND_MSG(anim.is_null(), vformat("Animation not found: %s", p_animation));
     _current_animation_info.length = anim->get_length();
 }
 

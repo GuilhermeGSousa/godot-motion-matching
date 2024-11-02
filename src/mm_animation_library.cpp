@@ -135,14 +135,15 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
 MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
     // TODO: Use fancier search algorithms
     // TODO: Do this using an offset array instead
-    const String lib_name = get_path().get_file().rstrip(".tres") + "/";
     List<StringName> animation_list;
     get_animation_list(&animation_list);
-
     int32_t dim_count = 0;
     PackedFloat32Array query_vector = PackedFloat32Array();
     for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
         const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
+        if (!feature) {
+            continue;
+        }
         PackedFloat32Array feature_data = feature->evaluate_runtime_data(p_query_input);
         feature->normalize(feature_data.ptrw());
         query_vector.append_array(feature_data);
@@ -158,6 +159,9 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
         Dictionary feature_costs;
         for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
             const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
+            if (!feature) {
+                continue;
+            }
 
             const float feature_cost = feature->compute_cost(
                 (query_vector.ptr() + start_feature_index - start_frame_index),
@@ -172,7 +176,11 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
             cost = frame_cost;
             result.cost = cost;
             result.matched_frame_data = motion_data.slice(start_frame_index, start_frame_index + dim_count);
-            result.animation_match = lib_name + animation_list.get(db_anim_index[start_frame_index / dim_count]);
+            String library_name = get_path().get_file().get_basename() + "/";
+            if (library_name.is_empty()) {
+                library_name = get_name() + "/";
+            }
+            result.animation_match = library_name + animation_list.get(db_anim_index[start_frame_index / dim_count]);
             result.time_match = db_time_index[start_frame_index / dim_count];
             result.feature_costs = feature_costs;
         }
