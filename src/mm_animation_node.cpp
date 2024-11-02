@@ -161,27 +161,34 @@ String MMAnimationNode::get_caption() const {
 }
 
 void MMAnimationNode::_validate_property(PropertyInfo& p_property) const {
-    if (p_property.name == "library") {
-        AnimationTree* tree = AnimationTreeEditor::get_singleton()->get_animation_tree();
-        String anims;
-        if (tree) {
-            List<StringName> lib_names;
-            tree->get_animation_library_list(&lib_names);
-            for (const StringName& lib_name : lib_names) {
-                Ref<MMAnimationLibrary> lib = tree->get_animation_library(lib_name);
-                if (lib.is_valid()) {
-                    if (!anims.is_empty()) {
-                        anims += ",";
-                    }
-                    anims += lib_name;
-                }
-            }
-        }
-        if (!anims.is_empty()) {
-            p_property.hint = PROPERTY_HINT_ENUM;
-            p_property.hint_string = anims;
-        }
+    if (p_property.name != "library") {
+        return;
     }
+    if (!AnimationTreeEditor::get_singleton()) {
+        return;
+    }
+    AnimationTree* tree = AnimationTreeEditor::get_singleton()->get_animation_tree();
+    if (!tree) {
+        return;
+    }
+    String animations;
+    List<StringName> library_names;
+    tree->get_animation_library_list(&library_names);
+    for (const StringName& lib_name : library_names) {
+        Ref<MMAnimationLibrary> lib = tree->get_animation_library(lib_name);
+        if (lib.is_null()) {
+            continue;
+        }
+        if (!animations.is_empty()) {
+            animations += ",";
+        }
+        animations += lib_name;
+    }
+    if (animations.is_empty()) {
+        return;
+    }
+    p_property.hint = PROPERTY_HINT_ENUM;
+    p_property.hint_string = animations;
 }
 
 void MMAnimationNode::_bind_methods() {

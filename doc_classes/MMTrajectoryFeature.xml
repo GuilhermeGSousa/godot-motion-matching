@@ -26,10 +26,10 @@
 			Number of trajectory points in the future.
 		</member>
 		<member name="include_facing" type="bool" setter="set_include_facing" getter="get_include_facing" default="true">
-			whether to include the facing direction in the trajectory points.
+			Whether to include the facing direction in the trajectory points.
 		</member>
 		<member name="include_height" type="bool" setter="set_include_height" getter="get_include_height" default="false">
-			whether to include the character's height in the trajectory points.
+			Whether to include the character's height in the trajectory points.
 		</member>
 		<member name="past_delta_time" type="float" setter="set_past_delta_time" getter="get_past_delta_time" default="0.1">
 			Time in seconds between each trajectory point in the past.

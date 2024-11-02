@@ -17,6 +17,8 @@ def get_doc_classes():
         "MMRootMotionSynchronizer",
         "MMSynchronizer",
         "MMTrajectoryFeature",
+        "MMAnimationNode",
+        "MMQueryInput",
     ]
 
 
