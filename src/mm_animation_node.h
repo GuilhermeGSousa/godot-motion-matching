@@ -31,11 +31,13 @@
 #ifndef MM_ANIMATION_NODE_H
 #define MM_ANIMATION_NODE_H
 
+#include "common.h"
+#include "mm_animation_library.h"
+
 #include "scene/animation/animation_blend_tree.h"
 #include "scene/animation/animation_tree.h"
 
-#include "common.h"
-#include "mm_animation_library.h"
+#include <queue>
 
 class MMAnimationNode : public AnimationRootNode {
     GDCLASS(MMAnimationNode, AnimationRootNode);
@@ -46,6 +48,7 @@ public:
 
     GETSET(StringName, library);
     GETSET(float, query_frequency, 2.0f)
+    GETSET(float, transition_time, 0.1f)
 
     virtual AnimationNode::NodeTimeInfo _process(const AnimationMixer::PlaybackInfo p_playback_info, bool p_test_only = false) override;
     virtual void get_parameter_list(List<PropertyInfo>* r_list) const override;
@@ -68,6 +71,7 @@ private:
         AnimationMixer::PlaybackInfo playback_info;
     };
 
+    std::deque<AnimationInfo> _prev_animation_queue;
     AnimationInfo _current_animation_info;
 
     void _start_transition(const StringName p_animation, float p_time);

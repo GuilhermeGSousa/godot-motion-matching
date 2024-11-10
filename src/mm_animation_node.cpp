@@ -59,8 +59,12 @@ AnimationNode::NodeTimeInfo MMAnimationNode::_process(const AnimationMixer::Play
         return cur_nti;
     }
 
-    _current_animation_info.playback_info = p_playback_info;
-    _current_animation_info.playback_info.weight = 1.0;
+    _current_animation_info.playback_info.time = p_playback_info.time;
+    _current_animation_info.playback_info.delta = p_playback_info.delta;
+    _current_animation_info.playback_info.start = p_playback_info.start;
+    _current_animation_info.playback_info.end = p_playback_info.end;
+    _current_animation_info.playback_info.looped_flag = p_playback_info.looped_flag;
+    _current_animation_info.playback_info.is_external_seeking = p_playback_info.is_external_seeking;
 
     const bool is_about_to_end = false; // TODO: Implement this
 
@@ -104,11 +108,17 @@ AnimationNode::NodeTimeInfo MMAnimationNode::_process(const AnimationMixer::Play
 }
 
 void MMAnimationNode::_start_transition(const StringName p_animation, float p_time) {
-    _current_animation_info.name = p_animation;
-    _current_animation_info.playback_info.time = p_time;
     Ref<Animation> anim = process_state->tree->get_animation(p_animation);
     ERR_FAIL_COND_MSG(anim.is_null(), vformat("Animation not found: %s", p_animation));
+
+    if (!_current_animation_info.name.is_empty()) {
+        _prev_animation_queue.push_front(_current_animation_info);
+    }
+
+    _current_animation_info.name = p_animation;
     _current_animation_info.length = anim->get_length();
+    _current_animation_info.playback_info.time = p_time;
+    _current_animation_info.playback_info.weight = 0.f;
 }
 
 AnimationNode::NodeTimeInfo MMAnimationNode::_update_current_animation(bool p_test_only) {
@@ -116,7 +126,28 @@ AnimationNode::NodeTimeInfo MMAnimationNode::_update_current_animation(bool p_te
         _current_animation_info.playback_info.time + _current_animation_info.playback_info.delta,
         _current_animation_info.length);
 
+    const float blend_delta = _current_animation_info.playback_info.delta / transition_time;
+    _current_animation_info.playback_info.weight += blend_delta;
+    if (_current_animation_info.playback_info.weight > 1.f) {
+        _current_animation_info.playback_info.weight = 1.f;
+    }
+
+    int pop_count = 0;
+    for (AnimationInfo& prev_info : _prev_animation_queue) {
+        prev_info.playback_info.weight -= blend_delta / _prev_animation_queue.size();
+        if (prev_info.playback_info.weight <= SMALL_NUMBER) {
+            pop_count++;
+        }
+    }
+
+    for (int i = 0; i < pop_count; i++) {
+        _prev_animation_queue.pop_back();
+    }
+
     if (!p_test_only) {
+        for (AnimationInfo& prev_info : _prev_animation_queue) {
+            blend_animation(prev_info.name, prev_info.playback_info);
+        }
         blend_animation(_current_animation_info.name, _current_animation_info.playback_info);
     }
 
@@ -201,6 +232,7 @@ void MMAnimationNode::_validate_property(PropertyInfo& p_property) const {
 void MMAnimationNode::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::STRING_NAME, library);
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, query_frequency);
+    BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, transition_time);
 }
 
 bool MMAnimationNode::has_filter() const {
