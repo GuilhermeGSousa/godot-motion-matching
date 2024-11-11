@@ -50,6 +50,11 @@ public:
     GETSET(float, query_frequency, 2.0f)
     GETSET(float, transition_halflife, 0.1f)
 
+    bool blending_enabled{true};
+    bool get_blending_enabled() const;
+
+    void set_blending_enabled(bool value);
+
     virtual AnimationNode::NodeTimeInfo _process(const AnimationMixer::PlaybackInfo p_playback_info, bool p_test_only = false) override;
     virtual void get_parameter_list(List<PropertyInfo>* r_list) const override;
     virtual Variant get_parameter_default_value(const StringName& p_parameter) const override;

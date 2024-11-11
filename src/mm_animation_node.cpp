@@ -112,14 +112,14 @@ void MMAnimationNode::_start_transition(const StringName p_animation, float p_ti
     Ref<Animation> anim = process_state->tree->get_animation(p_animation);
     ERR_FAIL_COND_MSG(anim.is_null(), vformat("Animation not found: %s", p_animation));
 
-    if (!_current_animation_info.name.is_empty()) {
+    if (!_current_animation_info.name.is_empty() && blending_enabled) {
         _prev_animation_queue.push_front(_current_animation_info);
     }
 
     _current_animation_info.name = p_animation;
     _current_animation_info.length = anim->get_length();
     _current_animation_info.playback_info.time = p_time;
-    _current_animation_info.playback_info.weight = 0.f;
+    _current_animation_info.playback_info.weight = blending_enabled ? 0.f : 1.f;
 }
 
 AnimationNode::NodeTimeInfo MMAnimationNode::_update_current_animation(bool p_test_only) {
@@ -214,45 +214,63 @@ String MMAnimationNode::get_caption() const {
 }
 
 void MMAnimationNode::_validate_property(PropertyInfo& p_property) const {
-#ifdef TOOLS_ENABLED
-    if (p_property.name != "library") {
-        return;
+    if (p_property.name == "transition_halflife") {
+        if (!blending_enabled) {
+            p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+        }
     }
 
-    if (!AnimationTreeEditor::get_singleton()) {
-        return;
-    }
-    AnimationTree* tree = AnimationTreeEditor::get_singleton()->get_animation_tree();
-    if (!tree) {
-        return;
-    }
-    String animations;
-    List<StringName> library_names;
-    tree->get_animation_library_list(&library_names);
-    for (const StringName& lib_name : library_names) {
-        Ref<MMAnimationLibrary> lib = tree->get_animation_library(lib_name);
-        if (lib.is_null()) {
-            continue;
+#ifdef TOOLS_ENABLED
+    if (p_property.name == "library") {
+        if (!AnimationTreeEditor::get_singleton()) {
+            return;
         }
-        if (!animations.is_empty()) {
-            animations += ",";
+        AnimationTree* tree = AnimationTreeEditor::get_singleton()->get_animation_tree();
+        if (!tree) {
+            return;
         }
-        animations += lib_name;
+        String animations;
+        List<StringName> library_names;
+        tree->get_animation_library_list(&library_names);
+        for (const StringName& lib_name : library_names) {
+            Ref<MMAnimationLibrary> lib = tree->get_animation_library(lib_name);
+            if (lib.is_null()) {
+                continue;
+            }
+            if (!animations.is_empty()) {
+                animations += ",";
+            }
+            animations += lib_name;
+        }
+        if (animations.is_empty()) {
+            return;
+        }
+        p_property.hint = PROPERTY_HINT_ENUM;
+        p_property.hint_string = animations;
     }
-    if (animations.is_empty()) {
-        return;
-    }
-    p_property.hint = PROPERTY_HINT_ENUM;
-    p_property.hint_string = animations;
 #endif
+
+    AnimationRootNode::_validate_property(p_property);
 }
 
 void MMAnimationNode::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::STRING_NAME, library);
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, query_frequency);
+    ClassDB::bind_method(D_METHOD("get_blending_enabled"), &MMAnimationNode::get_blending_enabled);
+    ClassDB::bind_method(D_METHOD("set_blending_enabled", "value"), &MMAnimationNode::set_blending_enabled);
+    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "blending_enabled"), "set_blending_enabled", "get_blending_enabled");
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, transition_halflife);
 }
 
 bool MMAnimationNode::has_filter() const {
     return true;
+}
+
+bool MMAnimationNode::get_blending_enabled() const {
+    return blending_enabled;
+}
+
+void MMAnimationNode::set_blending_enabled(bool value) {
+    blending_enabled = value;
+    notify_property_list_changed();
 }
