@@ -48,7 +48,7 @@ public:
 
     GETSET(StringName, library);
     GETSET(float, query_frequency, 2.0f)
-    GETSET(float, transition_time, 0.1f)
+    GETSET(float, transition_halflife, 0.1f)
 
     virtual AnimationNode::NodeTimeInfo _process(const AnimationMixer::PlaybackInfo p_playback_info, bool p_test_only = false) override;
     virtual void get_parameter_list(List<PropertyInfo>* r_list) const override;
@@ -69,6 +69,7 @@ private:
         StringName name;
         double length;
         AnimationMixer::PlaybackInfo playback_info;
+        float blend_spring_speed;
     };
 
     std::deque<AnimationInfo> _prev_animation_queue;

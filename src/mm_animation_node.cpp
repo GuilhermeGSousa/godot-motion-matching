@@ -30,6 +30,7 @@
 
 #include "mm_animation_node.h"
 
+#include "math/spring.hpp"
 #include "mm_query.h"
 
 #ifdef TOOLS_ENABLED
@@ -126,15 +127,21 @@ AnimationNode::NodeTimeInfo MMAnimationNode::_update_current_animation(bool p_te
         _current_animation_info.playback_info.time + _current_animation_info.playback_info.delta,
         _current_animation_info.length);
 
-    const float blend_delta = _current_animation_info.playback_info.delta / transition_time;
-    _current_animation_info.playback_info.weight += blend_delta;
-    if (_current_animation_info.playback_info.weight > 1.f) {
-        _current_animation_info.playback_info.weight = 1.f;
-    }
+    Spring::_simple_spring_damper_exact(
+        _current_animation_info.playback_info.weight,
+        _current_animation_info.blend_spring_speed,
+        1.f,
+        transition_halflife,
+        _current_animation_info.playback_info.delta);
 
     int pop_count = 0;
     for (AnimationInfo& prev_info : _prev_animation_queue) {
-        prev_info.playback_info.weight -= blend_delta / _prev_animation_queue.size();
+        Spring::_simple_spring_damper_exact(
+            prev_info.playback_info.weight,
+            prev_info.blend_spring_speed,
+            0.f,
+            transition_halflife,
+            _current_animation_info.playback_info.delta);
         if (prev_info.playback_info.weight <= SMALL_NUMBER) {
             pop_count++;
         }
@@ -142,6 +149,17 @@ AnimationNode::NodeTimeInfo MMAnimationNode::_update_current_animation(bool p_te
 
     for (int i = 0; i < pop_count; i++) {
         _prev_animation_queue.pop_back();
+    }
+
+    // Normalized blend weights in the queue
+    const float inv_blend = 1.f - _current_animation_info.playback_info.weight;
+    float prev_blend_total = 0.f;
+    for (AnimationInfo& prev_info : _prev_animation_queue) {
+        prev_blend_total += prev_info.playback_info.weight;
+    }
+
+    for (AnimationInfo& prev_info : _prev_animation_queue) {
+        prev_info.playback_info.weight *= inv_blend / prev_blend_total;
     }
 
     if (!p_test_only) {
@@ -232,7 +250,7 @@ void MMAnimationNode::_validate_property(PropertyInfo& p_property) const {
 void MMAnimationNode::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::STRING_NAME, library);
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, query_frequency);
-    BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, transition_time);
+    BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, transition_halflife);
 }
 
 bool MMAnimationNode::has_filter() const {
