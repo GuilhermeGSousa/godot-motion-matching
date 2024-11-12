@@ -30,6 +30,7 @@
 
 #include "mm_animation_node.h"
 
+#include "math/spring.hpp"
 #include "mm_query.h"
 
 #ifdef TOOLS_ENABLED
@@ -59,8 +60,12 @@ AnimationNode::NodeTimeInfo MMAnimationNode::_process(const AnimationMixer::Play
         return cur_nti;
     }
 
-    _current_animation_info.playback_info = p_playback_info;
-    _current_animation_info.playback_info.weight = 1.0;
+    _current_animation_info.playback_info.time = p_playback_info.time;
+    _current_animation_info.playback_info.delta = p_playback_info.delta;
+    _current_animation_info.playback_info.start = p_playback_info.start;
+    _current_animation_info.playback_info.end = p_playback_info.end;
+    _current_animation_info.playback_info.looped_flag = p_playback_info.looped_flag;
+    _current_animation_info.playback_info.is_external_seeking = p_playback_info.is_external_seeking;
 
     const bool is_about_to_end = false; // TODO: Implement this
 
@@ -104,11 +109,17 @@ AnimationNode::NodeTimeInfo MMAnimationNode::_process(const AnimationMixer::Play
 }
 
 void MMAnimationNode::_start_transition(const StringName p_animation, float p_time) {
-    _current_animation_info.name = p_animation;
-    _current_animation_info.playback_info.time = p_time;
     Ref<Animation> anim = process_state->tree->get_animation(p_animation);
     ERR_FAIL_COND_MSG(anim.is_null(), vformat("Animation not found: %s", p_animation));
+
+    if (!_current_animation_info.name.is_empty() && blending_enabled) {
+        _prev_animation_queue.push_front(_current_animation_info);
+    }
+
+    _current_animation_info.name = p_animation;
     _current_animation_info.length = anim->get_length();
+    _current_animation_info.playback_info.time = p_time;
+    _current_animation_info.playback_info.weight = blending_enabled ? 0.f : 1.f;
 }
 
 AnimationNode::NodeTimeInfo MMAnimationNode::_update_current_animation(bool p_test_only) {
@@ -116,7 +127,45 @@ AnimationNode::NodeTimeInfo MMAnimationNode::_update_current_animation(bool p_te
         _current_animation_info.playback_info.time + _current_animation_info.playback_info.delta,
         _current_animation_info.length);
 
+    Spring::_simple_spring_damper_exact(
+        _current_animation_info.playback_info.weight,
+        _current_animation_info.blend_spring_speed,
+        1.f,
+        transition_halflife,
+        _current_animation_info.playback_info.delta);
+
+    int pop_count = 0;
+    for (AnimationInfo& prev_info : _prev_animation_queue) {
+        Spring::_simple_spring_damper_exact(
+            prev_info.playback_info.weight,
+            prev_info.blend_spring_speed,
+            0.f,
+            transition_halflife,
+            _current_animation_info.playback_info.delta);
+        if (prev_info.playback_info.weight <= SMALL_NUMBER) {
+            pop_count++;
+        }
+    }
+
+    for (int i = 0; i < pop_count; i++) {
+        _prev_animation_queue.pop_back();
+    }
+
+    // Normalized blend weights in the queue
+    const float inv_blend = 1.f - _current_animation_info.playback_info.weight;
+    float prev_blend_total = 0.f;
+    for (AnimationInfo& prev_info : _prev_animation_queue) {
+        prev_blend_total += prev_info.playback_info.weight;
+    }
+
+    for (AnimationInfo& prev_info : _prev_animation_queue) {
+        prev_info.playback_info.weight *= inv_blend / prev_blend_total;
+    }
+
     if (!p_test_only) {
+        for (AnimationInfo& prev_info : _prev_animation_queue) {
+            blend_animation(prev_info.name, prev_info.playback_info);
+        }
         blend_animation(_current_animation_info.name, _current_animation_info.playback_info);
     }
 
@@ -165,44 +214,63 @@ String MMAnimationNode::get_caption() const {
 }
 
 void MMAnimationNode::_validate_property(PropertyInfo& p_property) const {
-#ifdef TOOLS_ENABLED
-    if (p_property.name != "library") {
-        return;
+    if (p_property.name == "transition_halflife") {
+        if (!blending_enabled) {
+            p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+        }
     }
 
-    if (!AnimationTreeEditor::get_singleton()) {
-        return;
-    }
-    AnimationTree* tree = AnimationTreeEditor::get_singleton()->get_animation_tree();
-    if (!tree) {
-        return;
-    }
-    String animations;
-    List<StringName> library_names;
-    tree->get_animation_library_list(&library_names);
-    for (const StringName& lib_name : library_names) {
-        Ref<MMAnimationLibrary> lib = tree->get_animation_library(lib_name);
-        if (lib.is_null()) {
-            continue;
+#ifdef TOOLS_ENABLED
+    if (p_property.name == "library") {
+        if (!AnimationTreeEditor::get_singleton()) {
+            return;
         }
-        if (!animations.is_empty()) {
-            animations += ",";
+        AnimationTree* tree = AnimationTreeEditor::get_singleton()->get_animation_tree();
+        if (!tree) {
+            return;
         }
-        animations += lib_name;
+        String animations;
+        List<StringName> library_names;
+        tree->get_animation_library_list(&library_names);
+        for (const StringName& lib_name : library_names) {
+            Ref<MMAnimationLibrary> lib = tree->get_animation_library(lib_name);
+            if (lib.is_null()) {
+                continue;
+            }
+            if (!animations.is_empty()) {
+                animations += ",";
+            }
+            animations += lib_name;
+        }
+        if (animations.is_empty()) {
+            return;
+        }
+        p_property.hint = PROPERTY_HINT_ENUM;
+        p_property.hint_string = animations;
     }
-    if (animations.is_empty()) {
-        return;
-    }
-    p_property.hint = PROPERTY_HINT_ENUM;
-    p_property.hint_string = animations;
 #endif
+
+    AnimationRootNode::_validate_property(p_property);
 }
 
 void MMAnimationNode::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::STRING_NAME, library);
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, query_frequency);
+    ClassDB::bind_method(D_METHOD("get_blending_enabled"), &MMAnimationNode::get_blending_enabled);
+    ClassDB::bind_method(D_METHOD("set_blending_enabled", "value"), &MMAnimationNode::set_blending_enabled);
+    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "blending_enabled"), "set_blending_enabled", "get_blending_enabled");
+    BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, transition_halflife);
 }
 
 bool MMAnimationNode::has_filter() const {
     return true;
+}
+
+bool MMAnimationNode::get_blending_enabled() const {
+    return blending_enabled;
+}
+
+void MMAnimationNode::set_blending_enabled(bool value) {
+    blending_enabled = value;
+    notify_property_list_changed();
 }
