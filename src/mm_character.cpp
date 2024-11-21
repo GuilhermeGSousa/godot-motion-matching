@@ -1,38 +1,22 @@
-/**************************************************************************/
-/*  mm_character.cpp                                                      */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
 #include "mm_character.h"
 
 #include "math/spring.hpp"
 #include "mm_animation_library.h"
 #include "mm_animation_node.h"
+
+#include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/input.hpp>
+#include <godot_cpp/classes/input_event_mouse_motion.hpp>
+#include <godot_cpp/classes/node3d.hpp>
+#include <godot_cpp/classes/physics_server3d.hpp>
+#include <godot_cpp/classes/physics_test_motion_parameters3d.hpp>
+#include <godot_cpp/classes/physics_test_motion_result3d.hpp>
+#include <godot_cpp/classes/project_settings.hpp>
+#include <godot_cpp/classes/shape3d.hpp>
+#include <godot_cpp/classes/world3d.hpp>
+#include <godot_cpp/core/property_info.hpp>
+#include <godot_cpp/variant/transform3d.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 #include <cstdint>
 
@@ -179,8 +163,8 @@ void MMCharacter::_move_with_collisions(MMTrajectoryPoint& point, float delta_t)
 
     bool is_colliding = PhysicsServer3D::get_singleton()->body_test_motion(
         get_rid(),
-        params->get_parameters(),
-        collision_result->get_result_ptr());
+        params,
+        collision_result);
 
     if (!is_colliding) {
         // We move in the direction of motion as usual
@@ -252,8 +236,8 @@ void MMCharacter::_fall_to_floor(MMTrajectoryPoint& point, float delta_t) {
 
     if (PhysicsServer3D::get_singleton()->body_test_motion(
             get_rid(),
-            params->get_parameters(),
-            collision_result->get_result_ptr())) {
+            params,
+            collision_result)) {
         point.position += collision_result->get_travel();
         point.velocity.y = 0.0;
         point.collision_state.on_floor = true;
@@ -429,13 +413,12 @@ void MMCharacter::_notification(int p_what) {
         if (animation_tree) {
             animation_tree->set_callback_mode_process(AnimationMixer::ANIMATION_CALLBACK_MODE_PROCESS_PHYSICS);
 
-            List<PropertyInfo> properties;
-            animation_tree->get_property_list(&properties);
-            for (const PropertyInfo& prop : properties) {
-                const bool is_object = prop.type == Variant::OBJECT;
-                const bool is_mm_input = prop.class_name == "MMQueryInput";
-                if (is_object && is_mm_input) {
-                    _mm_input_params.push_back(prop.name);
+            TypedArray<Dictionary> properties = animation_tree->get_property_list();
+            for (int property_idx = 0; property_idx < properties.size(); ++property_idx) {
+                const Dictionary& prop = properties[property_idx];
+                const bool is_mm_input = prop["hint_string"] == "MMQueryInput";
+                if (is_mm_input) {
+                    _mm_input_params.push_back(prop["name"]);
                 }
             }
         }

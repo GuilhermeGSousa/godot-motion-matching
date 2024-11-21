@@ -19,11 +19,14 @@ bin
 *.enabled
 *.tmp
 *.TMP
+*.uid
 
 .vscode
 .cache
 
 compile_commands.json
+
+src/gen
 
 # Ignored demos
 demo_*/
