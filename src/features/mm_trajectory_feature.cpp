@@ -117,10 +117,10 @@ PackedFloat32Array MMTrajectoryFeature::evaluate_runtime_data(const MMQueryInput
 
 void MMTrajectoryFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, const Transform3D p_transform, const float* p_data) const {
 
-    Ref<StandardMaterial3D> material = p_gizmo->get_plugin()->get_material("main", p_gizmo);
+    Ref<StandardMaterial3D> material = p_gizmo->get_plugin()->get_material("trajectory_material", p_gizmo);
     if (material.is_null()) {
-        p_gizmo->get_plugin()->create_material("main", Color(1, 0, 0, 1));
-        material = p_gizmo->get_plugin()->get_material("main", p_gizmo);
+        p_gizmo->get_plugin()->create_material("trajectory_material", Color(1, 0, 0, 1));
+        material = p_gizmo->get_plugin()->get_material("trajectory_material", p_gizmo);
     }
 
     float* dernomalized_data = new float[get_dimension_count()];
@@ -137,7 +137,6 @@ void MMTrajectoryFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, co
 
         MMTrajectoryPoint point;
         point.position = Vector3(dernomalized_data[i], include_height ? dernomalized_data[i + 1] : 0, include_height ? dernomalized_data[i + 2] : dernomalized_data[i + 1]);
-        point.position = p_transform.xform(point.position);
 
         Transform3D point_transform = Transform3D();
         point_transform.origin = point.position;
