@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "features/mm_feature.h"
+#include "math/hash.h"
 #include "math/stats.hpp"
 
 MMAnimationLibrary::MMAnimationLibrary()
@@ -99,6 +100,8 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
     _normalize_data(data, dim_count);
 
     motion_data = data.duplicate();
+
+    schema_hash = compute_features_hash();
 }
 
 MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
@@ -136,7 +139,7 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
                 (motion_data.ptr() + start_feature_index));
 
             feature_costs.get_or_add(feature->get_class(), feature_cost);
-            frame_cost += feature_cost;
+            frame_cost += feature_cost * feature->get_weight();
             start_feature_index += feature->get_dimension_count();
         }
 
@@ -205,6 +208,32 @@ void MMAnimationLibrary::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, con
     }
 }
 
+int64_t MMAnimationLibrary::compute_features_hash() const {
+    int64_t hash = 0;
+    for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
+        MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
+        TypedArray<Dictionary> feature_properties = feature->get_property_list();
+        for (int64_t property_index = 0; property_index < feature_properties.size(); property_index++) {
+            // TODO: This needs work, but works for now
+            const Dictionary feature_property = Dictionary(feature_properties[property_index]);
+            const String property_name = feature_property["name"];
+            const uint32_t property_type = feature_property["type"];
+            const bool property_is_stats =
+                property_name == "means" ||
+                property_name == "std_devs" ||
+                property_name == "mins" ||
+                property_name == "maxes";
+            if (property_type != Variant::OBJECT &&
+                property_type != Variant::NIL &&
+                !property_is_stats) {
+                hash = hash_combine(hash, property_name.hash());
+                hash = hash_combine(hash, feature->get(property_name).hash());
+            }
+        }
+    }
+    return hash;
+}
+
 void MMAnimationLibrary::_normalize_data(PackedFloat32Array& p_data, size_t p_dim_count) const {
     ERR_FAIL_COND(p_data.size() % p_dim_count != 0);
 
@@ -220,9 +249,10 @@ void MMAnimationLibrary::_normalize_data(PackedFloat32Array& p_data, size_t p_di
 }
 
 void MMAnimationLibrary::_bind_methods() {
-    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::ARRAY, features, PROPERTY_HINT_TYPE_STRING, Variant::get_type_name(Variant::OBJECT) + '/' + Variant::get_type_name(Variant::BASIS) + ":MMFeature", PROPERTY_USAGE_DEFAULT);
+    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::ARRAY, features, PROPERTY_HINT_TYPE_STRING, UtilityFunctions::str(Variant::OBJECT) + '/' + UtilityFunctions::str(Variant::BASIS) + ":MMFeature");
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::FLOAT, sampling_rate);
-    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_FLOAT32_ARRAY, motion_data);
-    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_INT32_ARRAY, db_anim_index);
-    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_FLOAT32_ARRAY, db_time_index);
+    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_FLOAT32_ARRAY, motion_data, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
+    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_INT32_ARRAY, db_anim_index, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
+    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_FLOAT32_ARRAY, db_time_index, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
+    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::INT, schema_hash, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
 }

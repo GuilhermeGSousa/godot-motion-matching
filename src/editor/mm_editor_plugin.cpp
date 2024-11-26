@@ -20,10 +20,6 @@ MMEditorPlugin::~MMEditorPlugin() {
     remove_control_from_bottom_panel(_bottom_panel_button);
     remove_node_3d_gizmo_plugin(_gizmo_plugin);
     remove_control_from_bottom_panel(_editor);
-    if (_editor) {
-        memdelete(_editor);
-        _editor = nullptr;
-    }
     if (_gizmo_plugin.is_valid()) {
         _gizmo_plugin.unref();
     }

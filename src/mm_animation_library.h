@@ -28,6 +28,8 @@ public:
 
     void display_data(const Ref<EditorNode3DGizmo>& p_gizmo, const Transform3D& p_transform, String p_animation_name, int32_t p_pose_index) const;
 
+    int64_t compute_features_hash() const;
+
     GETSET(TypedArray<MMFeature>, features)
     GETSET(float, sampling_rate, 1.f)
 
@@ -35,6 +37,7 @@ public:
     GETSET(PackedFloat32Array, motion_data)
     GETSET(PackedInt32Array, db_anim_index)
     GETSET(PackedFloat32Array, db_time_index)
+    GETSET(int64_t, schema_hash)
 protected:
     static void _bind_methods();
 

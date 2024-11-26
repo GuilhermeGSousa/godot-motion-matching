@@ -4,7 +4,6 @@
 #include <cfloat>
 #include <cmath>
 
-
 class StatsAccumulator {
 private:
     float sum;
@@ -39,8 +38,12 @@ public:
     }
 
     float get_standard_deviation() const {
-        float mean = get_mean();
-        return sqrt(sum_of_squares / count - mean * mean);
+        const float mean = get_mean();
+        const float variance = (sum_of_squares / count) - (mean * mean);
+        if (variance < FLT_EPSILON) {
+            return 0.0f;
+        }
+        return sqrt(variance);
     }
 
     void reset() {
