@@ -33,6 +33,8 @@ protected:
     static void _bind_methods();
 
 private:
+    static Dictionary _output_to_dict(const MMQueryOutput& output);
+
     struct AnimationInfo {
         StringName name;
         double length;

@@ -89,6 +89,7 @@ void MMFeature::_denormalize_standard(float* p_data) const {
         ERR_PRINT_ONCE("Invalid data provided in _denormalize_standard.");
         return;
     }
+    ERR_FAIL_COND(std_devs.size() != get_dimension_count());
     for (int64_t i = 0; i < get_dimension_count(); ++i) {
         if (std_devs[i] < SMALL_NUMBER) {
             continue;
@@ -103,6 +104,7 @@ void MMFeature::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_normalization_mode"), &MMFeature::get_normalization_mode);
     ADD_PROPERTY(PropertyInfo(Variant::INT, "normalization_mode", PROPERTY_HINT_ENUM, "Raw,Standard,MinMax", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_ALWAYS_DUPLICATE), "set_normalization_mode", "get_normalization_mode");
 
+    BINDER_PROPERTY_PARAMS(MMFeature, Variant::FLOAT, weight);
     BINDER_PROPERTY_PARAMS(MMFeature, Variant::PACKED_FLOAT32_ARRAY, means);
     BINDER_PROPERTY_PARAMS(MMFeature, Variant::PACKED_FLOAT32_ARRAY, std_devs);
     BINDER_PROPERTY_PARAMS(MMFeature, Variant::PACKED_FLOAT32_ARRAY, maxes);

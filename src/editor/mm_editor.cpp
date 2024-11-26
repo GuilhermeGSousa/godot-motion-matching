@@ -4,44 +4,46 @@
 #include "mm_character.h"
 #include "mm_editor.h"
 
-#include <godot_cpp/classes/button.hpp>
-#include <godot_cpp/classes/tab_bar.hpp>
-#include <godot_cpp/classes/tab_container.hpp>
-#include <godot_cpp/classes/v_box_container.hpp>
+#include <godot_cpp/classes/resource_saver.hpp>
 
 MMEditor::MMEditor() {
-    TabContainer* tab_container = memnew(TabContainer);
-    tab_container->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
+    _tab_container = memnew(TabContainer);
+    _tab_container->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
 
-    add_child(tab_container);
+    add_child(_tab_container);
 
     // Baking tab
     {
-        TabBar* baking_tab = memnew(TabBar);
-        baking_tab->set_name("Baking");
+        _baking_tab = memnew(TabBar);
+        _baking_tab->set_name("Baking");
 
-        Button* bake_button = memnew(Button);
-        bake_button->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
-        bake_button->connect("pressed", Callable(this, "_bake_button_pressed"));
-        bake_button->set_text("Bake");
+        _bake_button = memnew(Button);
+        _bake_button->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
+        _bake_button->connect("pressed", Callable(this, "_bake_button_pressed"));
+        _bake_button->set_text("Bake");
 
-        baking_tab->add_child(bake_button);
+        _baking_tab->add_child(_bake_button);
 
-        tab_container->add_child(baking_tab);
+        _tab_container->add_child(_baking_tab);
     }
 
     // Visualization tab
     {
-        TabBar* visualization_tab = memnew(TabBar);
-        visualization_tab->set_name("Visualization");
+        _visualization_tab = memnew(TabBar);
+        _visualization_tab->set_name("Visualization");
 
-        VBoxContainer* visualization_vbox = memnew(VBoxContainer);
-        visualization_vbox->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
-        visualization_tab->add_child(visualization_vbox);
+        _visualization_vbox = memnew(VBoxContainer);
+        _visualization_vbox->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
+        _visualization_tab->add_child(_visualization_vbox);
+
+        _warning_label = memnew(Label);
+        _warning_label->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
+        _warning_label->set_text("No character selected");
+        _visualization_vbox->add_child(_warning_label);
 
         _viz_animation_option_button = memnew(OptionButton);
         _viz_animation_option_button->connect("item_selected", Callable(this, "_viz_anim_selected"));
-        visualization_vbox->add_child(_viz_animation_option_button);
+        _visualization_vbox->add_child(_viz_animation_option_button);
 
         _viz_time_slider = memnew(HSlider);
         _viz_time_slider->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
@@ -49,11 +51,29 @@ MMEditor::MMEditor() {
         _viz_time_slider->set_max(1);
         _viz_time_slider->set_step(1);
         _viz_time_slider->connect("value_changed", Callable(this, "_viz_time_changed"));
-        visualization_vbox->add_child(_viz_time_slider);
+        _visualization_vbox->add_child(_viz_time_slider);
 
-        tab_container->add_child(visualization_tab);
+        _tab_container->add_child(_visualization_tab);
     }
+
+    set_visualization_enabled(false);
 }
+
+MMEditor::~MMEditor() {
+    memdelete(_tab_container);
+}
+
+void MMEditor::set_visualization_enabled(bool p_enabled) {
+    if (p_enabled) {
+        _warning_label->hide();
+    } else {
+        _warning_label->show();
+        _warning_label->set_text("Library data is out of date. Bake data to enable visualization.");
+    }
+    _viz_animation_option_button->set_disabled(!p_enabled);
+    _viz_time_slider->set_editable(p_enabled);
+}
+
 void MMEditor::_bind_methods() {
     ADD_SIGNAL(MethodInfo("animation_visualization_requested", PropertyInfo(Variant::STRING, "animation_lib_name"), PropertyInfo(Variant::STRING, "animation_name"), PropertyInfo(Variant::INT, "pose_index")));
 
@@ -74,6 +94,7 @@ void MMEditor::_bake_animation_libraries(const AnimationMixer* p_mixer, const Sk
         }
 
         anim_lib->bake_data(p_mixer, p_skeleton);
+        ResourceSaver::get_singleton()->save(anim_lib);
     }
 }
 
@@ -86,18 +107,34 @@ void MMEditor::_refresh() {
         return;
     }
 
-    AnimationMixer* animation_player = _current_controller->get_animation_mixer();
+    AnimationMixer* animation_mixer = _current_controller->get_animation_mixer();
 
-    if (!animation_player) {
+    if (!animation_mixer) {
         return;
     }
 
-    PackedStringArray animations = animation_player->get_animation_list();
+    PackedStringArray animations = animation_mixer->get_animation_list();
     _viz_animation_option_button->clear();
     for (int i = 0; i < animations.size(); i++) {
         String animation_name = animations[i];
         _viz_animation_option_button->add_item(animation_name, i);
     }
+    _viz_animation_option_button->select(-1);
+
+    bool needs_baking = false;
+    TypedArray<StringName> animation_library_list = animation_mixer->get_animation_library_list();
+    for (int64_t i = 0; i < animation_library_list.size(); i++) {
+        Ref<MMAnimationLibrary> anim_lib = animation_mixer->get_animation_library(animation_library_list[i]);
+        if (anim_lib.is_null()) {
+            continue;
+        }
+
+        if (anim_lib->compute_features_hash() != anim_lib->get_schema_hash()) {
+            needs_baking = true;
+            break;
+        }
+    }
+    set_visualization_enabled(!needs_baking);
 }
 
 void MMEditor::_bake_button_pressed() {
@@ -112,6 +149,7 @@ void MMEditor::_bake_button_pressed() {
     }
 
     _bake_animation_libraries(animation_mixer, _current_controller->get_skeleton());
+    _refresh();
 }
 
 void MMEditor::_viz_anim_selected(int p_index) {
