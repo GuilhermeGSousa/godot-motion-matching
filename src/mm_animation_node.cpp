@@ -4,10 +4,6 @@
 #include "math/spring.hpp"
 #include "mm_query.h"
 
-// #ifdef TOOLS_ENABLED
-// // #include "editor/plugins/animation_tree_editor_plugin.h"
-// #endif
-
 #include <godot_cpp/classes/animation.hpp>
 #include <godot_cpp/classes/animation_library.hpp>
 #include <godot_cpp/classes/animation_tree.hpp>
@@ -56,7 +52,8 @@ PackedFloat32Array MMAnimationNode::_process(const PackedFloat64Array& p_playbac
     _time_since_last_query = 0.f;
 
     // Run query
-    Ref<MMAnimationLibrary> animation_library = get_process_tree()->get_animation_library(library);
+    AnimationTree* animation_tree = Object::cast_to<AnimationTree>(ObjectDB::get_instance(get_processing_animation_tree_instance_id()));
+    Ref<MMAnimationLibrary> animation_library = animation_tree->get_animation_library(library);
     ERR_FAIL_COND_V_MSG(animation_library.is_null(), PackedFloat32Array(), "Library not found: " + library);
     const MMQueryOutput query_output = animation_library->query(*query_input);
 
@@ -71,13 +68,15 @@ PackedFloat32Array MMAnimationNode::_process(const PackedFloat64Array& p_playbac
             _start_transition(animation_match, time_match);
         }
         _last_query_output = query_output;
+        emit_signal("on_query_result", _output_to_dict(query_output));
     }
 
     return _update_current_animation(p_test_only);
 }
 
 void MMAnimationNode::_start_transition(const StringName p_animation, float p_time) {
-    Ref<Animation> anim = get_process_tree()->get_animation(p_animation);
+    AnimationTree* animation_tree = Object::cast_to<AnimationTree>(ObjectDB::get_instance(get_processing_animation_tree_instance_id()));
+    Ref<Animation> anim = animation_tree->get_animation(p_animation);
     ERR_FAIL_COND_MSG(anim.is_null(), vformat("Animation not found: %s", p_animation));
 
     if (!_current_animation_info.name.is_empty() && blending_enabled) {
@@ -246,7 +245,21 @@ void MMAnimationNode::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_blending_enabled"), &MMAnimationNode::get_blending_enabled);
     ClassDB::bind_method(D_METHOD("set_blending_enabled", "value"), &MMAnimationNode::set_blending_enabled);
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "blending_enabled"), "set_blending_enabled", "get_blending_enabled");
+
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, transition_halflife);
+    ADD_SIGNAL(MethodInfo("on_query_result", PropertyInfo(Variant::DICTIONARY, "query_output")));
+}
+
+Dictionary MMAnimationNode::_output_to_dict(const MMQueryOutput& output) {
+    Dictionary result;
+
+    result.get_or_add("animation", output.animation_match);
+    result.get_or_add("time", output.time_match);
+    result.get_or_add("frame_data", output.matched_frame_data);
+    result.merge(output.feature_costs);
+    result.get_or_add("total_cost", output.cost);
+
+    return result;
 }
 
 bool MMAnimationNode::get_blending_enabled() const {

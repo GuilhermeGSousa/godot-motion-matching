@@ -2,10 +2,15 @@
 #define MM_EDITOR_H
 
 #include <godot_cpp/classes/animation_mixer.hpp>
+#include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/h_slider.hpp>
+#include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/skeleton3d.hpp>
+#include <godot_cpp/classes/tab_bar.hpp>
+#include <godot_cpp/classes/tab_container.hpp>
+#include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/variant/string.hpp>
 
 using namespace godot;
@@ -18,7 +23,7 @@ class MMEditor : public Control {
 
 public:
     MMEditor();
-
+    virtual ~MMEditor();
     void set_character(MMCharacter* p_controller) {
         const bool changed = p_controller != _current_controller;
 
@@ -27,6 +32,8 @@ public:
             _refresh();
         }
     }
+
+    void set_visualization_enabled(bool p_enabled);
 
 protected:
     static void _bind_methods();
@@ -43,8 +50,18 @@ private:
     String _current_animation_name;
 
     // UI Elements
+    TabContainer* _tab_container;
+
+    // Visualization
+    Label* _warning_label;
+    TabBar* _visualization_tab;
+    VBoxContainer* _visualization_vbox;
     OptionButton* _viz_animation_option_button;
     HSlider* _viz_time_slider;
+
+    // Baking
+    TabBar* _baking_tab;
+    Button* _bake_button;
 
     int _selected_animation_index = -1;
 };

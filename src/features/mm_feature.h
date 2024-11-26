@@ -40,6 +40,7 @@ public:
     void denormalize(float* p_data) const;
     float compute_cost(const float* p_motion_data, const float* p_query_data) const;
 
+    GETSET(float, weight, 1.0f);
     GETSET(NormalizationMode, normalization_mode, Standard);
     GETSET(PackedFloat32Array, means);
     GETSET(PackedFloat32Array, std_devs);
