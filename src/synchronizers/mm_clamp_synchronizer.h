@@ -8,7 +8,7 @@ class MMClampSynchronizer : public MMSynchronizer {
     GDCLASS(MMClampSynchronizer, MMSynchronizer)
 
 public:
-    virtual MMSyncResult sync(const MMCharacter* controller, const Node3D* character, float delta_time) override;
+    virtual void sync(MMCharacter* p_controller, Node3D* p_character, float p_delta_time) override;
 
     GETSET(float, clamp_distance, 10.f);
 
