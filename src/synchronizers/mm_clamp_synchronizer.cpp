@@ -2,25 +2,17 @@
 
 #include "mm_character.h"
 
-MMSyncResult MMClampSynchronizer::sync(const MMCharacter* controller, const Node3D* character, float delta_time) {
-    MMSyncResult result;
+void MMClampSynchronizer::sync(MMCharacter* p_controller, Node3D* p_character, float p_delta_time) {
+    const Vector3 position_delta = p_character->get_global_position() - p_controller->get_global_position();
+    const real_t delta_length = position_delta.length();
 
-    result.controller_position = controller->get_global_position();
-    result.controller_rotation = controller->get_quaternion();
-
-    const Vector3 position_delta = character->get_global_position() - controller->get_global_position();
-
+    Vector3 character_position = p_character->get_global_position();
     if (position_delta.length() > clamp_distance) {
-        result.character_position =
-            result.controller_position +
-            position_delta.normalized() * clamp_distance;
-    } else {
-        result.character_position = character->get_global_position();
+        character_position = p_controller->get_global_position() + position_delta.normalized() * clamp_distance;
     }
+    character_position.y = p_character->get_global_position().y;
 
-    result.character_rotation = character->get_quaternion();
-
-    return result;
+    p_character->set_global_position(character_position);
 }
 
 void MMClampSynchronizer::_bind_methods() {

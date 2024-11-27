@@ -16,6 +16,7 @@
 #include "modifiers/damped_skeleton_modifier.h"
 
 #include "synchronizers/mm_clamp_synchronizer.h"
+#include "synchronizers/mm_mix_synchronizer.h"
 #include "synchronizers/mm_rootmotion_synchronizer.h"
 #include "synchronizers/mm_synchronizer.h"
 
@@ -40,6 +41,7 @@ void initialize_motion_matching_module(ModuleInitializationLevel p_level) {
         ClassDB::register_abstract_class<MMSynchronizer>();
         ClassDB::register_class<MMClampSynchronizer>();
         ClassDB::register_class<MMRootMotionSynchronizer>();
+        ClassDB::register_class<MMMixSynchronizer>();
     }
 
     if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
