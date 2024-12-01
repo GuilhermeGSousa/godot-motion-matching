@@ -30,6 +30,8 @@ public:
 
     int64_t compute_features_hash() const;
 
+    bool needs_baking() const;
+
     GETSET(TypedArray<MMFeature>, features)
     GETSET(float, sampling_rate, 1.f)
 

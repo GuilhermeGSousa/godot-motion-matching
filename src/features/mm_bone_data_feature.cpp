@@ -97,7 +97,7 @@ BoneState MMBoneDataFeature::_sample_bone_state(Ref<Animation> p_animation, doub
     int32_t current_bone_index = _skeleton->find_bone(p_bone_path);
     String current_bone;
     const int32_t root_bone_index = _root_bone_index;
-    while (current_bone_index > root_bone_index) {
+    while (current_bone_index != root_bone_index && current_bone_index != -1) {
         current_bone = _skeleton->get_bone_name(current_bone_index);
         const String bone_path = String(_skeleton_path) + String(":") + current_bone;
 

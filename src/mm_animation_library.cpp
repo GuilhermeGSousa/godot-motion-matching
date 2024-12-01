@@ -234,6 +234,10 @@ int64_t MMAnimationLibrary::compute_features_hash() const {
     return hash;
 }
 
+bool MMAnimationLibrary::needs_baking() const {
+    return schema_hash != compute_features_hash();
+}
+
 void MMAnimationLibrary::_normalize_data(PackedFloat32Array& p_data, size_t p_dim_count) const {
     ERR_FAIL_COND(p_data.size() % p_dim_count != 0);
 
