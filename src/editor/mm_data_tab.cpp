@@ -53,26 +53,6 @@ void MMDataTab::set_animation_library(Ref<MMAnimationLibrary> p_library) {
             std_value->set_text(String::num(feature->get_std_devs()[i]));
             _stats_data_container->add_child(std_value);
         }
-
-        // Label* feature_label = memnew(Label);
-        // feature_label->set_text(features[i].name);
-        // _stats_data_container->add_child(feature_label);
-
-        // Label* min_value = memnew(Label);
-        // min_value->set_text(String::num(features[i].min));
-        // _stats_data_container->add_child(min_value);
-
-        // Label* max_value = memnew(Label);
-        // max_value->set_text(String::num(features[i].max));
-        // _stats_data_container->add_child(max_value);
-
-        // Label* avg_value = memnew(Label);
-        // avg_value->set_text(String::num(features[i].avg));
-        // _stats_data_container->add_child(avg_value);
-
-        // Label* std_value = memnew(Label);
-        // std_value->set_text(String::num(features[i].std));
-        // _stats_data_container->add_child(std_value);
     }
 }
 
