@@ -135,8 +135,8 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
             }
 
             const float feature_cost = feature->compute_cost(
-                (query_vector.ptr() + start_feature_index - start_frame_index),
-                (motion_data.ptr() + start_feature_index));
+                (motion_data.ptr() + start_feature_index),
+                (query_vector.ptr() + start_feature_index - start_frame_index));
 
             feature_costs.get_or_add(feature->get_class(), feature_cost);
             frame_cost += feature_cost * feature->get_weight();
@@ -232,6 +232,10 @@ int64_t MMAnimationLibrary::compute_features_hash() const {
         }
     }
     return hash;
+}
+
+bool MMAnimationLibrary::needs_baking() const {
+    return schema_hash != compute_features_hash();
 }
 
 void MMAnimationLibrary::_normalize_data(PackedFloat32Array& p_data, size_t p_dim_count) const {
