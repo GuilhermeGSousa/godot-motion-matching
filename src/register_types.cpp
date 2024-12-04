@@ -5,9 +5,11 @@
 #include "mm_character.h"
 
 #include "editor/animation_tree_handler_plugin.h"
+#include "editor/mm_data_tab.h"
 #include "editor/mm_editor.h"
 #include "editor/mm_editor_gizmo_plugin.h"
 #include "editor/mm_editor_plugin.h"
+#include "editor/mm_visualization_tab.h"
 
 #include "features/mm_bone_data_feature.h"
 #include "features/mm_feature.h"
@@ -49,6 +51,8 @@ void initialize_motion_matching_module(ModuleInitializationLevel p_level) {
         ClassDB::register_internal_class<MMEditorGizmoPlugin>();
         ClassDB::register_internal_class<MMEditor>();
         ClassDB::register_internal_class<MMEditorPlugin>();
+        ClassDB::register_internal_class<MMDataTab>();
+        ClassDB::register_internal_class<MMVisualizationTab>();
 
         EditorPlugins::add_by_type<MMEditorPlugin>();
         EditorPlugins::add_by_type<AnimationTreeHandlerPlugin>();
