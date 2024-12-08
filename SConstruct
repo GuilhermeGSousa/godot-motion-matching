@@ -37,6 +37,7 @@ env = SConscript("godot-cpp/SConstruct", {"env": env, "customs": customs})
 
 env.Append(CPPPATH=["src/"])
 sources = Glob("src/*.cpp")
+sources += Glob("src/algo/*.cpp")
 sources += Glob("src/editor/*.cpp")
 sources += Glob("src/features/*.cpp")
 sources += Glob("src/math/*.cpp")
