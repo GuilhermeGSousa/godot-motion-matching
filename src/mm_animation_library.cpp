@@ -5,19 +5,12 @@
 #include "math/hash.h"
 #include "math/stats.hpp"
 
-MMAnimationLibrary::MMAnimationLibrary()
-    : AnimationLibrary() {
-}
-
-MMAnimationLibrary::~MMAnimationLibrary() {
-}
-
 void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleton3D* p_skeleton) {
     motion_data.clear();
     db_anim_index.clear();
     db_time_index.clear();
 
-    int64_t dim_count = 0;
+    int32_t dim_count = 0;
     for (auto i = 0; i < features.size(); ++i) {
         MMFeature* f = Object::cast_to<MMFeature>(features[i]);
         dim_count += f->get_dimension_count();
@@ -102,13 +95,12 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
     motion_data = data.duplicate();
 
     schema_hash = compute_features_hash();
+
+    _kd_tree = std::make_unique<KDTree>(motion_data.ptr(), dim_count, ((int32_t)motion_data.size()) / dim_count);
+    node_indices = PackedInt32Array(_kd_tree->get_node_indices());
 }
 
 MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
-    // TODO: Use fancier search algorithms
-    // TODO: Do this using an offset array instead
-    TypedArray<StringName> animation_list = get_animation_list();
-    int32_t dim_count = 0;
     PackedFloat32Array query_vector = PackedFloat32Array();
     for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
         const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
@@ -118,47 +110,11 @@ MMQueryOutput MMAnimationLibrary::query(const MMQueryInput& p_query_input) {
         PackedFloat32Array feature_data = feature->evaluate_runtime_data(p_query_input);
         feature->normalize(feature_data.ptrw());
         query_vector.append_array(feature_data);
-        dim_count += feature->get_dimension_count();
     }
 
-    float cost = FLT_MAX;
     MMQueryOutput result;
-
-    for (int64_t start_frame_index = 0; start_frame_index < motion_data.size(); start_frame_index += dim_count) {
-        int start_feature_index = start_frame_index;
-        float frame_cost = 0.f;
-        Dictionary feature_costs;
-        for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
-            const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
-            if (!feature) {
-                continue;
-            }
-
-            const float feature_cost = feature->compute_cost(
-                (motion_data.ptr() + start_feature_index),
-                (query_vector.ptr() + start_feature_index - start_frame_index));
-
-            feature_costs.get_or_add(feature->get_class(), feature_cost);
-            frame_cost += feature_cost * feature->get_weight();
-            start_feature_index += feature->get_dimension_count();
-        }
-
-        if (frame_cost < cost) {
-            cost = frame_cost;
-            result.cost = cost;
-            result.matched_frame_data = motion_data.slice(start_frame_index, start_frame_index + dim_count);
-            String library_name = get_path().get_file().get_basename() + "/";
-            if (library_name.is_empty()) {
-                library_name = get_name() + "/";
-            }
-
-            result.animation_match = library_name + UtilityFunctions::str(animation_list[db_anim_index[start_frame_index / dim_count]]);
-            result.time_match = db_time_index[start_frame_index / dim_count];
-            result.feature_costs = feature_costs;
-        }
-    }
-
-    return result;
+    result = _search_kd_tree(query_vector);
+    return std::move(result);
 }
 
 int64_t MMAnimationLibrary::get_dim_count() const {
@@ -252,11 +208,142 @@ void MMAnimationLibrary::_normalize_data(PackedFloat32Array& p_data, size_t p_di
     }
 }
 
+float MMAnimationLibrary::_compute_feature_costs(int p_pose_index, const PackedFloat32Array& p_query, Dictionary* p_feature_costs) const {
+    float pose_cost = 0.f;
+    int start_frame_index = p_pose_index * p_query.size();
+    int start_feature_index = 0;
+    for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
+        const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
+        if (!feature) {
+            continue;
+        }
+
+        const float feature_cost =
+            distance_squared((motion_data.ptr() + start_frame_index + start_feature_index),
+                             (p_query.ptr() + start_feature_index),
+                             feature->get_dimension_count()) *
+            feature->calculate_normalized_weight();
+
+        if (p_feature_costs) {
+            p_feature_costs->get_or_add(feature->get_class(), feature_cost);
+        }
+
+        pose_cost += feature_cost;
+        start_feature_index += feature->get_dimension_count();
+    }
+    return pose_cost;
+}
+
+MMQueryOutput MMAnimationLibrary::_search_naive(const PackedFloat32Array& p_query) const {
+    float cost = FLT_MAX;
+    MMQueryOutput result;
+    TypedArray<StringName> animation_list = get_animation_list();
+    int32_t dim_count = p_query.size();
+    int64_t best_pose_index = -1;
+    for (int64_t start_frame_index = 0; start_frame_index < motion_data.size(); start_frame_index += dim_count) {
+        int start_feature_index = start_frame_index;
+        float pose_cost = 0.f;
+        Dictionary feature_costs;
+        for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
+            const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
+            if (!feature) {
+                continue;
+            }
+
+            const float feature_cost =
+                distance_squared((motion_data.ptr() + start_feature_index),
+                                 (p_query.ptr() + start_feature_index - start_frame_index),
+                                 feature->get_dimension_count()) *
+                feature->calculate_normalized_weight();
+
+            feature_costs.get_or_add(feature->get_class(), feature_cost);
+            pose_cost += feature_cost;
+            start_feature_index += feature->get_dimension_count();
+        }
+
+        if (pose_cost < cost) {
+            cost = pose_cost;
+            best_pose_index = start_frame_index / dim_count;
+        }
+    }
+
+    String library_name = get_path().get_file().get_basename() + "/";
+    if (library_name.is_empty()) {
+        library_name = get_name() + "/";
+    }
+    result.animation_match = library_name + UtilityFunctions::str(animation_list[db_anim_index[best_pose_index]]);
+    result.time_match = db_time_index[best_pose_index];
+
+    if (include_cost_results) {
+        result.matched_frame_data = motion_data.slice(
+            best_pose_index * dim_count,
+            (best_pose_index + 1) * dim_count);
+
+        result.cost = _compute_feature_costs(
+            best_pose_index,
+            p_query,
+            &result.feature_costs);
+    }
+
+    return result;
+}
+
+MMQueryOutput MMAnimationLibrary::_search_kd_tree(const PackedFloat32Array& p_query) {
+    if (!_kd_tree) {
+        int32_t dim_count = p_query.size();
+        _kd_tree = std::make_unique<KDTree>(dim_count);
+        _kd_tree->rebuild_tree(((int32_t)motion_data.size()) / dim_count, node_indices);
+    }
+
+    std::vector<float> dimension_weights;
+    for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
+        const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
+        if (!feature) {
+            continue;
+        }
+        for (int64_t feature_dim_index = 0; feature_dim_index < feature->get_dimension_count(); feature_dim_index++) {
+            dimension_weights.push_back(feature->calculate_normalized_weight());
+        }
+    }
+
+    int nodes_visited = 0;
+    int best_pose_index = _kd_tree->search_nn(
+        motion_data.ptr(),
+        p_query.ptr(),
+        dimension_weights);
+
+    MMQueryOutput result;
+    String library_name = get_path().get_file().get_basename() + "/";
+    if (library_name.is_empty()) {
+        library_name = get_name() + "/";
+    }
+    TypedArray<StringName> animation_list = get_animation_list();
+
+    result.animation_match = library_name + UtilityFunctions::str(animation_list[db_anim_index[best_pose_index]]);
+    result.time_match = db_time_index[best_pose_index];
+
+    if (include_cost_results) {
+        result.matched_frame_data = motion_data.slice(
+            best_pose_index * p_query.size(),
+            (best_pose_index + 1) * p_query.size());
+
+        result.cost =
+            _compute_feature_costs(
+                best_pose_index,
+                p_query,
+                &result.feature_costs);
+    }
+
+    return result;
+}
+
 void MMAnimationLibrary::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::ARRAY, features, PROPERTY_HINT_TYPE_STRING, UtilityFunctions::str(Variant::OBJECT) + '/' + UtilityFunctions::str(Variant::BASIS) + ":MMFeature");
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::FLOAT, sampling_rate);
+    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::BOOL, include_cost_results);
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_FLOAT32_ARRAY, motion_data, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_INT32_ARRAY, db_anim_index, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_FLOAT32_ARRAY, db_time_index, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::INT, schema_hash, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
+    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_INT32_ARRAY, node_indices, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
 }
