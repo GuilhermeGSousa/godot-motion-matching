@@ -1,10 +1,11 @@
-# Motion Matching for Godot 4.3
+# Motion Matching for Godot 4
 
 ![](https://github.com/GuilhermeGSousa/godot-motion-matching/blob/master/motion_matching_demo.gif)
 
 A motion matching implementation in Godot 4.3, implemented following [Dan Holden's article](https://www.theorangeduck.com/page/code-vs-data-driven-displacement). 
 
 :warning: **This repo is a work in progress!** :warning:
+**Note:** Currently, the main development branch for this repo is `engine-module`. Because of some missing extensibility features in Godot, the changes from that branch require [this PR](https://github.com/godotengine/godot/pull/99181#issuecomment-2520194811) to be able to compile the extension. The `master` branch will become the main development branch again once that PR is merged.
 
 ### Demo
 The demo has now moved to a separate repository. You can find it [here!](https://github.com/GuilhermeGSousa/godot-motion-matching-demo).
