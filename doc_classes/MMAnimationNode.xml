@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="MMAnimationNode" inherits="AnimationRootNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="library" type="StringName" setter="set_library" getter="get_library" default="&amp;&quot;&quot;">
+		</member>
+		<member name="query_frequency" type="float" setter="set_query_frequency" getter="get_query_frequency" default="2.0">
+		</member>
+	</members>
+</class>

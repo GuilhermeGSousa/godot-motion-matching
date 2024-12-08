@@ -1,9 +1,10 @@
-#pragma once
+#ifndef MM_TRAJECTORY_POINT_H
+#define MM_TRAJECTORY_POINT_H
+
+#include "common.h"
 
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/variant/vector3.hpp>
-
-#include "common.h"
 
 using namespace godot;
 
@@ -34,3 +35,4 @@ struct MMTrajectoryPoint {
         return result;
     }
 };
+#endif // MM_TRAJECTORY_POINT_H

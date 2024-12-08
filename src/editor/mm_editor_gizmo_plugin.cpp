@@ -9,6 +9,8 @@
 #include "mm_editor_gizmo_plugin.h"
 
 MMEditorGizmoPlugin::MMEditorGizmoPlugin() {
+    create_material("trajectory_material", Color(1, 0, 0, 1));
+    create_material("bone_material", Color(0, 0, 1, 1));
 }
 
 bool MMEditorGizmoPlugin::_has_gizmo(Node3D* p_for_node_3d) const {
@@ -53,6 +55,7 @@ void MMEditorGizmoPlugin::on_anim_viz_requested(String p_animation_lib, String p
     _animation_name = p_animation_name;
     _pose_index = p_pose_index;
 }
+
 void MMEditorGizmoPlugin::_bind_methods() {
     ClassDB::bind_method(D_METHOD("on_anim_viz_requested", "animation_lib", "animation_name", "pose_index"), &MMEditorGizmoPlugin::on_anim_viz_requested);
 }

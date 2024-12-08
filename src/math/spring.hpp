@@ -328,39 +328,6 @@ static inline PackedFloat32Array timed_spring_damper_exact(real_t x, real_t v, r
     return result;
 }
 
-static Dictionary character_update(Vector3 pos, Vector3 vel, Vector3 acc, Quaternion quaternion, Vector3 angular_velocity, Vector3 v_goal, Quaternion q_goal, real_t halflife_vel, real_t halflife_rot, real_t dt) {
-    Dictionary answer;
-    {
-        real_t y = halflife_to_damping(halflife_vel) / 2.0;
-        Vector3 j0 = vel - v_goal;
-        Vector3 j1 = acc + j0 * y;
-        real_t eydt = fast_negexp(y * dt);
-
-        answer["world_position"] = eydt * ((-j1 / (y * y)) + ((-j0 - j1 * dt) / y)) + (j1 / (y * y)) + j0 / y + v_goal * dt + pos;
-        answer["velocity"] = eydt * (j0 + j1 * dt) + v_goal;
-        answer["acceleration"] = eydt * (acc - j1 * y * dt);
-    }
-    {
-        real_t y = halflife_to_damping(halflife_rot) / 2.0;
-        Vector3 j0 = (quaternion * q_goal.inverse()).get_euler();
-        Vector3 j1 = angular_velocity + j0 * y;
-        real_t eydt = fast_negexp(y * dt);
-        answer["quaternion"] = (Quaternion(eydt * (j0 + j1 * dt)) * q_goal).normalized();
-        answer["angular_velocity"] = eydt * (angular_velocity - j1 * y * dt);
-        answer["delta"] = dt;
-    }
-    return answer;
-}
-
-static Dictionary character_predict(Vector3 x, Vector3 v, Vector3 a, Quaternion q, Vector3 angular_v, Vector3 v_goal, Quaternion q_goal, real_t halflife_v, real_t halflife_q, const PackedFloat32Array dts) {
-    Dictionary answer;
-    for (int i = 0; i < dts.size(); i++) {
-        real_t dt = dts[i];
-        answer[i] = character_update(x, v, a, q, angular_v, v_goal, q_goal, halflife_v, halflife_q, dt);
-    }
-    return answer;
-}
-
 static inline void inertialize_transition(Vector3& off_x, Vector3& off_v, const Vector3 src_x, const Vector3 src_v, const Vector3 dst_x, const Vector3 dst_v) {
     off_x = (src_x + off_x) - dst_x;
     off_v = (src_v + off_v) - dst_v;

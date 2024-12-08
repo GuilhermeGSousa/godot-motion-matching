@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="MMFeature" inherits="Resource" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		Base class for features used in motion matching.
+	</brief_description>
+	<description>
+		[MMFeature] is a base class for features used in motion matching. A feature describes a specific aspect of animations, that can be used to match against at runtime. When baking animation libraries, [MMFeature]s are used to generate motion data.
+		        [MMFeature]s can be normalized in different ways, such as raw, standard, or min-max normalization. The normalization ensures that different features are on the same scale, and therefore have (by default) an equal impact on the matching result.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_dimension_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the number of dimensions of the feature. This is the number of values that the feature will output per animation frame.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="maxes" type="PackedFloat32Array" setter="set_maxes" getter="get_maxes" default="PackedFloat32Array()">
+			Maximum values for each dimension of the feature. Used for min-max normalization.
+		</member>
+		<member name="means" type="PackedFloat32Array" setter="set_means" getter="get_means" default="PackedFloat32Array()">
+			Mean values for each dimension of the feature. Used for standard normalization.
+		</member>
+		<member name="mins" type="PackedFloat32Array" setter="set_mins" getter="get_mins" default="PackedFloat32Array()">
+			Minimum values for each dimension of the feature. Used for min-max normalization.
+		</member>
+		<member name="normalization_mode" type="int" setter="set_normalization_mode" getter="get_normalization_mode" enum="MMFeature.NormalizationMode" default="1">
+			The normalization mode used for the feature. Can be one of [constant Raw], [constant Standard], or [constant MinMax].
+		</member>
+		<member name="std_devs" type="PackedFloat32Array" setter="set_std_devs" getter="get_std_devs" default="PackedFloat32Array()">
+			Standard deviation values for each dimension of the feature. Used for standard normalization.
+		</member>
+	</members>
+	<constants>
+		<constant name="Raw" value="0" enum="NormalizationMode">
+		</constant>
+		<constant name="Standard" value="1" enum="NormalizationMode">
+		</constant>
+		<constant name="MinMax" value="2" enum="NormalizationMode">
+		</constant>
+	</constants>
+</class>

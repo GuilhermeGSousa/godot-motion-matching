@@ -1,62 +1,51 @@
+
 #include "editor/mm_editor_plugin.h"
 
-#include <godot_cpp/classes/editor_interface.hpp>
-#include <godot_cpp/classes/editor_selection.hpp>
-#include <godot_cpp/classes/input_event.hpp>
-#include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
-#include "mm_editor_plugin.h"
+#include <godot_cpp/classes/button.hpp>
+#include <godot_cpp/classes/tab_bar.hpp>
+#include <godot_cpp/classes/tab_container.hpp>
+#include <godot_cpp/classes/v_box_container.hpp>
 
 MMEditorPlugin::MMEditorPlugin() {
+    _editor = memnew(MMEditor);
+    _gizmo_plugin.instantiate();
+    add_node_3d_gizmo_plugin(_gizmo_plugin);
+    _bottom_panel_button = add_control_to_bottom_panel(_editor, "MMEditor");
+    _editor->connect("animation_visualization_requested", callable_mp(_gizmo_plugin.ptr(), &MMEditorGizmoPlugin::on_anim_viz_requested));
+    _make_visible(false);
 }
 
-void MMEditorPlugin::_input(const Ref<InputEvent>& p_event) {
-    if (p_event->is_class("InputEventMouseButton") && p_event->is_released()) {
-        TypedArray<Node> selected_nodes = get_editor_interface()->get_selection()->get_selected_nodes();
-
-        _current_controller = nullptr;
-        for (int i = 0; i < selected_nodes.size(); i++) {
-            MMCharacter* animation_player = Object::cast_to<MMCharacter>(selected_nodes[i]);
-
-            if (animation_player) {
-                _current_controller = animation_player;
-                _editor->set_animation_player(_current_controller);
-                break;
-            }
-        }
-
-        _bottom_pannel_button->show();
-        _update_visibility();
+MMEditorPlugin::~MMEditorPlugin() {
+    remove_control_from_bottom_panel(_bottom_panel_button);
+    remove_node_3d_gizmo_plugin(_gizmo_plugin);
+    remove_control_from_bottom_panel(_editor);
+    if (_gizmo_plugin.is_valid()) {
+        _gizmo_plugin.unref();
     }
 }
 
-void MMEditorPlugin::_notification(int p_what) {
-
-    switch (p_what) {
-    case NOTIFICATION_ENTER_TREE: {
-        _editor = memnew(MMEditor);
-        _bottom_pannel_button = add_control_to_bottom_panel(_editor, "MMEditor");
-        make_bottom_panel_item_visible(_bottom_pannel_button);
-        _update_visibility();
-        _gizmo_plugin.instantiate();
-        _editor->connect("animation_visualization_requested", Callable(_gizmo_plugin.ptr(), "on_anim_viz_requested"));
-        add_node_3d_gizmo_plugin(_gizmo_plugin);
-    } break;
-
-    case NOTIFICATION_EXIT_TREE: {
-        remove_node_3d_gizmo_plugin(_gizmo_plugin);
-    } break;
-    };
-}
-
-void MMEditorPlugin::_update_visibility() {
-    if (_current_controller) {
-        _bottom_pannel_button->show();
+void MMEditorPlugin::_make_visible(bool p_visible) {
+    if (p_visible) {
+        _bottom_panel_button->show();
     } else {
-        _bottom_pannel_button->hide();
+        _bottom_panel_button->hide();
+        hide_bottom_panel();
     }
 }
 
-void MMEditorPlugin::_bind_methods() {
+bool MMEditorPlugin::_handles(Object* p_node) const {
+    return (Object::cast_to<MMCharacter>(p_node) != nullptr);
+}
+
+void MMEditorPlugin::_edit(Object* p_object) {
+    MMCharacter* character = Object::cast_to<MMCharacter>(p_object);
+    _make_visible(character != nullptr);
+
+    if (!character) {
+        return;
+    }
+
+    _editor->set_character(character);
 }

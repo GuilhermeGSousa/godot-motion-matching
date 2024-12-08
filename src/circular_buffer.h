@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CIRCULAR_BUFFER_H
+#define CIRCULAR_BUFFER_H
 
 #include <cstddef>
 #include <deque>
@@ -72,3 +73,4 @@ public:
         return std::vector<T>(buffer.begin(), buffer.end());
     }
 };
+#endif // CIRCULAR_BUFFER_H

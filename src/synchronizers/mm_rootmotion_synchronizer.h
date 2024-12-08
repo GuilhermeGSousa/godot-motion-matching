@@ -1,17 +1,17 @@
-#pragma once
-
-#include "synchronizers/mm_synchronizer.h"
+#ifndef MM_ROOTMOTION_SYNCHRONIZER_H
+#define MM_ROOTMOTION_SYNCHRONIZER_H
 
 #include "common.h"
-
-using namespace godot;
+#include "synchronizers/mm_synchronizer.h"
 
 class MMRootMotionSynchronizer : public MMSynchronizer {
     GDCLASS(MMRootMotionSynchronizer, MMSynchronizer)
 
 public:
-    virtual MMSyncResult sync(const MMCharacter* controller, const Node3D* character, float delta_time) override;
+    virtual void sync(MMCharacter* p_controller, Node3D* p_character, float p_delta_time) override;
 
 protected:
     static void _bind_methods();
 };
+
+#endif // MM_ROOTMOTION_SYNCHRONIZER_H

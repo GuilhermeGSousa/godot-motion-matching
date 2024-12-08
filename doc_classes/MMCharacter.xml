@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="MMCharacter" inherits="CharacterBody3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A [CharacterBody3D] that provides the necessary functionality to use motion matching.
+	</brief_description>
+	<description>
+		[MMCharacter] that characters that use [Skeleton3D] to be animated through motion matching. Motion matching works by searching for the best animation in a database of animations that matches the current state of the character. This node is responsible for compiling the character's state, and send it to an [AnimationTree] to run motion matching searches.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_skeleton_state" qualifiers="const">
+			<return type="Dictionary[]" />
+			<description>
+				Returns an array of dictionaries each containing the [code]position[/code] and [code]velocity[/code] of each bone. Position and velocity are both [Vector3]s, and are relative to the skeleton's root bone.
+			</description>
+		</method>
+		<method name="get_trajectory" qualifiers="const">
+			<return type="Dictionary[]" />
+			<description>
+				Returns an array of dictionaries describing the character's trajectory. Each dictionary contains the [code]position[/code], [code]velocity[/code], [code]facing[/code] and [code]on_floor[/code] at given future point in time.
+			</description>
+		</method>
+		<method name="get_trajectory_history" qualifiers="const">
+			<return type="Dictionary[]" />
+			<description>
+				Returns an array of dictionaries describing the character's past trajectory. Each dictionary contains the [code]position[/code], [code]velocity[/code], [code]facing[/code] and [code]on_floor[/code] at given past point.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="animation_tree" type="AnimationTree" setter="set_animation_tree" getter="get_animation_tree">
+		</member>
+		<member name="check_environment" type="bool" setter="set_check_environment" getter="get_check_environment" default="true">
+			Used to enable or disable environmental checks along the character's trajectory. When enabled, trajectory generation will also consider collisions and gravity.
+		</member>
+		<member name="halflife" type="float" setter="set_halflife" getter="get_halflife" default="0.5">
+			Describes the time it takes for the character's current velocity to reach its target velocity. Higher values will make the character's movement (and trajectory) smoother, but also less responsive.
+		</member>
+		<member name="history_delta_time" type="float" setter="set_history_delta_time" getter="get_history_delta_time" default="0.5">
+			Time between each point in the trajectory history.
+		</member>
+		<member name="history_point_count" type="int" setter="set_history_point_count" getter="get_history_point_count" default="3">
+			Number of past points to store in the trajectory history.
+		</member>
+		<member name="is_strafing" type="bool" setter="set_is_strafing" getter="get_is_strafing" default="false">
+			When enabled, the character's facing direction on every trajectory point will be set to [member strafe_facing]. This may be useful to implement strafing movement.
+			            When disabled, the character's facing direction will be calculated based on its velocity.
+		</member>
+		<member name="skeleton" type="Skeleton3D" setter="set_skeleton" getter="get_skeleton">
+		</member>
+		<member name="strafe_facing" type="float" setter="set_strafe_facing" getter="get_strafe_facing" default="0.0">
+			When [member is_strafing] is enabled, this value will be used as the facing direction on every trajectory point. When implementing strafing movement, this value is typically set to to the camera's facing direction.
+		</member>
+		<member name="synchronizer" type="MMSynchronizer" setter="set_synchronizer" getter="get_synchronizer">
+			The [MMSynchronizer] that will be used to synchronize the character to with its skeleton.
+		</member>
+		<member name="target_velocity" type="Vector3" setter="set_target_velocity" getter="get_target_velocity" default="Vector3(0, 0, 0)">
+			The character's target velocity. The character's velocity will be interpolated towards this value over time, controlled by [member halflife].
+		</member>
+		<member name="trajectory_delta_time" type="float" setter="set_trajectory_delta_time" getter="get_trajectory_delta_time" default="0.5">
+			Time between each point in the trajectory.
+		</member>
+		<member name="trajectory_point_count" type="int" setter="set_trajectory_point_count" getter="get_trajectory_point_count" default="10">
+			Number of future points to generate in the trajectory.
+		</member>
+	</members>
+	<signals>
+		<signal name="on_query_result">
+			<param index="0" name="data" type="Dictionary" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>

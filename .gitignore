@@ -6,7 +6,7 @@ bin
 
 *.obj
 
-*.dll 
+*.dll
 *.exp
 *.lib
 *.ilk
@@ -19,11 +19,17 @@ bin
 *.enabled
 *.tmp
 *.TMP
+*.uid
 
 .vscode
 .cache
 
 compile_commands.json
 
+src/gen
+
 # Ignored demos
 demo_*/
+
+# Python
+__pycache__

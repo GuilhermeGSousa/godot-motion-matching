@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="MMTrajectoryFeature" inherits="MMFeature" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A feature describing the trajectory of a character.
+	</brief_description>
+	<description>
+		This feature is used to match the character's past and future trajectory, with similar trajectories in the animation database. The trajectory is defined by a series of points, each containing the character's position, facing direction, and height.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_trajectory_points" qualifiers="const">
+			<return type="Dictionary[]" />
+			<param index="0" name="character_transform" type="Transform3D" />
+			<param index="1" name="trajectory_data" type="PackedFloat32Array" />
+			<description>
+				Generates a dictionary of trajectory points from a given character transform and trajectory motion data. The motion data's length should be equal to the number of trajectory points, times the number of trajectory features.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="future_delta_time" type="float" setter="set_future_delta_time" getter="get_future_delta_time" default="0.1">
+			Time in seconds between each trajectory point in the future.
+		</member>
+		<member name="future_frames" type="int" setter="set_future_frames" getter="get_future_frames" default="5">
+			Number of trajectory points in the future.
+		</member>
+		<member name="include_facing" type="bool" setter="set_include_facing" getter="get_include_facing" default="true">
+			Whether to include the facing direction in the trajectory points.
+		</member>
+		<member name="include_height" type="bool" setter="set_include_height" getter="get_include_height" default="false">
+			Whether to include the character's height in the trajectory points.
+		</member>
+		<member name="past_delta_time" type="float" setter="set_past_delta_time" getter="get_past_delta_time" default="0.1">
+			Time in seconds between each trajectory point in the past.
+		</member>
+		<member name="past_frames" type="int" setter="set_past_frames" getter="get_past_frames" default="1">
+			Number of trajectory points in the past.
+		</member>
+	</members>
+</class>
