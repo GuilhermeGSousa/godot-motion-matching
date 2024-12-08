@@ -54,3 +54,12 @@ public:
         count = 0;
     }
 };
+
+float distance_squared(const float* a, const float* b, int dim) {
+    float distance = 0.0f;
+    for (int i = 0; i < dim; i++) {
+        const float diff = a[i] - b[i];
+        distance += diff * diff;
+    }
+    return distance;
+}

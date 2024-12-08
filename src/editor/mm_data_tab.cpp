@@ -12,6 +12,10 @@ void MMDataTab::set_animation_library(Ref<MMAnimationLibrary> p_library) {
 
     _clear_data();
 
+    if (p_library->needs_baking()) {
+        return;
+    }
+
     Label* min_label = memnew(Label);
     min_label->set_text("Min");
     _stats_data_container->add_child(min_label);

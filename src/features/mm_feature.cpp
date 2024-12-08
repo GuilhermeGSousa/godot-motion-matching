@@ -42,15 +42,6 @@ void MMFeature::denormalize(float* p_data) const {
     }
 }
 
-float MMFeature::compute_cost(const float* p_motion_data, const float* p_query_data) const {
-    float cost = 0.0f;
-    for (int64_t i = 0; i < get_dimension_count(); ++i) {
-        float diff = p_motion_data[i] - p_query_data[i];
-        cost += diff * diff;
-    }
-    return cost / get_dimension_count();
-}
-
 void MMFeature::_normalize_minmax(float* p_data) const {
     if (!p_data) {
         ERR_PRINT_ONCE("Invalid data provided in _normalize_minmax.");
