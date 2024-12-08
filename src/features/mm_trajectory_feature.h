@@ -1,7 +1,9 @@
-#pragma once
+#ifndef MM_TRAJECTORY_FEATURE_H
+#define MM_TRAJECTORY_FEATURE_H
 
 #include "common.h"
 #include "features/mm_feature.h"
+#include <cstdint>
 
 using namespace godot;
 
@@ -12,13 +14,13 @@ public:
     MMTrajectoryFeature(/* args */);
     virtual ~MMTrajectoryFeature();
 
-    virtual uint32_t get_dimension_count() const override;
+    virtual int64_t get_dimension_count() const override;
 
     virtual void setup_skeleton(const AnimationMixer* p_player, const Skeleton3D* p_skeleton) override;
 
     virtual void setup_for_animation(Ref<Animation> animation) override;
 
-    virtual PackedFloat32Array bake_animation_pose(Ref<Animation> p_animation, float time) const override;
+    virtual PackedFloat32Array bake_animation_pose(Ref<Animation> p_animation, double time) const override;
 
     virtual PackedFloat32Array evaluate_runtime_data(const MMQueryInput& p_query_input) const override;
 
@@ -26,10 +28,10 @@ public:
 
     TypedArray<Dictionary> get_trajectory_points(const Transform3D& p_character_transform, const PackedFloat32Array& p_trajectory_data) const;
 
-    GETSET(float, past_delta_time, 0.1f);
-    GETSET(int, past_frames, 1);
-    GETSET(float, future_delta_time, 0.1f);
-    GETSET(int, future_frames, 5);
+    GETSET(double, past_delta_time, 0.1);
+    GETSET(int64_t, past_frames, 1);
+    GETSET(double, future_delta_time, 0.1);
+    GETSET(int64_t, future_frames, 5);
     GETSET(bool, include_height, false);
     GETSET(bool, include_facing, true);
 
@@ -44,3 +46,5 @@ private:
     int _root_position_track{-1};
     int _root_rotation_track{-1};
 };
+
+#endif // MM_TRAJECTORY_FEATURE_H

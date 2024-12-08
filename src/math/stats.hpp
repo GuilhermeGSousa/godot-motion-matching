@@ -1,8 +1,8 @@
 #pragma once
 
 #include <algorithm>
-#include <cmath>
 #include <cfloat>
+#include <cmath>
 
 class StatsAccumulator {
 private:
@@ -13,7 +13,8 @@ private:
     int count;
 
 public:
-    StatsAccumulator() : sum(0.0f), sum_of_squares(0.0f), max_value(-INFINITY), min_value(INFINITY), count(0) {
+    StatsAccumulator()
+        : sum(0.0f), sum_of_squares(0.0f), max_value(-INFINITY), min_value(INFINITY), count(0) {
     }
 
     void add_sample(float sample) {
@@ -37,8 +38,12 @@ public:
     }
 
     float get_standard_deviation() const {
-        float mean = get_mean();
-        return sqrt(sum_of_squares / count - mean * mean);
+        const float mean = get_mean();
+        const float variance = (sum_of_squares / count) - (mean * mean);
+        if (variance < FLT_EPSILON) {
+            return 0.0f;
+        }
+        return sqrt(variance);
     }
 
     void reset() {
@@ -49,3 +54,12 @@ public:
         count = 0;
     }
 };
+
+float distance_squared(const float* a, const float* b, int dim) {
+    float distance = 0.0f;
+    for (int i = 0; i < dim; i++) {
+        const float diff = a[i] - b[i];
+        distance += diff * diff;
+    }
+    return distance;
+}

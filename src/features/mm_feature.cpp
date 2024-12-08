@@ -1,7 +1,5 @@
 #include "mm_feature.h"
 
-#include <godot_cpp/core/error_macros.hpp>
-
 MMFeature::MMFeature() {
 }
 
@@ -9,6 +7,10 @@ MMFeature::~MMFeature() {
 }
 
 void MMFeature::normalize(float* p_data) const {
+    if (!p_data) {
+        ERR_PRINT_ONCE("Invalid data provided in normalize.");
+        return;
+    }
     switch (normalization_mode) {
     case Standard:
         _normalize_standard(p_data);
@@ -23,7 +25,10 @@ void MMFeature::normalize(float* p_data) const {
 }
 
 void MMFeature::denormalize(float* p_data) const {
-
+    if (!p_data) {
+        ERR_PRINT_ONCE("Invalid data provided in denormalize.");
+        return;
+    }
     switch (normalization_mode) {
     case Standard:
         _denormalize_standard(p_data);
@@ -37,29 +42,32 @@ void MMFeature::denormalize(float* p_data) const {
     }
 }
 
-float MMFeature::compute_cost(const float* p_motion_data, const float* p_query_data) const {
-    float cost = 0.0f;
-    for (int i = 0; i < get_dimension_count(); ++i) {
-        float diff = p_motion_data[i] - p_query_data[i];
-        cost += diff * diff;
-    }
-    return cost / get_dimension_count();
-}
-
 void MMFeature::_normalize_minmax(float* p_data) const {
-    for (int i = 0; i < get_dimension_count(); ++i) {
+    if (!p_data) {
+        ERR_PRINT_ONCE("Invalid data provided in _normalize_minmax.");
+        return;
+    }
+    for (int64_t i = 0; i < get_dimension_count(); ++i) {
         p_data[i] = (p_data[i] - mins[i]) / (maxes[i] - mins[i]);
     }
 }
 
 void MMFeature::_denormalize_minmax(float* p_data) const {
-    for (int i = 0; i < get_dimension_count(); ++i) {
+    if (!p_data) {
+        ERR_PRINT_ONCE("Invalid data provided in _denormalize_minmax.");
+        return;
+    }
+    for (int64_t i = 0; i < get_dimension_count(); ++i) {
         p_data[i] = (p_data[i] * (maxes[i] - mins[i])) + mins[i];
     }
 }
 
 void MMFeature::_normalize_standard(float* p_data) const {
-    for (int i = 0; i < get_dimension_count(); ++i) {
+    if (!p_data) {
+        ERR_PRINT_ONCE("Invalid data provided in _normalize_standard.");
+        return;
+    }
+    for (int64_t i = 0; i < get_dimension_count(); ++i) {
         if (std_devs[i] < SMALL_NUMBER) {
             continue;
         }
@@ -68,7 +76,12 @@ void MMFeature::_normalize_standard(float* p_data) const {
 }
 
 void MMFeature::_denormalize_standard(float* p_data) const {
-    for (int i = 0; i < get_dimension_count(); ++i) {
+    if (!p_data) {
+        ERR_PRINT_ONCE("Invalid data provided in _denormalize_standard.");
+        return;
+    }
+    ERR_FAIL_COND(std_devs.size() != get_dimension_count());
+    for (int64_t i = 0; i < get_dimension_count(); ++i) {
         if (std_devs[i] < SMALL_NUMBER) {
             continue;
         }
@@ -78,12 +91,11 @@ void MMFeature::_denormalize_standard(float* p_data) const {
 
 void MMFeature::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_dimension_count"), &MMFeature::get_dimension_count);
-
     ClassDB::bind_method(D_METHOD("set_normalization_mode", "value"), &MMFeature::set_normalization_mode, DEFVAL(MMFeature::NormalizationMode::Standard));
-
     ClassDB::bind_method(D_METHOD("get_normalization_mode"), &MMFeature::get_normalization_mode);
     ADD_PROPERTY(PropertyInfo(Variant::INT, "normalization_mode", PROPERTY_HINT_ENUM, "Raw,Standard,MinMax", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_ALWAYS_DUPLICATE), "set_normalization_mode", "get_normalization_mode");
 
+    BINDER_PROPERTY_PARAMS(MMFeature, Variant::FLOAT, weight);
     BINDER_PROPERTY_PARAMS(MMFeature, Variant::PACKED_FLOAT32_ARRAY, means);
     BINDER_PROPERTY_PARAMS(MMFeature, Variant::PACKED_FLOAT32_ARRAY, std_devs);
     BINDER_PROPERTY_PARAMS(MMFeature, Variant::PACKED_FLOAT32_ARRAY, maxes);

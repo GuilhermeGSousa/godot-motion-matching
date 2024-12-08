@@ -1,4 +1,8 @@
-#pragma once
+#ifndef COMMON_H
+#define COMMON_H
+
+#include <godot_cpp/core/error_macros.hpp>
+#include <godot_cpp/core/object.hpp>
 
 #define GETSET(type, variable, ...)   \
     type variable{__VA_ARGS__};       \
@@ -19,3 +23,5 @@
     ClassDB::add_property(get_class_static(), PropertyInfo(variant_type, #variable, ##__VA_ARGS__), STRING_PREFIX(set_, variable), STRING_PREFIX(get_, variable));
 
 #define SMALL_NUMBER 1.e-8
+
+#endif // COMMON_H

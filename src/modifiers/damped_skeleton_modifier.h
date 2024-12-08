@@ -1,4 +1,5 @@
-#pragma once
+#ifndef DAMPED_SKELETON_MODIFIER_H
+#define DAMPED_SKELETON_MODIFIER_H
 
 #include "common.h"
 #include "mm_bone_state.h"
@@ -11,7 +12,7 @@ class DampedSkeletonModifier : public SkeletonModifier3D {
     GDCLASS(DampedSkeletonModifier, SkeletonModifier3D)
 
 public:
-    virtual void _ready() override;
+    void _notification(int32_t p_what);
     virtual void _process_modification() override;
 
     GETSET(float, halflife, 0.1);
@@ -22,3 +23,4 @@ protected:
 private:
     SkeletonState _skeleton_state;
 };
+#endif // DAMPED_SKELETON_MODIFIER_H

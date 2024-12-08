@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MM_EDITOR_GIZMO_PLUGIN_H
+#define MM_EDITOR_GIZMO_PLUGIN_H
 
 #include <godot_cpp/classes/editor_node3d_gizmo_plugin.hpp>
 #include <godot_cpp/classes/node3d.hpp>
@@ -10,6 +11,7 @@ class MMEditorGizmoPlugin : public EditorNode3DGizmoPlugin {
 
 public:
     MMEditorGizmoPlugin();
+
     virtual bool _has_gizmo(Node3D* p_for_node_3d) const override;
     virtual String _get_gizmo_name() const override;
     virtual void _redraw(const Ref<EditorNode3DGizmo>& p_gizmo) override;
@@ -27,3 +29,4 @@ private:
     String _animation_name;
     int32_t _pose_index;
 };
+#endif // MM_EDITOR_GIZMO_PLUGIN_H

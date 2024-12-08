@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MM_BONE_STATE_H
+#define MM_BONE_STATE_H
 
 #include <godot_cpp/classes/skeleton3d.hpp>
 #include <godot_cpp/core/math.hpp>
@@ -52,11 +53,11 @@ struct SkeletonState {
     }
 
     const BoneState& find_bone_state(const String& name) const {
-        return bone_states[(uint32_t)bone_name_to_index.find_key(name)];
+        return bone_states[(int32_t)bone_name_to_index.get(name, -1)];
     }
 
     BoneState& find_bone_state(const String& name) {
-        return bone_states[(uint32_t)bone_name_to_index.find_key(name)];
+        return bone_states[(int32_t)bone_name_to_index.get(name, -1)];
     }
 
     void reset_velocities() {
@@ -70,3 +71,5 @@ struct SkeletonState {
     std::vector<BoneState> bone_states;
     Dictionary bone_name_to_index; // Give me a real unordered_map please :(
 };
+
+#endif // MM_BONE_STATE_H

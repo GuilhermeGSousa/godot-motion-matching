@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="MMSynchronizer" inherits="Resource" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A class that synchronizes the a [MMCharacter] with its [Skeleton3D] node.
+	</brief_description>
+	<description>
+		A [MMCharacter] always sets its [Skeleton3D] node to be a top level node, causing both to move independently. By default, the result of motion matching will bring the [Skeleton3D] to follow its [MMCharacter] through root motion.
+		        While this can look acceptable in some cases, it is generally necessary to synchronize the [Skeleton3D] with its [MMCharacter]. The way this synchronization happens also depends on the use case of motion matching.
+	</description>
+	<tutorials>
+	</tutorials>
+</class>
