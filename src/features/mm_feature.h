@@ -38,8 +38,9 @@ public:
 
     void normalize(float* p_data) const;
     void denormalize(float* p_data) const;
-    float compute_cost(const float* p_motion_data, const float* p_query_data) const;
-
+    float calculate_normalized_weight() const {
+        return weight / get_dimension_count();
+    }
     GETSET(float, weight, 1.0f);
     GETSET(NormalizationMode, normalization_mode, Standard);
     GETSET(PackedFloat32Array, means);
