@@ -13,15 +13,15 @@ class MMAnimationNode : public AnimationNodeExtension {
 
 public:
     GETSET(StringName, library);
-    GETSET(float, query_frequency, 2.0f)
-    GETSET(float, transition_halflife, 0.1f)
+    GETSET(real_t, query_frequency, 2.0f)
+    GETSET(real_t, transition_halflife, 0.1f)
 
     bool blending_enabled{true};
     bool get_blending_enabled() const;
 
     void set_blending_enabled(bool value);
 
-    virtual PackedFloat32Array _process(const PackedFloat64Array& p_playback_info, bool p_test_only);
+    virtual PackedFloat32Array _process_animation_node(const PackedFloat64Array& p_playback_info, bool p_test_only);
     virtual Array _get_parameter_list() const override;
     virtual Variant _get_parameter_default_value(const StringName& p_parameter) const override;
     virtual bool _is_parameter_read_only(const StringName& p_parameter) const override;
@@ -43,7 +43,7 @@ private:
         bool seeked;
         bool is_external_seeking;
         real_t weight;
-        float blend_spring_speed;
+        real_t blend_spring_speed;
     };
 
     std::deque<AnimationInfo> _prev_animation_queue;

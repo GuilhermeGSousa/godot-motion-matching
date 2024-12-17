@@ -13,7 +13,7 @@
 // is QUERY_TIME_ERROR away from the current time
 constexpr float QUERY_TIME_ERROR = 0.05;
 
-PackedFloat32Array MMAnimationNode::_process(const PackedFloat64Array& p_playback_info, bool p_test_only) {
+PackedFloat32Array MMAnimationNode::_process_animation_node(const PackedFloat64Array& p_playback_info, bool p_test_only) {
     PackedFloat32Array default_result;
     default_result.resize(6);
     default_result.fill(0.0);
@@ -97,9 +97,9 @@ PackedFloat32Array MMAnimationNode::_update_current_animation(bool p_test_only) 
     Spring::_simple_spring_damper_exact(
         _current_animation_info.weight,
         _current_animation_info.blend_spring_speed,
-        1.f,
+        1.,
         transition_halflife,
-        _current_animation_info.delta);
+        (real_t)_current_animation_info.delta);
 
     int pop_count = 0;
     for (AnimationInfo& prev_info : _prev_animation_queue) {
@@ -227,7 +227,7 @@ void MMAnimationNode::_validate_property(PropertyInfo& p_property) const {
             if (!animations.is_empty()) {
                 animations += ",";
             }
-            animations += library_names[i];
+            animations += (String)library_names[i];
         }
         if (animations.is_empty()) {
             return;
