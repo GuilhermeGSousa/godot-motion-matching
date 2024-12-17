@@ -13,6 +13,8 @@
 #include <godot_cpp/classes/skeleton3d.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
 
+#include <memory>
+
 class MMFeature;
 
 class MMAnimationLibrary : public AnimationLibrary {
