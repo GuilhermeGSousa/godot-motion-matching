@@ -26,16 +26,29 @@ public:
 
     virtual void display_data(const Ref<EditorNode3DGizmo>& p_gizmo, const Transform3D p_transform, const float* p_data) const override;
 
+    virtual float calculate_normalized_weight(int64_t p_feature_dim) const override;
+
     TypedArray<Dictionary> get_trajectory_points(const Transform3D& p_character_transform, const PackedFloat32Array& p_trajectory_data) const;
 
     GETSET(double, past_delta_time, 0.1);
     GETSET(int64_t, past_frames, 1);
     GETSET(double, future_delta_time, 0.1);
     GETSET(int64_t, future_frames, 5);
-    GETSET(bool, include_height, false);
-    GETSET(bool, include_facing, true);
+
+    bool include_height{false};
+    bool get_include_height() const;
+    void set_include_height(bool value);
+
+    GETSET(float, height_weight, 1.0);
+
+    bool include_facing{true};
+    bool get_include_facing() const;
+    void set_include_facing(bool value);
+
+    GETSET(float, facing_weight, 1.0);
 
 protected:
+    void _validate_property(PropertyInfo& p_property) const;
     static void _bind_methods();
 
 private:

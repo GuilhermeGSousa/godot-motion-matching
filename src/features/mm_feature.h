@@ -36,11 +36,13 @@ public:
 
     virtual void display_data(const Ref<EditorNode3DGizmo>& p_gizmo, const Transform3D p_transform, const float* p_data) const {};
 
-    void normalize(float* p_data) const;
-    void denormalize(float* p_data) const;
-    float calculate_normalized_weight() const {
+    virtual float calculate_normalized_weight(int64_t p_feature_dim) const {
         return weight / get_dimension_count();
     }
+
+    void normalize(float* p_data) const;
+    void denormalize(float* p_data) const;
+
     GETSET(float, weight, 1.0f);
     GETSET(NormalizationMode, normalization_mode, Standard);
     GETSET(PackedFloat32Array, means);

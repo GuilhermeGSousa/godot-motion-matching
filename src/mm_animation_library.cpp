@@ -218,11 +218,13 @@ float MMAnimationLibrary::_compute_feature_costs(int p_pose_index, const PackedF
             continue;
         }
 
-        const float feature_cost =
-            distance_squared((motion_data.ptr() + start_frame_index + start_feature_index),
-                             (p_query.ptr() + start_feature_index),
-                             feature->get_dimension_count()) *
-            feature->calculate_normalized_weight();
+        float feature_cost = 0.f;
+        for (int64_t feature_dim_index = 0; feature_dim_index < feature->get_dimension_count(); feature_dim_index++) {
+            feature_cost += distance_squared((motion_data.ptr() + start_frame_index + start_feature_index + feature_dim_index),
+                                             (p_query.ptr() + start_feature_index + feature_dim_index),
+                                             1) *
+                feature->calculate_normalized_weight(feature_dim_index);
+        }
 
         if (p_feature_costs) {
             p_feature_costs->get_or_add(feature->get_class(), feature_cost);
@@ -250,11 +252,13 @@ MMQueryOutput MMAnimationLibrary::_search_naive(const PackedFloat32Array& p_quer
                 continue;
             }
 
-            const float feature_cost =
-                distance_squared((motion_data.ptr() + start_feature_index),
-                                 (p_query.ptr() + start_feature_index - start_frame_index),
-                                 feature->get_dimension_count()) *
-                feature->calculate_normalized_weight();
+            float feature_cost = 0.f;
+            for (int64_t feature_dim_index = 0; feature_dim_index < feature->get_dimension_count(); feature_dim_index++) {
+                feature_cost += distance_squared((motion_data.ptr() + start_frame_index + start_feature_index + feature_dim_index),
+                                                 (p_query.ptr() + start_feature_index + feature_dim_index),
+                                                 1) *
+                    feature->calculate_normalized_weight(feature_dim_index);
+            }
 
             feature_costs.get_or_add(feature->get_class(), feature_cost);
             pose_cost += feature_cost;
@@ -302,7 +306,7 @@ MMQueryOutput MMAnimationLibrary::_search_kd_tree(const PackedFloat32Array& p_qu
             continue;
         }
         for (int64_t feature_dim_index = 0; feature_dim_index < feature->get_dimension_count(); feature_dim_index++) {
-            dimension_weights.push_back(feature->calculate_normalized_weight());
+            dimension_weights.push_back(feature->calculate_normalized_weight(feature_dim_index));
         }
     }
 
