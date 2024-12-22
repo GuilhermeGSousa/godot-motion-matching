@@ -162,6 +162,24 @@ void MMTrajectoryFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, co
     delete[] dernomalized_data;
 }
 
+float MMTrajectoryFeature::calculate_normalized_weight(int64_t p_feature_dim) const {
+
+    float weight = MMFeature::calculate_normalized_weight(p_feature_dim);
+
+    const uint32_t point_dim = _get_point_dimension_count();
+
+    const bool is_height = include_height && (p_feature_dim % point_dim) == 2;
+    const bool is_facing = include_facing && (p_feature_dim % point_dim) == (include_height ? 3 : 2);
+
+    if (is_height) {
+        weight *= height_weight;
+    } else if (is_facing) {
+        weight *= facing_weight;
+    }
+
+    return weight;
+}
+
 TypedArray<Dictionary> MMTrajectoryFeature::get_trajectory_points(const Transform3D& p_character_transform, const PackedFloat32Array& p_trajectory_data) const {
     ERR_FAIL_COND_V(p_trajectory_data.is_empty(), TypedArray<Dictionary>());
 
@@ -189,6 +207,38 @@ TypedArray<Dictionary> MMTrajectoryFeature::get_trajectory_points(const Transfor
     return result;
 }
 
+bool MMTrajectoryFeature::get_include_height() const {
+    return include_height;
+}
+
+void MMTrajectoryFeature::set_include_height(bool value) {
+    include_height = value;
+    notify_property_list_changed();
+}
+
+bool MMTrajectoryFeature::get_include_facing() const {
+    return include_facing;
+}
+
+void MMTrajectoryFeature::set_include_facing(bool value) {
+    include_facing = value;
+    notify_property_list_changed();
+}
+
+void MMTrajectoryFeature::_validate_property(PropertyInfo& p_property) const {
+    if (p_property.name == StringName("facing_weight")) {
+        if (!include_facing) {
+            p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+        }
+    }
+
+    if (p_property.name == StringName("height_weight")) {
+        if (!include_height) {
+            p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+        }
+    }
+}
+
 void MMTrajectoryFeature::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_trajectory_points", "character_transform", "trajectory_data"), &MMTrajectoryFeature::get_trajectory_points);
     BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::FLOAT, past_delta_time);
@@ -196,7 +246,9 @@ void MMTrajectoryFeature::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::FLOAT, future_delta_time);
     BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::INT, future_frames);
     BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::BOOL, include_height);
+    BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::FLOAT, height_weight);
     BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::BOOL, include_facing);
+    BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::FLOAT, facing_weight);
 }
 
 uint32_t MMTrajectoryFeature::_get_point_dimension_count() const {
