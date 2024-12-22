@@ -59,7 +59,7 @@ if env["platform"] == "macos" or env["platform"] == "ios":
     filepath = "{}.framework/".format(env["platform"])
     file = "{}.{}.{}".format(libname, env["platform"], env["target"])
 
-libraryfile = "bin/{}/{}{}".format(env["platform"], filepath, file)
+libraryfile = "bin/{}/{}lib{}".format(env["platform"], filepath, file)
 library = env.SharedLibrary(
     libraryfile,
     source=sources,
