@@ -148,12 +148,24 @@ void MMEditor::_anim_lib_selected(int p_index) {
         return;
     }
 
+    // We only want the animation libraries that are MMAnimationLibrary
+    TypedArray<StringName> mm_animation_library_list;
     PackedStringArray animation_library_list = animation_mixer->get_animation_library_list();
-    if (p_index >= animation_library_list.size()) {
+    for (int i = 0; i < animation_library_list.size(); i++) {
+        Ref<MMAnimationLibrary> anim_lib = animation_mixer->get_animation_library(animation_library_list[i]);
+
+        if (anim_lib.is_null()) {
+            continue;
+        }
+
+        mm_animation_library_list.push_back(animation_library_list[i]);
+    }
+
+    if (p_index >= mm_animation_library_list.size()) {
         return;
     }
 
-    String animation_lib_name = animation_library_list[p_index];
+    String animation_lib_name = mm_animation_library_list[p_index];
     Ref<MMAnimationLibrary> anim_lib = animation_mixer->get_animation_library(animation_lib_name);
     if (anim_lib.is_null()) {
         return;
