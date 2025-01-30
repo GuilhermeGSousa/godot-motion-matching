@@ -1,6 +1,7 @@
 #ifndef MM_EDITOR_PLUGIN_H
 #define MM_EDITOR_PLUGIN_H
 
+#include "animation_post_import_plugin.h"
 #include "mm_character.h"
 #include "mm_editor.h"
 #include "mm_editor_gizmo_plugin.h"
@@ -27,6 +28,7 @@ private:
     static void _bind_methods() {};
 
     Ref<MMEditorGizmoPlugin> _gizmo_plugin;
+    Ref<AnimationPostImportPlugin> _post_import_plugin;
 
     MMEditor* _editor;
     Button* _bottom_panel_button;
