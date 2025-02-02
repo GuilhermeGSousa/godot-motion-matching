@@ -10,8 +10,13 @@
 
 MMEditorPlugin::MMEditorPlugin() {
     _editor = memnew(MMEditor);
+
     _gizmo_plugin.instantiate();
     add_node_3d_gizmo_plugin(_gizmo_plugin);
+
+    _post_import_plugin.instantiate();
+    add_scene_post_import_plugin(_post_import_plugin);
+
     _bottom_panel_button = add_control_to_bottom_panel(_editor, "MMEditor");
     _editor->connect("animation_visualization_requested", callable_mp(_gizmo_plugin.ptr(), &MMEditorGizmoPlugin::on_anim_viz_requested));
     _make_visible(false);
