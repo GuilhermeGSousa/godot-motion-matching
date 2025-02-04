@@ -68,7 +68,7 @@ PackedFloat32Array MMAnimationNode::_process_animation_node(const PackedFloat64A
             _start_transition(animation_match, time_match);
         }
         _last_query_output = query_output;
-        emit_signal("on_query_result", _output_to_dict(query_output));
+        query_input->on_query_result(query_output);
     }
 
     return _update_current_animation(p_test_only);
@@ -247,7 +247,6 @@ void MMAnimationNode::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "blending_enabled"), "set_blending_enabled", "get_blending_enabled");
 
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, transition_halflife);
-    ADD_SIGNAL(MethodInfo("on_query_result", PropertyInfo(Variant::DICTIONARY, "query_output")));
 }
 
 Dictionary MMAnimationNode::_output_to_dict(const MMQueryOutput& output) {

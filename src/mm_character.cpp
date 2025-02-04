@@ -4,6 +4,7 @@
 #include "mm_animation_library.h"
 #include "mm_animation_node.h"
 
+#include <godot_cpp/classes/animation_root_node.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event_mouse_motion.hpp>
@@ -256,6 +257,7 @@ void MMCharacter::_fill_query_input(MMQueryInput& input) {
     input.controller_transform = get_global_transform();
     input.character_transform = skeleton->get_global_transform();
     input.skeleton_state = _skeleton_state;
+    input.on_query_result = std::bind(&MMCharacter::_on_query_result, this, std::placeholders::_1);
 }
 
 void MMCharacter::_update_query() {
@@ -326,6 +328,12 @@ void MMCharacter::_update_skeleton_state(double delta_t) {
     }
 }
 
+void MMCharacter::_on_query_result(const MMQueryOutput& output) {
+    if (emit_result_signal) {
+        emit_signal("on_query_result", _output_to_dict(output));
+    }
+}
+
 Dictionary MMCharacter::_output_to_dict(const MMQueryOutput& output) {
     Dictionary result;
 
@@ -366,6 +374,9 @@ void MMCharacter::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMCharacter, Variant::FLOAT, trajectory_delta_time);
     BINDER_PROPERTY_PARAMS(MMCharacter, Variant::INT, history_point_count);
     BINDER_PROPERTY_PARAMS(MMCharacter, Variant::FLOAT, history_delta_time);
+
+    ADD_GROUP("Debug", "");
+    BINDER_PROPERTY_PARAMS(MMCharacter, Variant::BOOL, emit_result_signal);
 }
 
 void MMCharacter::_notification(int p_what) {
