@@ -71,7 +71,7 @@ void MMEditor::_bake_all_animation_libraries(const AnimationMixer* p_mixer, cons
     }
 }
 
-void MMEditor::_refresh() {
+void MMEditor::_refresh(bool character_changed) {
     if (!_current_controller) {
         return;
     }
@@ -93,10 +93,19 @@ void MMEditor::_refresh() {
 
         _library_selector->add_item(animation_library_list[i]);
     }
-    _library_selector->select(-1);
+    if (animation_library_list.is_empty()) {
+        _library_selector->select(-1);
+    } else if (character_changed) {
+        _library_selector->select(0);
+    }
 
     _visualization_tab->clear();
     _data_tab->clear();
+
+    const int32_t selected_index = _library_selector->get_selected();
+    if (selected_index != -1) {
+        _anim_lib_selected(selected_index);
+    }
 }
 
 void MMEditor::_bake_button_pressed() {
@@ -130,7 +139,8 @@ void MMEditor::_bake_button_pressed() {
     mm_lib->bake_data(animation_mixer, skeleton);
     ResourceSaver::get_singleton()->save(mm_lib);
 
-    _refresh();
+    _visualization_tab->refresh();
+    _data_tab->set_animation_library(mm_lib);
 }
 
 void MMEditor::_anim_lib_selected(int p_index) {

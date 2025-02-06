@@ -58,7 +58,6 @@ void MMVisualizationTab::_viz_time_changed(float p_value) {
     StringName animation_name = animation_list[_selected_animation_index];
     String anim_lib_name = _current_animation_library->get_path().get_file().get_basename();
 
-    UtilityFunctions::print(anim_lib_name);
     _emit_animation_viz_request(anim_lib_name, animation_name, p_value);
 }
 
@@ -93,7 +92,9 @@ void MMVisualizationTab::refresh() {
         _viz_animation_option_button->add_item(animation_name, i);
     }
 
-    if (_current_animation_library->needs_baking()) {
+    if (!animations.is_empty()) {
+        _viz_animation_option_button->select(0);
+        _viz_anim_selected(0);
     }
 
     set_enabled(!_current_animation_library->needs_baking());

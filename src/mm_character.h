@@ -85,6 +85,9 @@ public:
     GETSET(AnimationTree*, animation_tree);
     GETSET(Ref<MMSynchronizer>, synchronizer);
 
+    // Debug
+    GETSET(bool, emit_result_signal, false);
+
 protected:
     static constexpr size_t HISTORY_BUFFER_SIZE{100}; // Around 1.6s
     static void _bind_methods();
@@ -114,6 +117,8 @@ private:
     void _fill_current_skeleton_state(SkeletonState& p_state) const;
     void _reset_skeleton_state();
     void _update_skeleton_state(double delta_t);
+
+    void _on_query_result(const MMQueryOutput& output);
 
     static Dictionary _output_to_dict(const MMQueryOutput& output);
 
