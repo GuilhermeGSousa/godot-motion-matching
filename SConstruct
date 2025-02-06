@@ -1,13 +1,21 @@
 #!/usr/bin/env python
 import os
 import sys
-
+from pathlib import Path
 from methods import print_error
 
+from SCons.Environment import Environment
+from SCons.Variables import Variables
+from SCons.Script import ARGUMENTS
 
 libname = "gdmotionmatching"
 projectdir = "addons/motion_matching"
+double_api_file = "godot-cpp/gdextension/extension_api_double.json"
 
+if ARGUMENTS.get("precision", "single") == "double":
+    ARGUMENTS["custom_api_file"] = double_api_file
+    print("Using double precision API file: {}".format(double_api_file))
+    
 localEnv = Environment(tools=["default"], PLATFORM="")
 
 customs = ["custom.py"]
