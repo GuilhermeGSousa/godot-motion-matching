@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="MMAnimationNode" inherits="AnimationRootNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+<class name="MMAnimationNode" inherits="AnimationNodeExtension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		An AnimationNode that uses motion matching to select the best animation to play based on the current state of the character.
 	</brief_description>
 	<description>
+		This node is used to select the best animation to play based on the current state of the character. It selects an animation and animation frame from a given [MMAnimationLibrary].
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
+		<member name="blending_enabled" type="bool" setter="set_blending_enabled" getter="get_blending_enabled" default="true">
+			Whether to enable blending between animations. If enabled, the node will blend between the selected animation and the previous animation based on the transition halflife.
+		</member>
 		<member name="library" type="StringName" setter="set_library" getter="get_library" default="&amp;&quot;&quot;">
+			The [MMAnimationLibrary] to use for motion matching. This library contains the animations and their corresponding motion data.
 		</member>
 		<member name="query_frequency" type="float" setter="set_query_frequency" getter="get_query_frequency" default="2.0">
+			The frequency at which the motion matching query is performed. A higher value means more frequent queries, which can lead to smoother transitions but may increase CPU usage.
+		</member>
+		<member name="transition_halflife" type="float" setter="set_transition_halflife" getter="get_transition_halflife" default="0.1">
+			The halflife of the transition between animations. This value determines how quickly the node transitions between animations when a new animation is selected.
 		</member>
 	</members>
 </class>
