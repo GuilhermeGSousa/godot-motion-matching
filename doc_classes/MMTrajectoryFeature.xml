@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="MMTrajectoryFeature" inherits="MMFeature" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+<class name="MMTrajectoryFeature" inherits="MMFeature" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
 		A feature describing the trajectory of a character.
 	</brief_description>
@@ -19,11 +19,15 @@
 		</method>
 	</methods>
 	<members>
+		<member name="facing_weight" type="float" setter="set_facing_weight" getter="get_facing_weight" default="1.0">
+		</member>
 		<member name="future_delta_time" type="float" setter="set_future_delta_time" getter="get_future_delta_time" default="0.1">
 			Time in seconds between each trajectory point in the future.
 		</member>
 		<member name="future_frames" type="int" setter="set_future_frames" getter="get_future_frames" default="5">
 			Number of trajectory points in the future.
+		</member>
+		<member name="height_weight" type="float" setter="set_height_weight" getter="get_height_weight" default="1.0">
 		</member>
 		<member name="include_facing" type="bool" setter="set_include_facing" getter="get_include_facing" default="true">
 			Whether to include the facing direction in the trajectory points.

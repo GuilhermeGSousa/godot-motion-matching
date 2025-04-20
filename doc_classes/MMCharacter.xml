@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="MMCharacter" inherits="CharacterBody3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+<class name="MMCharacter" inherits="CharacterBody3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
 		A [CharacterBody3D] that provides the necessary functionality to use motion matching.
 	</brief_description>
@@ -34,6 +34,9 @@
 		<member name="check_environment" type="bool" setter="set_check_environment" getter="get_check_environment" default="true">
 			Used to enable or disable environmental checks along the character's trajectory. When enabled, trajectory generation will also consider collisions and gravity.
 		</member>
+		<member name="emit_result_signal" type="bool" setter="set_emit_result_signal" getter="get_emit_result_signal" default="false">
+			When enabled, the [signal on_query_result] signal will be emitted when a query is made. This signal will contain the result of the query. May increase performance overhead.
+		</member>
 		<member name="halflife" type="float" setter="set_halflife" getter="get_halflife" default="0.5">
 			Describes the time it takes for the character's current velocity to reach its target velocity. Higher values will make the character's movement (and trajectory) smoother, but also less responsive.
 		</member>
@@ -45,9 +48,10 @@
 		</member>
 		<member name="is_strafing" type="bool" setter="set_is_strafing" getter="get_is_strafing" default="false">
 			When enabled, the character's facing direction on every trajectory point will be set to [member strafe_facing]. This may be useful to implement strafing movement.
-			            When disabled, the character's facing direction will be calculated based on its velocity.
+			When disabled, the character's facing direction will be calculated based on its velocity.
 		</member>
 		<member name="skeleton" type="Skeleton3D" setter="set_skeleton" getter="get_skeleton">
+			The [Skeleton3D] that will be used to animate the character.
 		</member>
 		<member name="strafe_facing" type="float" setter="set_strafe_facing" getter="get_strafe_facing" default="0.0">
 			When [member is_strafing] is enabled, this value will be used as the facing direction on every trajectory point. When implementing strafing movement, this value is typically set to to the camera's facing direction.
@@ -69,6 +73,7 @@
 		<signal name="on_query_result">
 			<param index="0" name="data" type="Dictionary" />
 			<description>
+				Emitted when a query is made and [member emit_result_signal] is enabled. The signal will contain the result of the query.
 			</description>
 		</signal>
 	</signals>

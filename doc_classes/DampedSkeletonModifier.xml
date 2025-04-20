@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="DampedSkeletonModifier" inherits="SkeletonModifier3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+<class name="DampedSkeletonModifier" inherits="SkeletonModifier3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		A [SkeletonModifier3D] that dampens the motion of a skeleton.
 	</brief_description>
 	<description>
+		This [SkeletonModifier3D] dampens the motion of a skeleton by applying a damping force to each bone. This can be useful for creating more realistic motion, or for smoothing out the motion of a character.
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="halflife" type="float" setter="set_halflife" getter="get_halflife" default="0.1">
+			The halflife of the spring used to dampen the motion of the skeleton. This is the time it takes for the spring to reach half of its maximum displacement. A lower value will result in a stiffer spring, while a higher value will result in a softer spring.
 		</member>
 	</members>
 </class>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="MMMixSynchronizer" inherits="MMSynchronizer" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		A [MMSynchronizer] that synchronizes the character and skeleton's position and facing direction as a blend between root motion and character motion.
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="root_motion_amount" type="float" setter="set_root_motion_amount" getter="get_root_motion_amount" default="1.0">
+			The amount of root motion to apply to the character. A value of 0 means the character will follow its trajectory exactly, while a value of 1 means the character will follow the root motion exactly. Values between 0 and 1 will blend between the two.
+		</member>
+	</members>
+</class>

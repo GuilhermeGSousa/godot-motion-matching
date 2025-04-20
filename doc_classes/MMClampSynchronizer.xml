@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="MMClampSynchronizer" inherits="MMSynchronizer" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+<class name="MMClampSynchronizer" inherits="MMSynchronizer" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
 	<brief_description>
+		A [MMSynchronizer] that clamps the skeleton's distance to the character's position.
 	</brief_description>
 	<description>
+		A [MMSynchronizer] that clamps the skeleton's distance to the character's position.
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="clamp_distance" type="float" setter="set_clamp_distance" getter="get_clamp_distance" default="10.0">
+			The maximum distance between the character and the skeleton. If the distance is greater than this value, the skeleton will be clamped to the character's position.
 		</member>
 	</members>
 </class>
