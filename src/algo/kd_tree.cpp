@@ -1,6 +1,7 @@
 #include "kd_tree.h"
 
 #include <algorithm>
+#include <limits>
 #include <numeric>
 
 KDTree::KDTree(const float* data, int point_dimension, int point_count)
