@@ -16,12 +16,13 @@
 #include <memory>
 
 class MMFeature;
+class MMCharacter;
 
 class MMAnimationLibrary : public AnimationLibrary {
     GDCLASS(MMAnimationLibrary, AnimationLibrary)
 
 public:
-    void bake_data(const AnimationMixer* p_player, const Skeleton3D* p_skeleton);
+    void bake_data(const MMCharacter* p_character, const AnimationMixer* p_player, const Skeleton3D* p_skeleton);
     MMQueryOutput query(const MMQueryInput& p_query_input);
     int64_t get_dim_count() const;
     int64_t get_animation_pose_count(String p_animation_name) const;

@@ -55,7 +55,7 @@ void MMEditor::_notification(int p_notification) {
     }
 }
 
-void MMEditor::_bake_all_animation_libraries(const AnimationMixer* p_mixer, const Skeleton3D* p_skeleton) {
+void MMEditor::_bake_all_animation_libraries(const MMCharacter* p_character, const AnimationMixer* p_mixer, const Skeleton3D* p_skeleton) {
 
     TypedArray<StringName> animation_libraries = p_mixer->get_animation_library_list();
     for (int i = 0; i < animation_libraries.size(); i++) {
@@ -66,7 +66,7 @@ void MMEditor::_bake_all_animation_libraries(const AnimationMixer* p_mixer, cons
             continue;
         }
 
-        anim_lib->bake_data(p_mixer, p_skeleton);
+        anim_lib->bake_data(p_character, p_mixer, p_skeleton);
         ResourceSaver::get_singleton()->save(anim_lib);
     }
 }
@@ -136,7 +136,7 @@ void MMEditor::_bake_button_pressed() {
         return;
     }
 
-    mm_lib->bake_data(animation_mixer, skeleton);
+    mm_lib->bake_data(_current_controller, animation_mixer, skeleton);
     ResourceSaver::get_singleton()->save(mm_lib);
 
     _visualization_tab->refresh();

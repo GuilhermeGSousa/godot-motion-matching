@@ -31,7 +31,7 @@ protected:
     void _notification(int p_notification);
 
 private:
-    static void _bake_all_animation_libraries(const AnimationMixer* p_mixer, const Skeleton3D* p_skeleton);
+    static void _bake_all_animation_libraries(const MMCharacter* p_character, const AnimationMixer* p_mixer, const Skeleton3D* p_skeleton);
     void _refresh(bool character_changed);
     void _bake_button_pressed();
     void _anim_lib_selected(int p_index);

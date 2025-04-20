@@ -48,7 +48,11 @@ void MMFeature::_normalize_minmax(float* p_data) const {
         return;
     }
     for (int64_t i = 0; i < get_dimension_count(); ++i) {
-        p_data[i] = (p_data[i] - mins[i]) / (maxes[i] - mins[i]);
+        const float delta = maxes[i] - mins[i];
+        if (abs(delta) < KINDA_SMALL_NUMBER) {
+            continue;
+        }
+        p_data[i] = (p_data[i] - mins[i]) / delta;
     }
 }
 
@@ -58,7 +62,11 @@ void MMFeature::_denormalize_minmax(float* p_data) const {
         return;
     }
     for (int64_t i = 0; i < get_dimension_count(); ++i) {
-        p_data[i] = (p_data[i] * (maxes[i] - mins[i])) + mins[i];
+        const float delta = maxes[i] - mins[i];
+        if (abs(delta) < KINDA_SMALL_NUMBER) {
+            continue;
+        }
+        p_data[i] = (p_data[i] * delta) + mins[i];
     }
 }
 
@@ -68,7 +76,7 @@ void MMFeature::_normalize_standard(float* p_data) const {
         return;
     }
     for (int64_t i = 0; i < get_dimension_count(); ++i) {
-        if (std_devs[i] < SMALL_NUMBER) {
+        if (abs(std_devs[i]) < KINDA_SMALL_NUMBER) {
             continue;
         }
         p_data[i] = (p_data[i] - means[i]) / std_devs[i];
@@ -82,7 +90,7 @@ void MMFeature::_denormalize_standard(float* p_data) const {
     }
     ERR_FAIL_COND(std_devs.size() != get_dimension_count());
     for (int64_t i = 0; i < get_dimension_count(); ++i) {
-        if (std_devs[i] < SMALL_NUMBER) {
+        if (abs(std_devs[i]) < KINDA_SMALL_NUMBER) {
             continue;
         }
         p_data[i] = (p_data[i] * std_devs[i]) + means[i];

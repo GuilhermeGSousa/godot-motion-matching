@@ -4,8 +4,9 @@
 #include "features/mm_feature.h"
 #include "math/hash.h"
 #include "math/stats.hpp"
+#include "mm_character.h"
 
-void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleton3D* p_skeleton) {
+void MMAnimationLibrary::bake_data(const MMCharacter* p_character, const AnimationMixer* p_player, const Skeleton3D* p_skeleton) {
     motion_data.clear();
     db_anim_index.clear();
     db_time_index.clear();
@@ -14,7 +15,7 @@ void MMAnimationLibrary::bake_data(const AnimationMixer* p_player, const Skeleto
     for (auto i = 0; i < features.size(); ++i) {
         MMFeature* f = Object::cast_to<MMFeature>(features[i]);
         dim_count += f->get_dimension_count();
-        f->setup_skeleton(p_player, p_skeleton);
+        f->setup_skeleton(p_character, p_player, p_skeleton);
     }
 
     TypedArray<StringName> animation_list = get_animation_list();

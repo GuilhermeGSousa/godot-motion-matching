@@ -1,6 +1,7 @@
 #include "mm_trajectory_feature.h"
 
 #include "math/transforms.h"
+#include "mm_character.h"
 
 #include <godot_cpp/classes/animation_player.hpp>
 #include <godot_cpp/classes/editor_node3d_gizmo_plugin.hpp>
@@ -20,12 +21,17 @@ int64_t MMTrajectoryFeature::get_dimension_count() const {
     return _get_point_dimension_count() * (past_frames + future_frames);
 }
 
-void MMTrajectoryFeature::setup_skeleton(const AnimationMixer* p_player, const Skeleton3D* p_skeleton) {
+void MMTrajectoryFeature::setup_skeleton(const MMCharacter* p_character, const AnimationMixer* p_player, const Skeleton3D* p_skeleton) {
     const StringName skel_path = p_player->get_root_motion_track().get_concatenated_names();
     const StringName root_bone_name = p_player->get_root_motion_track().get_concatenated_subnames();
     _root_bone = p_skeleton->find_bone(root_bone_name);
 
     _root_bone_path = String(skel_path) + ":" + String(root_bone_name);
+
+    past_delta_time = p_character->history_delta_time;
+    future_delta_time = p_character->trajectory_delta_time;
+    past_frames = p_character->history_point_count;
+    future_frames = p_character->trajectory_point_count;
 }
 
 void MMTrajectoryFeature::setup_for_animation(Ref<Animation> animation) {
@@ -105,11 +111,26 @@ PackedFloat32Array MMTrajectoryFeature::evaluate_runtime_data(const MMQueryInput
     // The first point of the trajectory represents the player's current state
     // We do not match the first point of the trajectory (character position)
     for (int64_t i = 1; i < future_frames + 1; i++) {
-        add_point(i, p_query_input.trajectory[i]);
+        const size_t max_size = p_query_input.trajectory.size();
+        if (max_size == 0) {
+            add_point(i, MMTrajectoryPoint());
+        } else if (i >= max_size) {
+            add_point(i, p_query_input.trajectory[max_size - 1]);
+        } else {
+            add_point(i, p_query_input.trajectory[i]);
+        }
     }
 
     for (int64_t i = 0; i < past_frames; i++) {
-        add_point(i, p_query_input.trajectory_history[i]);
+        const size_t max_size = p_query_input.trajectory_history.size();
+
+        if (max_size == 0) {
+            add_point(i, MMTrajectoryPoint());
+        } else if (i >= max_size) {
+            add_point(i, p_query_input.trajectory_history[max_size - 1]);
+        } else {
+            add_point(i, p_query_input.trajectory_history[i]);
+        }
     }
 
     return result;
@@ -241,10 +262,10 @@ void MMTrajectoryFeature::_validate_property(PropertyInfo& p_property) const {
 
 void MMTrajectoryFeature::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_trajectory_points", "character_transform", "trajectory_data"), &MMTrajectoryFeature::get_trajectory_points);
-    BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::FLOAT, past_delta_time);
-    BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::INT, past_frames);
-    BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::FLOAT, future_delta_time);
-    BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::INT, future_frames);
+    BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::FLOAT, past_delta_time, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
+    BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::INT, past_frames, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
+    BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::FLOAT, future_delta_time, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
+    BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::INT, future_frames, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
     BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::BOOL, include_height);
     BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::FLOAT, height_weight);
     BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::BOOL, include_facing);

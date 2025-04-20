@@ -9,7 +9,7 @@
 #include <godot_cpp/classes/standard_material3d.hpp>
 #include <numeric>
 
-void MMBoneDataFeature::setup_skeleton(const AnimationMixer* p_player, const Skeleton3D* p_skeleton) {
+void MMBoneDataFeature::setup_skeleton(const MMCharacter* p_character, const AnimationMixer* p_player, const Skeleton3D* p_skeleton) {
     _skeleton = p_skeleton;
     _skeleton_path = p_player->get_root_motion_track().get_concatenated_names();
     const StringName root_bone_name = p_player->get_root_motion_track().get_concatenated_subnames();
