@@ -64,8 +64,8 @@ PackedFloat32Array MMTrajectoryFeature::bake_animation_pose(Ref<Animation> p_ani
                     extrapolation_dt;
                 extrapolation_time = p_time - animation_length;
             } else if (p_time < 0) {
-                extrapolation_velocity = (p_animation->position_track_interpolate(_root_position_track, extrapolation_dt) -
-                                          p_animation->position_track_interpolate(_root_position_track, 0)) /
+                extrapolation_velocity = (p_animation->position_track_interpolate(_root_position_track, 0.0) -
+                                          p_animation->position_track_interpolate(_root_position_track, extrapolation_dt)) /
                     extrapolation_dt;
                 extrapolation_time = abs(p_time);
             }
