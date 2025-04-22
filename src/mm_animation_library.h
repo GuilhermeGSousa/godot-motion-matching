@@ -41,6 +41,7 @@ public:
     GETSET(PackedFloat32Array, motion_data)
     GETSET(PackedInt32Array, db_anim_index)
     GETSET(PackedFloat32Array, db_time_index)
+    GETSET(PackedInt32Array, db_pose_offset)
     GETSET(int64_t, schema_hash)
 
     // KD Tree data

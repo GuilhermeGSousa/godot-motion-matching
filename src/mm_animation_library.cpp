@@ -10,6 +10,7 @@ void MMAnimationLibrary::bake_data(const MMCharacter* p_character, const Animati
     motion_data.clear();
     db_anim_index.clear();
     db_time_index.clear();
+    db_pose_offset.clear();
 
     int32_t dim_count = 0;
     for (auto i = 0; i < features.size(); ++i) {
@@ -24,6 +25,7 @@ void MMAnimationLibrary::bake_data(const MMCharacter* p_character, const Animati
     std::vector<std::vector<StatsAccumulator>> stats(features.size());
 
     PackedFloat32Array data;
+    int32_t current_pose_offset = 0;
     // For every animation
     for (int64_t animation_index = 0; animation_index < animation_list.size(); animation_index++) {
         const StringName& anim_name = animation_list[animation_index];
@@ -38,6 +40,7 @@ void MMAnimationLibrary::bake_data(const MMCharacter* p_character, const Animati
 
         const double animation_length = animation->get_length();
         const double time_step = 1.0f / get_sampling_rate();
+        int pose_count = 0;
         // Every time step
         for (double time = 0; time < animation_length; time += time_step) {
             PackedFloat32Array pose_data;
@@ -54,6 +57,7 @@ void MMAnimationLibrary::bake_data(const MMCharacter* p_character, const Animati
                 }
 
                 pose_data.append_array(feature_data);
+                current_pose_offset += feature->get_dimension_count();
             }
 
             ERR_FAIL_COND(pose_data.size() != dim_count);
@@ -62,7 +66,9 @@ void MMAnimationLibrary::bake_data(const MMCharacter* p_character, const Animati
             data.append_array(pose_data);
             db_anim_index.push_back(animation_index);
             db_time_index.push_back(time);
+            pose_count++;
         }
+        db_pose_offset.push_back(current_pose_offset);
     }
 
     // Compute mean and standard deviation
@@ -133,30 +139,18 @@ int64_t MMAnimationLibrary::get_animation_pose_count(String p_animation_name) co
     Ref<Animation> animation = get_animation(p_animation_name);
     if (animation.is_null()) {
         return 0;
-    }
-    return static_cast<int32_t>(animation->get_length() * get_sampling_rate());
+    };
+    const double animation_length = animation->get_length();
+    const double time_step = 1.0f / get_sampling_rate();
+    return static_cast<int32_t>(UtilityFunctions::floor(animation_length / time_step));
 }
 
 void MMAnimationLibrary::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, const Transform3D& p_transform, String p_animation_name, int32_t p_pose_index) const {
     const int32_t anim_index = get_animation_list().find(p_animation_name);
     const int32_t dim_count = get_dim_count();
-    int32_t start_frame_index = 0;
-    TypedArray<StringName> animation_list = get_animation_list();
-    for (size_t anim_index = 0; anim_index < animation_list.size(); anim_index++) {
-        const StringName& anim_name = animation_list[anim_index];
-        Ref<Animation> animation = get_animation(anim_name);
-        if (anim_name == p_animation_name) {
-            break;
-        }
-
-        const float animation_length = animation->get_length();
-        const float time_step = 1.0f / get_sampling_rate();
-        for (float time = 0; time < animation_length; time += time_step) {
-            start_frame_index += dim_count;
-        }
-    }
-
+    int32_t start_frame_index = db_pose_offset[anim_index];
     int32_t frame_index = start_frame_index + p_pose_index * dim_count;
+
     for (size_t feature_index = 0; feature_index < features.size(); feature_index++) {
         const MMFeature* feature = Object::cast_to<MMFeature>(features[feature_index]);
         const float* frame_motion_data = motion_data.ptr() + frame_index;
@@ -180,9 +174,12 @@ int64_t MMAnimationLibrary::compute_features_hash() const {
                 property_name == "std_devs" ||
                 property_name == "mins" ||
                 property_name == "maxes";
+            const bool is_resource_property = property_name.contains("resource");
             if (property_type != Variant::OBJECT &&
                 property_type != Variant::NIL &&
-                !property_is_stats) {
+                !property_is_stats &&
+                !is_resource_property) {
+                UtilityFunctions::print("Hashing property: ", property_name, " of type: ", property_type);
                 hash = hash_combine(hash, property_name.hash());
                 hash = hash_combine(hash, feature->get(property_name).hash());
             }
@@ -349,6 +346,7 @@ void MMAnimationLibrary::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_FLOAT32_ARRAY, motion_data, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_INT32_ARRAY, db_anim_index, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_FLOAT32_ARRAY, db_time_index, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
+    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_FLOAT32_ARRAY, db_pose_offset, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::INT, schema_hash, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_INT32_ARRAY, node_indices, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
 }

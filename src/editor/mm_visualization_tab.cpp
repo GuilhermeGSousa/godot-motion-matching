@@ -71,7 +71,7 @@ void MMVisualizationTab::_viz_anim_selected(int p_index) {
     TypedArray<StringName> animation_list = _current_animation_library->get_animation_list();
     StringName animation_name = animation_list[p_index];
 
-    _viz_time_slider->set_max(_current_animation_library->get_animation_pose_count(animation_name));
+    _viz_time_slider->set_max(_current_animation_library->get_animation_pose_count(animation_name) - 1);
 }
 
 void MMVisualizationTab::_emit_animation_viz_request(String p_animation_lib, String p_animation_name, int32_t p_pose_index) {
