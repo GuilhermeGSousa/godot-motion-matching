@@ -58,7 +58,7 @@ void MMEditor::_notification(int p_notification) {
 void MMEditor::_bake_all_animation_libraries(const MMCharacter* p_character, const AnimationMixer* p_mixer, const Skeleton3D* p_skeleton) {
 
     TypedArray<StringName> animation_libraries = p_mixer->get_animation_library_list();
-    for (int i = 0; i < animation_libraries.size(); i++) {
+    for (int64_t i = 0; i < animation_libraries.size(); i++) {
         const StringName& anim_lib_name = animation_libraries[i];
         Ref<MMAnimationLibrary> anim_lib = p_mixer->get_animation_library(anim_lib_name);
 
@@ -67,7 +67,11 @@ void MMEditor::_bake_all_animation_libraries(const MMCharacter* p_character, con
         }
 
         anim_lib->bake_data(p_character, p_mixer, p_skeleton);
-        ResourceSaver::get_singleton()->save(anim_lib);
+        ResourceSaver* resource_saver = ResourceSaver::get_singleton();
+        for (int64_t i = 0; i < anim_lib->features.size(); i++) {
+            resource_saver->save(anim_lib->features[i]);
+        }
+        resource_saver->save(anim_lib);
     }
 }
 

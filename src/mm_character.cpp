@@ -296,7 +296,7 @@ void MMCharacter::_fill_current_skeleton_state(SkeletonState& p_state) const {
 
     for (int b = 0; b < skeleton->get_bone_count(); ++b) {
         Transform3D bone_pose = skeleton->get_bone_global_pose(b);
-        p_state[b].pos = root_bone_pose.xform(bone_pose.origin);
+        p_state[b].pos = bone_pose.origin;
         p_state[b].vel = Vector3();
         p_state[b].rot = bone_pose.basis.get_rotation_quaternion();
         p_state[b].ang_vel = Vector3();

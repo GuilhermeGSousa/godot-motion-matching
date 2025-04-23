@@ -20,7 +20,7 @@ void MMBoneDataFeature::setup_for_animation(Ref<Animation> animation) {
 }
 
 int64_t MMBoneDataFeature::get_dimension_count() const {
-    return bone_names.size() * 7;
+    return bone_names.size() * 3;
 }
 
 PackedFloat32Array MMBoneDataFeature::bake_animation_pose(Ref<Animation> p_animation, double time) const {
@@ -32,10 +32,6 @@ PackedFloat32Array MMBoneDataFeature::bake_animation_pose(Ref<Animation> p_anima
         result.append(bone_state.pos.x);
         result.append(bone_state.pos.y);
         result.append(bone_state.pos.z);
-        result.append(bone_state.rot.x);
-        result.append(bone_state.rot.y);
-        result.append(bone_state.rot.z);
-        result.append(bone_state.rot.w);
     }
     return result;
 }
@@ -50,10 +46,6 @@ PackedFloat32Array MMBoneDataFeature::evaluate_runtime_data(const MMQueryInput& 
         result.append(pos.x);
         result.append(pos.y);
         result.append(pos.z);
-        result.append(rot.x);
-        result.append(rot.y);
-        result.append(rot.z);
-        result.append(rot.w);
     }
     return result;
 }
@@ -77,7 +69,6 @@ void MMBoneDataFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, cons
         sphere_mesh->set_material(material);
 
         const Vector3 pos = Vector3(dernomalized_data[i], dernomalized_data[i + 1], dernomalized_data[i + 2]);
-        const Quaternion rot = Quaternion(dernomalized_data[i + 3], dernomalized_data[i + 4], dernomalized_data[i + 5], dernomalized_data[i + 6]);
 
         Transform3D point_transform = Transform3D();
         point_transform.origin = pos;
