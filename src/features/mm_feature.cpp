@@ -76,10 +76,7 @@ void MMFeature::_normalize_standard(float* p_data) const {
         return;
     }
     for (int64_t i = 0; i < get_dimension_count(); ++i) {
-        if (abs(std_devs[i]) < KINDA_SMALL_NUMBER) {
-            continue;
-        }
-        p_data[i] = (p_data[i] - means[i]) / std_devs[i];
+        p_data[i] = (p_data[i] - means[i]) / (std_devs[i] + KINDA_SMALL_NUMBER);
     }
 }
 
@@ -90,10 +87,7 @@ void MMFeature::_denormalize_standard(float* p_data) const {
     }
     ERR_FAIL_COND(std_devs.size() != get_dimension_count());
     for (int64_t i = 0; i < get_dimension_count(); ++i) {
-        if (abs(std_devs[i]) < KINDA_SMALL_NUMBER) {
-            continue;
-        }
-        p_data[i] = (p_data[i] * std_devs[i]) + means[i];
+        p_data[i] = (p_data[i] * (std_devs[i] + KINDA_SMALL_NUMBER)) + means[i];
     }
 }
 
@@ -104,10 +98,10 @@ void MMFeature::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::INT, "normalization_mode", PROPERTY_HINT_ENUM, "Raw,Standard,MinMax", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_ALWAYS_DUPLICATE), "set_normalization_mode", "get_normalization_mode");
 
     BINDER_PROPERTY_PARAMS(MMFeature, Variant::FLOAT, weight);
-    BINDER_PROPERTY_PARAMS(MMFeature, Variant::PACKED_FLOAT32_ARRAY, means, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
-    BINDER_PROPERTY_PARAMS(MMFeature, Variant::PACKED_FLOAT32_ARRAY, std_devs, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
-    BINDER_PROPERTY_PARAMS(MMFeature, Variant::PACKED_FLOAT32_ARRAY, maxes, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
-    BINDER_PROPERTY_PARAMS(MMFeature, Variant::PACKED_FLOAT32_ARRAY, mins, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
+    BINDER_PROPERTY_PARAMS(MMFeature, Variant::PACKED_FLOAT32_ARRAY, means, PROPERTY_HINT_NONE, "", DEBUG_PROPERTY_STORAGE_FLAG);
+    BINDER_PROPERTY_PARAMS(MMFeature, Variant::PACKED_FLOAT32_ARRAY, std_devs, PROPERTY_HINT_NONE, "", DEBUG_PROPERTY_STORAGE_FLAG);
+    BINDER_PROPERTY_PARAMS(MMFeature, Variant::PACKED_FLOAT32_ARRAY, maxes, PROPERTY_HINT_NONE, "", DEBUG_PROPERTY_STORAGE_FLAG);
+    BINDER_PROPERTY_PARAMS(MMFeature, Variant::PACKED_FLOAT32_ARRAY, mins, PROPERTY_HINT_NONE, "", DEBUG_PROPERTY_STORAGE_FLAG);
 
     BIND_ENUM_CONSTANT(Raw);
     BIND_ENUM_CONSTANT(Standard);

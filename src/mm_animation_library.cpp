@@ -30,6 +30,7 @@ void MMAnimationLibrary::bake_data(const MMCharacter* p_character, const Animati
     for (int64_t animation_index = 0; animation_index < animation_list.size(); animation_index++) {
         const StringName& anim_name = animation_list[animation_index];
         Ref<Animation> animation = get_animation(anim_name);
+        db_pose_offset.push_back(current_pose_offset);
 
         // Initialize features
         for (int64_t feature_index = 0; feature_index < features.size(); feature_index++) {
@@ -68,7 +69,6 @@ void MMAnimationLibrary::bake_data(const MMCharacter* p_character, const Animati
             db_time_index.push_back(time);
             pose_count++;
         }
-        db_pose_offset.push_back(current_pose_offset);
     }
 
     // Compute mean and standard deviation
@@ -343,10 +343,10 @@ void MMAnimationLibrary::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::ARRAY, features, PROPERTY_HINT_TYPE_STRING, UtilityFunctions::str(Variant::OBJECT) + '/' + UtilityFunctions::str(Variant::BASIS) + ":MMFeature");
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::FLOAT, sampling_rate);
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::BOOL, include_cost_results);
-    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_FLOAT32_ARRAY, motion_data, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
-    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_INT32_ARRAY, db_anim_index, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
-    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_FLOAT32_ARRAY, db_time_index, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
-    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_FLOAT32_ARRAY, db_pose_offset, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
-    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::INT, schema_hash, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
-    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_INT32_ARRAY, node_indices, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
+    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_FLOAT32_ARRAY, motion_data, PROPERTY_HINT_NONE, "", DEBUG_PROPERTY_STORAGE_FLAG);
+    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_INT32_ARRAY, db_anim_index, PROPERTY_HINT_NONE, "", DEBUG_PROPERTY_STORAGE_FLAG);
+    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_FLOAT32_ARRAY, db_time_index, PROPERTY_HINT_NONE, "", DEBUG_PROPERTY_STORAGE_FLAG);
+    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_FLOAT32_ARRAY, db_pose_offset, PROPERTY_HINT_NONE, "", DEBUG_PROPERTY_STORAGE_FLAG);
+    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::INT, schema_hash, PROPERTY_HINT_NONE, "", DEBUG_PROPERTY_STORAGE_FLAG);
+    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_INT32_ARRAY, node_indices, PROPERTY_HINT_NONE, "", DEBUG_PROPERTY_STORAGE_FLAG);
 }

@@ -168,13 +168,14 @@ void MMTrajectoryFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, co
     memcpy(dernomalized_data, p_data, sizeof(float) * get_dimension_count());
     denormalize(dernomalized_data);
 
-    int64_t i = 0;
-    for (; i < future_frames * _get_point_dimension_count(); i += _get_point_dimension_count()) {
+    auto draw_point = [this,
+                       &p_gizmo,
+                       dernomalized_data](int64_t i, Ref<StandardMaterial3D> material) {
         Ref<SphereMesh> sphere_mesh;
         sphere_mesh.instantiate();
         sphere_mesh->set_radius(0.10);
         sphere_mesh->set_height(0.10);
-        sphere_mesh->set_material(trajectory_material);
+        sphere_mesh->set_material(material);
 
         MMTrajectoryPoint point;
         point.position = Vector3(
@@ -184,33 +185,25 @@ void MMTrajectoryFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, co
 
         Transform3D point_transform = Transform3D();
         point_transform.origin = point.position;
-        p_gizmo->add_mesh(sphere_mesh, trajectory_material, point_transform, nullptr);
+        p_gizmo->add_mesh(sphere_mesh, material, point_transform, nullptr);
 
         if (include_facing) {
             const float facing_angle = dernomalized_data[i + (include_height ? 3 : 2)];
             const Vector3 facing = Vector3(UtilityFunctions::sin(facing_angle), 0.f, UtilityFunctions::cos(facing_angle));
-            const Vector3 facing_end = point.position + facing * 1.0f;
+            const Vector3 facing_end = point.position + facing * 0.5f;
             PackedVector3Array lines;
             lines.push_back(point.position);
             lines.push_back(facing_end);
-            p_gizmo->add_lines(lines, trajectory_material);
+            p_gizmo->add_lines(lines, material);
         }
+    };
+    int64_t i = 0;
+    for (; i < future_frames * _get_point_dimension_count(); i += _get_point_dimension_count()) {
+        draw_point(i, trajectory_material);
     }
 
     for (; i < get_dimension_count(); i += _get_point_dimension_count()) {
-        Ref<SphereMesh> sphere_mesh;
-        sphere_mesh.instantiate();
-        sphere_mesh->set_radius(0.10);
-        sphere_mesh->set_height(0.10);
-        sphere_mesh->set_material(history_material);
-
-        MMTrajectoryPoint point;
-        point.position = Vector3(dernomalized_data[i], include_height ? dernomalized_data[i + 1] : 0, include_height ? dernomalized_data[i + 2] : dernomalized_data[i + 1]);
-        point.position = p_transform.xform(point.position);
-
-        Transform3D point_transform = Transform3D();
-        point_transform.origin = point.position;
-        p_gizmo->add_mesh(sphere_mesh, history_material, point_transform, nullptr);
+        draw_point(i, history_material);
     }
 
     delete[] dernomalized_data;
