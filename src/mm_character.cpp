@@ -292,8 +292,6 @@ void MMCharacter::_update_synchronizer(double delta_t) {
 }
 
 void MMCharacter::_fill_current_skeleton_state(SkeletonState& p_state) const {
-    Transform3D root_bone_pose = skeleton->get_bone_global_pose(_root_bone_idx);
-
     for (int b = 0; b < skeleton->get_bone_count(); ++b) {
         Transform3D bone_pose = skeleton->get_bone_global_pose(b);
         p_state[b].pos = bone_pose.origin;

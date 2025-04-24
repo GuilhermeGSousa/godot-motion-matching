@@ -179,7 +179,6 @@ int64_t MMAnimationLibrary::compute_features_hash() const {
                 property_type != Variant::NIL &&
                 !property_is_stats &&
                 !is_resource_property) {
-                UtilityFunctions::print("Hashing property: ", property_name, " of type: ", property_type);
                 hash = hash_combine(hash, property_name.hash());
                 hash = hash_combine(hash, feature->get(property_name).hash());
             }
