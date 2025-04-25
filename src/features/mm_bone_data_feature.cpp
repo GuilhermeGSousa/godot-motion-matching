@@ -61,7 +61,7 @@ void MMBoneDataFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, cons
     memcpy(dernomalized_data, p_data, sizeof(float) * get_dimension_count());
     denormalize(dernomalized_data);
 
-    for (int64_t i = 0; i < get_dimension_count(); i += 7) {
+    for (int64_t i = 0; i < get_dimension_count(); i += 3) {
         Ref<SphereMesh> sphere_mesh;
         sphere_mesh.instantiate();
         sphere_mesh->set_radius(0.05);
