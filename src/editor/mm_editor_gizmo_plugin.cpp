@@ -9,8 +9,9 @@
 #include "mm_editor_gizmo_plugin.h"
 
 MMEditorGizmoPlugin::MMEditorGizmoPlugin() {
-    create_material("trajectory_material", Color(1, 0, 0, 1));
-    create_material("bone_material", Color(0, 0, 1, 1));
+    create_material("trajectory_material", Color(1, 0, 0, 1), false, true);
+    create_material("trajectory_history_material", Color(0, 1, 0, 1), false, true);
+    create_material("bone_material", Color(0, 0, 1, 1), false, true);
 }
 
 bool MMEditorGizmoPlugin::_has_gizmo(Node3D* p_for_node_3d) const {

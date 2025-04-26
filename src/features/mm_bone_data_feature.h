@@ -12,7 +12,7 @@ class MMBoneDataFeature : public MMFeature {
     GDCLASS(MMBoneDataFeature, MMFeature)
 
 public:
-    virtual void setup_skeleton(const AnimationMixer* p_player, const Skeleton3D* p_skeleton) override;
+    virtual void setup_skeleton(const MMCharacter* p_character, const AnimationMixer* p_player, const Skeleton3D* p_skeleton) override;
 
     virtual void setup_for_animation(Ref<Animation> animation) override;
 

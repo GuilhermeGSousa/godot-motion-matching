@@ -55,6 +55,10 @@ PackedFloat32Array MMAnimationNode::_process_animation_node(const PackedFloat64A
     AnimationTree* animation_tree = Object::cast_to<AnimationTree>(ObjectDB::get_instance(get_processing_animation_tree_instance_id()));
     Ref<MMAnimationLibrary> animation_library = animation_tree->get_animation_library(library);
     ERR_FAIL_COND_V_MSG(animation_library.is_null(), PackedFloat32Array(), "Library not found: " + library);
+    ERR_FAIL_COND_V_MSG(
+        animation_library->db_anim_index.is_empty() || animation_library->db_time_index.is_empty(),
+        PackedFloat32Array(),
+        "Library not baked: " + library);
     const MMQueryOutput query_output = animation_library->query(*query_input);
 
     const bool is_same_animation = query_output.animation_match == _last_query_output.animation_match;

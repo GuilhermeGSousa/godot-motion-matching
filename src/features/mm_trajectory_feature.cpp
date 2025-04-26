@@ -1,6 +1,7 @@
 #include "mm_trajectory_feature.h"
 
 #include "math/transforms.h"
+#include "mm_character.h"
 
 #include <godot_cpp/classes/animation_player.hpp>
 #include <godot_cpp/classes/editor_node3d_gizmo_plugin.hpp>
@@ -20,12 +21,17 @@ int64_t MMTrajectoryFeature::get_dimension_count() const {
     return _get_point_dimension_count() * (past_frames + future_frames);
 }
 
-void MMTrajectoryFeature::setup_skeleton(const AnimationMixer* p_player, const Skeleton3D* p_skeleton) {
+void MMTrajectoryFeature::setup_skeleton(const MMCharacter* p_character, const AnimationMixer* p_player, const Skeleton3D* p_skeleton) {
     const StringName skel_path = p_player->get_root_motion_track().get_concatenated_names();
     const StringName root_bone_name = p_player->get_root_motion_track().get_concatenated_subnames();
     _root_bone = p_skeleton->find_bone(root_bone_name);
 
     _root_bone_path = String(skel_path) + ":" + String(root_bone_name);
+
+    past_delta_time = p_character->history_delta_time;
+    future_delta_time = p_character->trajectory_delta_time;
+    past_frames = p_character->history_point_count;
+    future_frames = p_character->trajectory_point_count;
 }
 
 void MMTrajectoryFeature::setup_for_animation(Ref<Animation> animation) {
@@ -42,16 +48,34 @@ PackedFloat32Array MMTrajectoryFeature::bake_animation_pose(Ref<Animation> p_ani
     const Quaternion current_rotation =
         _root_rotation_track == -1 ? Quaternion() : p_animation->rotation_track_interpolate(_root_rotation_track, time);
 
-    auto add_frame = [this, &result, &p_animation, &current_pos, &current_rotation](double p_time) {
+    const double animation_length = p_animation->get_length();
+    auto add_frame = [this, &result, &p_animation, &current_pos, &current_rotation, &animation_length](double p_time) {
         Vector3 position;
         Quaternion rotation;
+        Vector3 extrapolation_velocity;
+        const double clamped_time = CLAMP(p_time, 0.0, animation_length);
+        const double extrapolation_dt = 0.1;
         if (_root_position_track != -1) {
-            position = p_animation->position_track_interpolate(_root_position_track, p_time) - current_pos;
+            Vector3 interpolated_position = p_animation->position_track_interpolate(_root_position_track, clamped_time);
+            double extrapolation_time = 0.0;
+            if (p_time > animation_length) {
+                extrapolation_velocity = (p_animation->position_track_interpolate(_root_position_track, animation_length) -
+                                          p_animation->position_track_interpolate(_root_position_track, animation_length - extrapolation_dt)) /
+                    extrapolation_dt;
+                extrapolation_time = p_time - animation_length;
+            } else if (p_time < 0) {
+                extrapolation_velocity = (p_animation->position_track_interpolate(_root_position_track, 0.0) -
+                                          p_animation->position_track_interpolate(_root_position_track, extrapolation_dt)) /
+                    extrapolation_dt;
+                extrapolation_time = abs(p_time);
+            }
+
+            position = interpolated_position + extrapolation_velocity * extrapolation_time - current_pos;
             position = current_rotation.xform_inv(position);
         }
 
         if (_root_rotation_track != -1) {
-            rotation = p_animation->rotation_track_interpolate(_root_rotation_track, p_time) * current_rotation.inverse();
+            rotation = p_animation->rotation_track_interpolate(_root_rotation_track, clamped_time) * current_rotation.inverse();
         }
 
         result.append(position.x);
@@ -70,15 +94,11 @@ PackedFloat32Array MMTrajectoryFeature::bake_animation_pose(Ref<Animation> p_ani
 
     // We do not include the first frame
     for (int64_t i = 1; i < future_frames + 1; i++) {
-        const double future_time = CLAMP(time + future_delta_time * i, 0.0f, p_animation->get_length());
-
-        add_frame(future_time);
+        add_frame(time + future_delta_time * i);
     }
 
     for (int64_t i = 1; i < past_frames + 1; i++) {
-        const double past_time = CLAMP(time - past_delta_time * i, 0.0f, p_animation->get_length());
-
-        add_frame(past_time);
+        add_frame(time - past_delta_time * i);
     }
 
     return result;
@@ -105,11 +125,26 @@ PackedFloat32Array MMTrajectoryFeature::evaluate_runtime_data(const MMQueryInput
     // The first point of the trajectory represents the player's current state
     // We do not match the first point of the trajectory (character position)
     for (int64_t i = 1; i < future_frames + 1; i++) {
-        add_point(i, p_query_input.trajectory[i]);
+        const size_t max_size = p_query_input.trajectory.size();
+        if (max_size == 0) {
+            add_point(i, MMTrajectoryPoint());
+        } else if (i >= max_size) {
+            add_point(i, p_query_input.trajectory[max_size - 1]);
+        } else {
+            add_point(i, p_query_input.trajectory[i]);
+        }
     }
 
     for (int64_t i = 0; i < past_frames; i++) {
-        add_point(i, p_query_input.trajectory_history[i]);
+        const size_t max_size = p_query_input.trajectory_history.size();
+
+        if (max_size == 0) {
+            add_point(i, MMTrajectoryPoint());
+        } else if (i >= max_size) {
+            add_point(i, p_query_input.trajectory_history[max_size - 1]);
+        } else {
+            add_point(i, p_query_input.trajectory_history[i]);
+        }
     }
 
     return result;
@@ -117,18 +152,25 @@ PackedFloat32Array MMTrajectoryFeature::evaluate_runtime_data(const MMQueryInput
 
 void MMTrajectoryFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, const Transform3D p_transform, const float* p_data) const {
 
-    Ref<StandardMaterial3D> material = p_gizmo->get_plugin()->get_material("trajectory_material", p_gizmo);
-    if (material.is_null()) {
+    Ref<StandardMaterial3D> trajectory_material = p_gizmo->get_plugin()->get_material("trajectory_material", p_gizmo);
+    if (trajectory_material.is_null()) {
         p_gizmo->get_plugin()->create_material("trajectory_material", Color(1, 0, 0, 1));
-        material = p_gizmo->get_plugin()->get_material("trajectory_material", p_gizmo);
+        trajectory_material = p_gizmo->get_plugin()->get_material("trajectory_material", p_gizmo);
+    }
+
+    Ref<StandardMaterial3D> history_material = p_gizmo->get_plugin()->get_material("trajectory_history_material", p_gizmo);
+    if (history_material.is_null()) {
+        p_gizmo->get_plugin()->create_material("trajectory_history_material", Color(0, 1, 0, 1));
+        history_material = p_gizmo->get_plugin()->get_material("trajectory_history_material", p_gizmo);
     }
 
     float* dernomalized_data = new float[get_dimension_count()];
     memcpy(dernomalized_data, p_data, sizeof(float) * get_dimension_count());
     denormalize(dernomalized_data);
 
-    int64_t i = 0;
-    for (; i < future_frames * _get_point_dimension_count(); i += _get_point_dimension_count()) {
+    auto draw_point = [this,
+                       &p_gizmo,
+                       dernomalized_data](int64_t i, Ref<StandardMaterial3D> material) {
         Ref<SphereMesh> sphere_mesh;
         sphere_mesh.instantiate();
         sphere_mesh->set_radius(0.10);
@@ -136,27 +178,32 @@ void MMTrajectoryFeature::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, co
         sphere_mesh->set_material(material);
 
         MMTrajectoryPoint point;
-        point.position = Vector3(dernomalized_data[i], include_height ? dernomalized_data[i + 1] : 0, include_height ? dernomalized_data[i + 2] : dernomalized_data[i + 1]);
+        point.position = Vector3(
+            dernomalized_data[i],
+            include_height ? dernomalized_data[i + 1] : 0,
+            include_height ? dernomalized_data[i + 2] : dernomalized_data[i + 1]);
 
         Transform3D point_transform = Transform3D();
         point_transform.origin = point.position;
         p_gizmo->add_mesh(sphere_mesh, material, point_transform, nullptr);
+
+        if (include_facing) {
+            const float facing_angle = dernomalized_data[i + (include_height ? 3 : 2)];
+            const Vector3 facing = Vector3(UtilityFunctions::sin(facing_angle), 0.f, UtilityFunctions::cos(facing_angle));
+            const Vector3 facing_end = point.position + facing * 0.5f;
+            PackedVector3Array lines;
+            lines.push_back(point.position);
+            lines.push_back(facing_end);
+            p_gizmo->add_lines(lines, material);
+        }
+    };
+    int64_t i = 0;
+    for (; i < future_frames * _get_point_dimension_count(); i += _get_point_dimension_count()) {
+        draw_point(i, trajectory_material);
     }
 
     for (; i < get_dimension_count(); i += _get_point_dimension_count()) {
-        Ref<SphereMesh> sphere_mesh;
-        sphere_mesh.instantiate();
-        sphere_mesh->set_radius(0.10);
-        sphere_mesh->set_height(0.10);
-        sphere_mesh->set_material(material);
-
-        MMTrajectoryPoint point;
-        point.position = Vector3(dernomalized_data[i], include_height ? dernomalized_data[i + 1] : 0, include_height ? dernomalized_data[i + 2] : dernomalized_data[i + 1]);
-        point.position = p_transform.xform(point.position);
-
-        Transform3D point_transform = Transform3D();
-        point_transform.origin = point.position;
-        p_gizmo->add_mesh(sphere_mesh, material, point_transform, nullptr);
+        draw_point(i, history_material);
     }
 
     delete[] dernomalized_data;
@@ -241,10 +288,10 @@ void MMTrajectoryFeature::_validate_property(PropertyInfo& p_property) const {
 
 void MMTrajectoryFeature::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_trajectory_points", "character_transform", "trajectory_data"), &MMTrajectoryFeature::get_trajectory_points);
-    BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::FLOAT, past_delta_time);
-    BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::INT, past_frames);
-    BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::FLOAT, future_delta_time);
-    BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::INT, future_frames);
+    BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::FLOAT, past_delta_time, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
+    BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::INT, past_frames, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
+    BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::FLOAT, future_delta_time, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
+    BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::INT, future_frames, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE);
     BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::BOOL, include_height);
     BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::FLOAT, height_weight);
     BINDER_PROPERTY_PARAMS(MMTrajectoryFeature, Variant::BOOL, include_facing);
