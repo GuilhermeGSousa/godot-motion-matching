@@ -7,6 +7,8 @@
 #include "mm_character.h"
 
 void MMAnimationLibrary::bake_data(const MMCharacter* p_character, const AnimationMixer* p_player, const Skeleton3D* p_skeleton) {
+    ERR_FAIL_COND(features.is_empty());
+
     motion_data.clear();
     db_anim_index.clear();
     db_time_index.clear();

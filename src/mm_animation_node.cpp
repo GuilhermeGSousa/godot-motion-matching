@@ -31,7 +31,7 @@ PackedFloat32Array MMAnimationNode::_process_animation_node(const PackedFloat64A
     _current_animation_info.seeked = p_playback_info[4] > 0.5;
     _current_animation_info.is_external_seeking = p_playback_info[5] > 0.5;
 
-    const bool is_about_to_end = false; // TODO: Implement this
+    const bool has_ended = _current_animation_info.time >= _current_animation_info.length;
 
     const MMQueryInput* query_input = Object::cast_to<MMQueryInput>(get_parameter("motion_matching_input"));
 
@@ -44,7 +44,7 @@ PackedFloat32Array MMAnimationNode::_process_animation_node(const PackedFloat64A
 
     const bool should_query =
         (_time_since_last_query > (1.0 / query_frequency)) ||
-        is_about_to_end ||
+        has_ended ||
         !has_current_animation ||
         should_force_query;
 
@@ -104,9 +104,8 @@ void MMAnimationNode::_start_transition(const StringName p_animation, float p_ti
 }
 
 PackedFloat32Array MMAnimationNode::_update_current_animation(bool p_test_only) {
-    // const bool will_end = Animation::is_greater_or_equal_approx(
-    //     _current_animation_info.time + _current_animation_info.delta,
-    //     _current_animation_info.length);
+    const bool will_end =
+        _current_animation_info.time + _current_animation_info.delta >= _current_animation_info.length;
 
     Spring::_simple_spring_damper_exact(
         _current_animation_info.weight,
@@ -167,7 +166,7 @@ PackedFloat32Array MMAnimationNode::_update_current_animation(bool p_test_only) 
     result.append(_current_animation_info.time);
     result.append(_current_animation_info.delta);
     result.append(static_cast<float>(Animation::LoopMode::LOOP_NONE));
-    result.append(false); // TODO: Will End
+    result.append(will_end);
     result.append(false); // Is Infinity
     return result;
 }

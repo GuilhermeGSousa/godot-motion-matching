@@ -39,7 +39,7 @@ private:
     bool _should_force_query(const MMQueryInput* p_input, double p_delta_time) const;
     struct AnimationInfo {
         StringName name;
-        double length;
+        double length = -1;
         double time;
         double delta;
         bool seeked;
