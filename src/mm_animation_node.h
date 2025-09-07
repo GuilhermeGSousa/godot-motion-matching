@@ -15,6 +15,8 @@ public:
     GETSET(StringName, library);
     GETSET(real_t, query_frequency, 2.0f)
     GETSET(real_t, transition_halflife, 0.1f)
+    GETSET(float, velocity_change_threshold, 50.0f)
+    GETSET(float, facing_change_threshold, 0.5f)
 
     bool blending_enabled{true};
     bool get_blending_enabled() const;
@@ -34,7 +36,7 @@ protected:
 
 private:
     static Dictionary _output_to_dict(const MMQueryOutput& output);
-
+    bool _should_force_query(const MMQueryInput* p_input, double p_delta_time) const;
     struct AnimationInfo {
         StringName name;
         double length;
@@ -54,6 +56,9 @@ private:
 
     MMQueryOutput _last_query_output;
     float _time_since_last_query{0.f};
+
+    Vector3 _prev_requested_velocity;
+    float _prev_facing;
 };
 
 #endif // MM_ANIMATION_NODE_H

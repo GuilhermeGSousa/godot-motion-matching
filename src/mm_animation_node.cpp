@@ -33,16 +33,25 @@ PackedFloat32Array MMAnimationNode::_process_animation_node(const PackedFloat64A
 
     const bool is_about_to_end = false; // TODO: Implement this
 
+    const MMQueryInput* query_input = Object::cast_to<MMQueryInput>(get_parameter("motion_matching_input"));
+
     // We run queries periodically, or when the animation is about to end
     const bool has_current_animation = !_last_query_output.animation_match.is_empty();
-    const bool should_query = (_time_since_last_query > (1.0 / query_frequency)) || is_about_to_end || !has_current_animation;
+    const bool should_force_query = _should_force_query(query_input, delta_time);
+
+    _prev_requested_velocity = query_input->target_velocity;
+    _prev_facing = query_input->controller_transform.get_basis().get_euler().y;
+
+    const bool should_query =
+        (_time_since_last_query > (1.0 / query_frequency)) ||
+        is_about_to_end ||
+        !has_current_animation ||
+        should_force_query;
 
     if (!should_query) {
         _time_since_last_query += delta_time;
         return _update_current_animation(p_test_only);
     }
-
-    MMQueryInput* query_input = Object::cast_to<MMQueryInput>(get_parameter("motion_matching_input"));
 
     if (!query_input || !query_input->is_valid()) {
         _time_since_last_query += delta_time;
@@ -63,9 +72,10 @@ PackedFloat32Array MMAnimationNode::_process_animation_node(const PackedFloat64A
 
     const bool is_same_animation = query_output.animation_match == _last_query_output.animation_match;
     const bool is_same_time = abs(query_output.time_match - time) < QUERY_TIME_ERROR;
+    const bool should_transition = !is_same_animation || !is_same_time;
 
     // Play selected animation
-    if (!is_same_animation || !is_same_time) {
+    if (should_transition) {
         const String animation_match = query_output.animation_match;
         const float time_match = query_output.time_match;
         if (!p_test_only) {
@@ -246,6 +256,7 @@ void MMAnimationNode::_validate_property(PropertyInfo& p_property) const {
 void MMAnimationNode::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::STRING_NAME, library);
     BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, query_frequency);
+    BINDER_PROPERTY_PARAMS(MMAnimationNode, Variant::FLOAT, velocity_change_threshold);
     ClassDB::bind_method(D_METHOD("get_blending_enabled"), &MMAnimationNode::get_blending_enabled);
     ClassDB::bind_method(D_METHOD("set_blending_enabled", "value"), &MMAnimationNode::set_blending_enabled);
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "blending_enabled"), "set_blending_enabled", "get_blending_enabled");
@@ -263,6 +274,15 @@ Dictionary MMAnimationNode::_output_to_dict(const MMQueryOutput& output) {
     result.get_or_add("total_cost", output.cost);
 
     return result;
+}
+
+bool MMAnimationNode::_should_force_query(const MMQueryInput* p_input, double p_delta_time) const {
+    const Vector3& current_target_velocity = p_input->target_velocity;
+    const Vector3 velocity_change = (current_target_velocity - _prev_requested_velocity) / p_delta_time;
+
+    const float current_facing = p_input->controller_transform.get_basis().get_euler().y;
+    const float facing_change = abs((current_facing - _prev_facing) / p_delta_time);
+    return (velocity_change.length() > velocity_change_threshold) || (facing_change > facing_change_threshold);
 }
 
 bool MMAnimationNode::get_blending_enabled() const {
