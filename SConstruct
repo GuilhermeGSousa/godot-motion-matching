@@ -10,7 +10,7 @@ from SCons.Script import ARGUMENTS
 
 libname = "gdmotionmatching"
 projectdir = "addons/motion_matching"
-double_api_file = "godot-cpp/gdextension/extension_api_double.json"
+double_api_file = "extension_api/extension_api_double.json"
 
 if ARGUMENTS.get("precision", "single") == "double":
     ARGUMENTS["custom_api_file"] = double_api_file
