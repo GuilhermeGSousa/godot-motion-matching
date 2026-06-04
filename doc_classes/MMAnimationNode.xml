@@ -21,5 +21,7 @@
 		<member name="transition_halflife" type="float" setter="set_transition_halflife" getter="get_transition_halflife" default="0.1">
 			The halflife of the transition between animations. This value determines how quickly the node transitions between animations when a new animation is selected.
 		</member>
+		<member name="velocity_change_threshold" type="float" setter="set_velocity_change_threshold" getter="get_velocity_change_threshold" default="50.0">
+		</member>
 	</members>
 </class>

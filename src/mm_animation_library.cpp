@@ -7,6 +7,8 @@
 #include "mm_character.h"
 
 void MMAnimationLibrary::bake_data(const MMCharacter* p_character, const AnimationMixer* p_player, const Skeleton3D* p_skeleton) {
+    ERR_FAIL_COND(features.is_empty());
+
     motion_data.clear();
     db_anim_index.clear();
     db_time_index.clear();
@@ -192,7 +194,7 @@ bool MMAnimationLibrary::needs_baking() const {
 }
 
 void MMAnimationLibrary::_normalize_data(PackedFloat32Array& p_data, size_t p_dim_count) const {
-    ERR_FAIL_COND(p_data.size() % p_dim_count != 0);
+    ERR_FAIL_COND(p_data.is_empty() || (p_data.size() % p_dim_count != 0));
 
     for (int64_t frame_index = 0; frame_index < p_data.size(); frame_index += p_dim_count) {
 
@@ -272,6 +274,8 @@ MMQueryOutput MMAnimationLibrary::_search_naive(const PackedFloat32Array& p_quer
     if (library_name.is_empty()) {
         library_name = get_name() + "/";
     }
+
+    result.matched_pose_index = best_pose_index;
     result.animation_match = library_name + UtilityFunctions::str(animation_list[db_anim_index[best_pose_index]]);
     result.time_match = db_time_index[best_pose_index];
 
@@ -320,6 +324,7 @@ MMQueryOutput MMAnimationLibrary::_search_kd_tree(const PackedFloat32Array& p_qu
     }
     TypedArray<StringName> animation_list = get_animation_list();
 
+    result.matched_pose_index = best_pose_index;
     result.animation_match = library_name + UtilityFunctions::str(animation_list[db_anim_index[best_pose_index]]);
     result.time_match = db_time_index[best_pose_index];
 

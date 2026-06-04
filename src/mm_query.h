@@ -14,6 +14,7 @@
 using namespace godot;
 
 struct MMQueryOutput {
+    int matched_pose_index = -1;
     String animation_match;
     float time_match;
     float cost;
@@ -26,6 +27,8 @@ class MMQueryInput : public RefCounted {
 
 public:
     // Add data required for the query here
+    Vector3 target_velocity;
+    float current_rotation;
     Vector3 controller_velocity;
     Transform3D controller_transform;
     Transform3D character_transform;
