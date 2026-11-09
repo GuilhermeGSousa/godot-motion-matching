@@ -25,6 +25,8 @@ public:
     void bake_data(const MMCharacter* p_character, const AnimationMixer* p_player, const Skeleton3D* p_skeleton);
     MMQueryOutput query(const MMQueryInput& p_query_input);
     int64_t get_dim_count() const;
+    // Length of the part of p_animation that goes into the database (see end_margin).
+    double get_baked_length(const Ref<Animation>& p_animation) const;
     int64_t get_animation_pose_count(String p_animation_name) const;
 
     void display_data(const Ref<EditorNode3DGizmo>& p_gizmo, const Transform3D& p_transform, String p_animation_name, int32_t p_pose_index) const;
@@ -36,6 +38,10 @@ public:
     GETSET(TypedArray<MMFeature>, features)
     GETSET(float, sampling_rate, 1.f)
     GETSET(bool, include_cost_results, false);
+    // Seconds at the end of non-looping clips that are not added to the database. Those poses
+    // have (almost) no future, and matching them leaves the character holding a clip's last
+    // frame while it keeps moving.
+    GETSET(float, end_margin, 0.f);
 
     // Database data
     GETSET(PackedFloat32Array, motion_data)

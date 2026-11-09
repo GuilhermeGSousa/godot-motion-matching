@@ -23,6 +23,9 @@
 			Array of features used to select animation poses in the database.
 			Each feature is a [MMFeature] object that defines what to use to select animation poses. The features are used to compute the similarity between the current pose and the poses in the database.
 		</member>
+		<member name="end_margin" type="float" setter="set_end_margin" getter="get_end_margin" default="0.0">
+			Seconds at the end of non-looping animations that are left out of the database. Those poses have almost no future, so matching them makes the character hold the animation's last frame while it keeps moving. Looping animations are always baked whole.
+		</member>
 		<member name="include_cost_results" type="bool" setter="set_include_cost_results" getter="get_include_cost_results" default="false">
 			If true, the cost results will be included in the motion matching results. This is used to debug the motion matching process, and has increased performance cost.
 		</member>

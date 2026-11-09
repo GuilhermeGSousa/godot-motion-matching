@@ -30,8 +30,11 @@ PackedFloat32Array MMAnimationNode::_process_animation_node(const PackedFloat64A
     _current_animation_info.delta = delta_time;
     _current_animation_info.seeked = p_playback_info[4] > 0.5;
     _current_animation_info.is_external_seeking = p_playback_info[5] > 0.5;
+    // Looping clips (walk / run cycles) keep cycling; only one-shot clips end and force a query.
+    // Otherwise every cycle ends in a cross-fade of the clip with itself.
+    _wrap_time(_current_animation_info);
 
-    const bool has_ended = _current_animation_info.time >= _current_animation_info.length;
+    const bool has_ended = !_current_animation_info.loop && _current_animation_info.time >= _current_animation_info.length;
 
     const MMQueryInput* query_input = Object::cast_to<MMQueryInput>(get_parameter("motion_matching_input"));
 
@@ -71,7 +74,7 @@ PackedFloat32Array MMAnimationNode::_process_animation_node(const PackedFloat64A
     const MMQueryOutput query_output = animation_library->query(*query_input);
 
     const bool is_same_animation = query_output.animation_match == _last_query_output.animation_match;
-    const bool is_same_time = abs(query_output.time_match - time) < QUERY_TIME_ERROR;
+    const bool is_same_time = _time_distance(_current_animation_info, query_output.time_match, _current_animation_info.time) < QUERY_TIME_ERROR;
     const bool should_transition = !is_same_animation || !is_same_time;
 
     // Play selected animation
@@ -99,12 +102,32 @@ void MMAnimationNode::_start_transition(const StringName p_animation, float p_ti
 
     _current_animation_info.name = p_animation;
     _current_animation_info.length = anim->get_length();
+    _current_animation_info.loop = anim->get_loop_mode() == Animation::LOOP_LINEAR;
     _current_animation_info.time = p_time;
     _current_animation_info.weight = blending_enabled ? 0.f : 1.f;
 }
 
+void MMAnimationNode::_wrap_time(AnimationInfo& p_info) {
+    if (p_info.length <= 0.0) {
+        return;
+    }
+    if (p_info.loop) {
+        p_info.time = Math::fposmod(p_info.time, p_info.length);
+    } else {
+        p_info.time = MIN(p_info.time, p_info.length);
+    }
+}
+
+double MMAnimationNode::_time_distance(const AnimationInfo& p_info, double p_a, double p_b) {
+    const double d = Math::abs(p_a - p_b);
+    if (p_info.loop && p_info.length > 0.0) {
+        return MIN(d, p_info.length - d);
+    }
+    return d;
+}
+
 PackedFloat32Array MMAnimationNode::_update_current_animation(bool p_test_only) {
-    const bool will_end =
+    const bool will_end = !_current_animation_info.loop &&
         _current_animation_info.time + _current_animation_info.delta >= _current_animation_info.length;
 
     Spring::_simple_spring_damper_exact(
