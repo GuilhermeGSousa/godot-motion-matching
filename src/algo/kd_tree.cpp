@@ -47,10 +47,6 @@ PackedInt32Array KDTree::get_node_indices() const {
 void KDTree::rebuild_tree(int point_count, const PackedInt32Array& indices) {
     _clear_tree();
 
-    if (_root) {
-        delete _root;
-    }
-
     int value_index = 0;
     _rebuild_tree_recursive(_root, indices, value_index, 0);
 }
@@ -91,6 +87,7 @@ KDTree::TreeNode* KDTree::_build_tree_recursive(const float* data, int* indices,
 
 void KDTree::_clear_tree() {
     _clear_tree_recursive(_root);
+    _root = nullptr;
 }
 
 void KDTree::_clear_tree_recursive(TreeNode* node) {
