@@ -5,20 +5,16 @@
 #include <numeric>
 
 KDTree::KDTree(const float* data, int point_dimension, int point_count)
-    : _point_dim(point_dimension),
-      _root(nullptr) {
+    : _point_dim(point_dimension) {
 
     _build_tree(data, point_dimension, point_count);
 }
 
 KDTree::KDTree(int point_count)
-    : _point_dim(point_count),
-      _root(nullptr) {
+    : _point_dim(point_count) {
 }
 
-KDTree::~KDTree() {
-    _clear_tree();
-}
+KDTree::~KDTree() = default;
 
 int KDTree::search_nn(
     const float* pose_data,
@@ -26,7 +22,7 @@ int KDTree::search_nn(
     const std::vector<float>& dimension_weigths) const {
     float best_distance_squared = std::numeric_limits<float>::max();
     int best_index = -1;
-    _search_nn_recursive(pose_data, query, dimension_weigths, _root, best_distance_squared, best_index, 0);
+    _search_nn_recursive(pose_data, query, dimension_weigths, _root.get(), best_distance_squared, best_index, 0);
     return best_index;
 }
 
@@ -40,12 +36,12 @@ std::vector<int> KDTree::search_knn(const float* pose_data,
 
 PackedInt32Array KDTree::get_node_indices() const {
     PackedInt32Array indices;
-    _get_node_indices_recursive(_root, indices);
+    _get_node_indices_recursive(_root.get(), indices);
     return std::move(indices);
 }
 
 void KDTree::rebuild_tree(int point_count, const PackedInt32Array& indices) {
-    _clear_tree();
+    _root.reset();
 
     int value_index = 0;
     _rebuild_tree_recursive(_root, indices, value_index, 0);
@@ -58,13 +54,13 @@ void KDTree::_build_tree(const float* data, int point_dimension, int point_count
     _root = _build_tree_recursive(data, indices.data(), point_count, 0);
 }
 
-KDTree::TreeNode* KDTree::_build_tree_recursive(const float* data, int* indices, int npoints, int current_depth) {
+std::unique_ptr<KDTree::TreeNode> KDTree::_build_tree_recursive(const float* data, int* indices, int npoints, int current_depth) {
 
     if (npoints <= 0) {
         return nullptr;
     }
 
-    KDTree::TreeNode* node = new KDTree::TreeNode();
+    std::unique_ptr<TreeNode> node = std::make_unique<TreeNode>();
 
     const int axis = current_depth % _point_dim;
     node->axis = axis;
@@ -83,22 +79,6 @@ KDTree::TreeNode* KDTree::_build_tree_recursive(const float* data, int* indices,
     node->children[1] = _build_tree_recursive(data, indices + mid_index + 1, npoints - mid_index - 1, current_depth + 1);
 
     return node;
-}
-
-void KDTree::_clear_tree() {
-    _clear_tree_recursive(_root);
-    _root = nullptr;
-}
-
-void KDTree::_clear_tree_recursive(TreeNode* node) {
-    if (!node) {
-        return;
-    }
-
-    _clear_tree_recursive(node->children[0]);
-    _clear_tree_recursive(node->children[1]);
-
-    delete node;
 }
 
 void KDTree::_search_nn_recursive(
@@ -126,8 +106,8 @@ void KDTree::_search_nn_recursive(
     }
     const int axis = depth % _point_dim;
     const float diff = query[axis] - pose_data[node->index * _point_dim + axis];
-    const TreeNode* near_child = diff < 0 ? node->children[0] : node->children[1];
-    const TreeNode* far_child = diff < 0 ? node->children[1] : node->children[0];
+    const TreeNode* near_child = diff < 0 ? node->children[0].get() : node->children[1].get();
+    const TreeNode* far_child = diff < 0 ? node->children[1].get() : node->children[0].get();
 
     _search_nn_recursive(
         pose_data,
@@ -158,19 +138,17 @@ void KDTree::_get_node_indices_recursive(const TreeNode* node, PackedInt32Array&
     }
 
     indices.push_back(node->index);
-    _get_node_indices_recursive(node->children[0], indices);
-    _get_node_indices_recursive(node->children[1], indices);
+    _get_node_indices_recursive(node->children[0].get(), indices);
+    _get_node_indices_recursive(node->children[1].get(), indices);
 }
 
-void KDTree::_rebuild_tree_recursive(TreeNode*& node, const PackedInt32Array& indices, int& value_index, int current_depth) {
+void KDTree::_rebuild_tree_recursive(std::unique_ptr<TreeNode>& node, const PackedInt32Array& indices, int& value_index, int current_depth) {
     if (value_index >= indices.size() || indices[value_index] == -1) {
         value_index++;
         return;
     }
 
-    node = new TreeNode();
-    node->children[0] = nullptr;
-    node->children[1] = nullptr;
+    node = std::make_unique<TreeNode>();
     node->index = indices[value_index];
     node->axis = current_depth % _point_dim;
 
