@@ -39,43 +39,77 @@ void MMTrajectoryFeature::setup_for_animation(Ref<Animation> animation) {
     _root_rotation_track = animation->find_track(_root_bone_path, Animation::TrackType::TYPE_ROTATION_3D);
 }
 
+// Root transform of p_animation at p_time, for any time. Looping clips repeat their root motion
+// (one cycle's displacement per loop); other clips are extrapolated at the speed of their first /
+// last 0.1 s. Note: sampling a looping clip at exactly its length wraps to the first frame, so
+// the end of a cycle is read from the last key instead.
+static Transform3D _sample_root(const Ref<Animation>& p_animation, int32_t p_pos_track, int32_t p_rot_track, double p_time) {
+    const double length = p_animation->get_length();
+    auto at = [&](double t) {
+        Transform3D xf;
+        if (p_pos_track != -1) {
+            xf.origin = p_animation->position_track_interpolate(p_pos_track, t);
+        }
+        if (p_rot_track != -1) {
+            xf.basis = Basis(p_animation->rotation_track_interpolate(p_rot_track, t));
+        }
+        return xf;
+    };
+    auto last = [&]() {
+        Transform3D xf;
+        if (p_pos_track != -1 && p_animation->track_get_key_count(p_pos_track) > 0) {
+            xf.origin = p_animation->track_get_key_value(p_pos_track, p_animation->track_get_key_count(p_pos_track) - 1);
+        }
+        if (p_rot_track != -1 && p_animation->track_get_key_count(p_rot_track) > 0) {
+            xf.basis = Basis(Quaternion(p_animation->track_get_key_value(p_rot_track, p_animation->track_get_key_count(p_rot_track) - 1)));
+        }
+        return xf;
+    };
+
+    if (p_animation->get_loop_mode() == Animation::LOOP_LINEAR && length > 0.0) {
+        // One cycle: start -> end, applied once per completed loop.
+        const Transform3D cycle = last() * at(0.0).affine_inverse();
+        const double loops = Math::floor(p_time / length);
+        const double local = p_time - loops * length;
+        Transform3D xf = at(local);
+        const Transform3D step = loops >= 0 ? cycle : cycle.affine_inverse();
+        for (int64_t i = 0; i < static_cast<int64_t>(Math::abs(loops)); i++) {
+            xf = step * xf;
+        }
+        return xf;
+    }
+
+    const double extrapolation_dt = 0.1;
+    if (p_time > length) {
+        const Transform3D end = last();
+        const Vector3 velocity = (end.origin - at(length - extrapolation_dt).origin) / extrapolation_dt;
+        return Transform3D(end.basis, end.origin + velocity * (p_time - length));
+    }
+    if (p_time < 0.0) {
+        const Transform3D start = at(0.0);
+        const Vector3 velocity = (start.origin - at(extrapolation_dt).origin) / extrapolation_dt;
+        return Transform3D(start.basis, start.origin + velocity * -p_time);
+    }
+    return at(p_time);
+}
+
 PackedFloat32Array MMTrajectoryFeature::bake_animation_pose(Ref<Animation> p_animation, double time) const {
     PackedFloat32Array result;
 
-    const Vector3 current_pos =
-        _root_position_track == -1 ? Vector3() : p_animation->position_track_interpolate(_root_position_track, time);
+    const Transform3D current = _sample_root(p_animation, _root_position_track, _root_rotation_track, time);
+    const Vector3 current_pos = current.origin;
+    const Quaternion current_rotation = current.basis.get_rotation_quaternion();
 
-    const Quaternion current_rotation =
-        _root_rotation_track == -1 ? Quaternion() : p_animation->rotation_track_interpolate(_root_rotation_track, time);
-
-    const double animation_length = p_animation->get_length();
-    auto add_frame = [this, &result, &p_animation, &current_pos, &current_rotation, &animation_length](double p_time) {
+    auto add_frame = [this, &result, &p_animation, &current_pos, &current_rotation](double p_time) {
+        const Transform3D sample = _sample_root(p_animation, _root_position_track, _root_rotation_track, p_time);
         Vector3 position;
         Quaternion rotation;
-        Vector3 extrapolation_velocity;
-        const double clamped_time = CLAMP(p_time, 0.0, animation_length);
-        const double extrapolation_dt = 0.1;
         if (_root_position_track != -1) {
-            Vector3 interpolated_position = p_animation->position_track_interpolate(_root_position_track, clamped_time);
-            double extrapolation_time = 0.0;
-            if (p_time > animation_length) {
-                extrapolation_velocity = (p_animation->position_track_interpolate(_root_position_track, animation_length) -
-                                          p_animation->position_track_interpolate(_root_position_track, animation_length - extrapolation_dt)) /
-                    extrapolation_dt;
-                extrapolation_time = p_time - animation_length;
-            } else if (p_time < 0) {
-                extrapolation_velocity = (p_animation->position_track_interpolate(_root_position_track, 0.0) -
-                                          p_animation->position_track_interpolate(_root_position_track, extrapolation_dt)) /
-                    extrapolation_dt;
-                extrapolation_time = abs(p_time);
-            }
-
-            position = interpolated_position + extrapolation_velocity * extrapolation_time - current_pos;
-            position = current_rotation.xform_inv(position);
+            position = current_rotation.xform_inv(sample.origin - current_pos);
         }
 
         if (_root_rotation_track != -1) {
-            rotation = p_animation->rotation_track_interpolate(_root_rotation_track, clamped_time) * current_rotation.inverse();
+            rotation = sample.basis.get_rotation_quaternion() * current_rotation.inverse();
         }
 
         result.append(position.x);

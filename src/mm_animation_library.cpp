@@ -41,7 +41,7 @@ void MMAnimationLibrary::bake_data(const MMCharacter* p_character, const Animati
             feature->setup_for_animation(animation);
         }
 
-        const double animation_length = animation->get_length();
+        const double animation_length = get_baked_length(animation);
         const double time_step = 1.0f / get_sampling_rate();
         int pose_count = 0;
         // Every time step
@@ -142,9 +142,17 @@ int64_t MMAnimationLibrary::get_animation_pose_count(String p_animation_name) co
     if (animation.is_null()) {
         return 0;
     };
-    const double animation_length = animation->get_length();
+    const double animation_length = get_baked_length(animation);
     const double time_step = 1.0f / get_sampling_rate();
-    return static_cast<int32_t>(UtilityFunctions::floor(animation_length / time_step));
+    return static_cast<int32_t>(UtilityFunctions::ceil(animation_length / time_step - 1e-6));
+}
+
+double MMAnimationLibrary::get_baked_length(const Ref<Animation>& p_animation) const {
+    const double length = p_animation->get_length();
+    if (p_animation->get_loop_mode() != Animation::LOOP_NONE || end_margin <= 0.f) {
+        return length;
+    }
+    return MAX(length - end_margin, 1.0 / get_sampling_rate());
 }
 
 void MMAnimationLibrary::display_data(const Ref<EditorNode3DGizmo>& p_gizmo, const Transform3D& p_transform, String p_animation_name, int32_t p_pose_index) const {
@@ -347,6 +355,7 @@ void MMAnimationLibrary::_bind_methods() {
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::ARRAY, features, PROPERTY_HINT_TYPE_STRING, UtilityFunctions::str(Variant::OBJECT) + '/' + UtilityFunctions::str(Variant::BASIS) + ":MMFeature");
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::FLOAT, sampling_rate);
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::BOOL, include_cost_results);
+    BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::FLOAT, end_margin);
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_FLOAT32_ARRAY, motion_data, PROPERTY_HINT_NONE, "", DEBUG_PROPERTY_STORAGE_FLAG);
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_INT32_ARRAY, db_anim_index, PROPERTY_HINT_NONE, "", DEBUG_PROPERTY_STORAGE_FLAG);
     BINDER_PROPERTY_PARAMS(MMAnimationLibrary, Variant::PACKED_FLOAT32_ARRAY, db_time_index, PROPERTY_HINT_NONE, "", DEBUG_PROPERTY_STORAGE_FLAG);

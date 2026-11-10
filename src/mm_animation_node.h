@@ -40,18 +40,23 @@ private:
     struct AnimationInfo {
         StringName name;
         double length = -1;
-        double time;
-        double delta;
-        bool seeked;
-        bool is_external_seeking;
-        real_t weight;
-        real_t blend_spring_speed;
+        bool loop = false; // LOOP_LINEAR clip: time wraps instead of ending
+        double time = 0.0;
+        double delta = 0.0;
+        bool seeked = false;
+        bool is_external_seeking = false;
+        real_t weight = 0.0;
+        real_t blend_spring_speed = 0.0;
     };
 
     std::deque<AnimationInfo> _prev_animation_queue;
     AnimationInfo _current_animation_info;
 
     void _start_transition(const StringName p_animation, float p_time);
+    // Wraps looping clips; clamps the others to their length.
+    static void _wrap_time(AnimationInfo& p_info);
+    // Distance between two times of a clip, the short way round for looping clips.
+    static double _time_distance(const AnimationInfo& p_info, double p_a, double p_b);
     PackedFloat32Array _update_current_animation(bool p_test_only);
 
     MMQueryOutput _last_query_output;
