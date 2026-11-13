@@ -39,7 +39,6 @@ void MMCharacter::_update_character(float delta_t) {
     } else {
         set_rotation(Vector3(0.0f, strafe_facing, 0.0f));
     }
-    move_and_slide();
 }
 
 Vector3 MMCharacter::_update_trajectory(float delta_t) {
@@ -57,10 +56,6 @@ Vector3 MMCharacter::_update_trajectory(float delta_t) {
         delta_t);
     Vector3 new_velocity = (Vector3)result[0] + up_velocity;
     _spring_acceleration = result[1];
-
-    if (!is_on_floor()) {
-        new_velocity += get_gravity() * delta_t;
-    }
 
     _generate_trajectory(delta_t);
 
